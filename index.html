@@ -195,7 +195,6 @@
             color: white;
         }
         
-        /* HAUPT-STYLES */
         * {
             margin: 0;
             padding: 0;
@@ -1269,7 +1268,7 @@
                     <div class="section">
                         <div class="section-header"><div class="section-title-main"><div class="section-icon"><i class="fas fa-heartbeat"></i></div>Vitalparameter</div></div>
                         <table class="vital-table">
-                            <thead><tr><th>Parameter</th><th>Wert</th><th>Status</th><th>Normalwert</th></tr></thead>
+                            <thead><tr><th>Parameter</th><th>Wert</th><th>Status</th><th>Normalwert</th> </thead>
                             <tbody>
                                 <tr><td>Puls (bpm)</td><td><input type="number" class="form-input" id="vitalPulse" style="width:85px;"></td><td><span class="badge" id="pulseStatus">-</span></td><td>60–100 bpm</td></tr>
                                 <tr><td>Blutdruck (mmHg)</td><td><div style="display:flex;gap:4px;"><input type="number" class="form-input" id="vitalBpHigh" style="width:85px;"><span>/</span><input type="number" class="form-input" id="vitalBpLow" style="width:85px;"></div></td><td><span class="badge" id="bpStatus">-</span></td><td>110–140 / 60–90 mmHg</td></tr>
@@ -1287,7 +1286,7 @@
                     </div>
                 </div>
                 
-                <!-- Section 2 -->
+                <!-- Section 2 - Psychologische Fragen (25 Stück) -->
                 <div id="section2Tab" class="tab-pane" style="display:none;">
                     <div class="section">
                         <div class="section-header"><div class="section-title-main"><div class="section-icon"><i class="fas fa-brain"></i></div>Abschnitt 2 – Psychologische & Motivationsfragen</div><div class="badge badge-info">nicht für Bewerbungen</div></div>
@@ -1327,7 +1326,7 @@
                     </div>
                 </div>
                 
-                <!-- Section 3 -->
+                <!-- Section 3 - Medizinisches Gutachten -->
                 <div id="section3Tab" class="tab-pane" style="display:none;">
                     <div class="section">
                         <div class="section-header"><div class="section-title-main"><div class="section-icon"><i class="fas fa-file-medical"></i></div>Abschnitt 3 – Medizinisches Gutachten</div></div>
@@ -1347,7 +1346,7 @@
                     </div>
                 </div>
                 
-                <!-- Section 4 -->
+                <!-- Section 4 - Sporttest -->
                 <div id="section4Tab" class="tab-pane" style="display:none;">
                     <div class="section">
                         <div class="section-header"><div class="section-title-main"><div class="section-icon"><i class="fas fa-running"></i></div>Abschnitt 4 – Sporttest</div></div>
@@ -1360,7 +1359,7 @@
                     </div>
                 </div>
                 
-                <!-- Section 5 -->
+                <!-- Section 5 - Situative Fragen -->
                 <div id="section5Tab" class="tab-pane" style="display:none;">
                     <div class="section">
                         <div class="section-header"><div class="section-title-main"><div class="section-icon"><i class="fas fa-comments"></i></div>Abschnitt 5 – Situative Fragen</div><div class="badge badge-info">nicht für Bewerbungen</div></div>
@@ -1412,7 +1411,6 @@
         let autoSaveCountdown = 10;
         let autoSaveInterval = null;
         
-        // ===== DISCORD LOGIN =====
         function redirectToDiscord() {
             const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=identify`;
             window.location.href = authUrl;
@@ -1508,7 +1506,6 @@
             }
         }
         
-        // ===== FIREBASE FUNKTIONEN =====
         async function loadPatients() {
             try {
                 const snap = await db.collection('patients').orderBy('createdAt', 'desc').get();
