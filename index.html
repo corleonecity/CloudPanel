@@ -5,16 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>⚕️ MEDICAL & PSYCHOLOGICAL EVALUATION</title>
     
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
-    
-    <!-- html2canvas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
-    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
@@ -58,7 +51,6 @@
             --transition: all 0.2s ease;
         }
         
-        /* DISCORD LOGIN OVERLAY */
         .discord-overlay {
             position: fixed;
             top: 0;
@@ -1144,27 +1136,19 @@
 <body>
     <div class="background-effects"></div>
     
-    <!-- DISCORD LOGIN OVERLAY -->
     <div id="discordOverlay" class="discord-overlay">
         <div class="discord-container">
-            <div class="discord-logo">
-                <i class="fab fa-discord"></i>
-            </div>
+            <div class="discord-logo"><i class="fab fa-discord"></i></div>
             <h1>S.O.C. Command Center</h1>
             <p>Special Operations Command • Zugang nur für autorisiertes Personal</p>
-            <button id="discordLoginBtn" class="discord-login-btn">
-                <i class="fab fa-discord"></i> Mit Discord anmelden
-            </button>
+            <button id="discordLoginBtn" class="discord-login-btn"><i class="fab fa-discord"></i> Mit Discord anmelden</button>
             <div id="discordError" class="discord-error"></div>
         </div>
     </div>
     
-    <!-- DELETE PASSWORD MODAL -->
     <div id="deletePasswordModal" class="delete-password-modal">
         <div class="delete-password-content">
-            <div class="delete-password-icon">
-                <i class="fas fa-exclamation-triangle"></i>
-            </div>
+            <div class="delete-password-icon"><i class="fas fa-exclamation-triangle"></i></div>
             <h3>Bericht löschen?</h3>
             <p>Bitte geben Sie das Lösch-Passwort ein</p>
             <input type="password" id="deletePassword" class="delete-password-field" placeholder="Lösch-Passwort">
@@ -1182,24 +1166,16 @@
         <header class="app-header">
             <div class="header-content">
                 <div class="brand">
-                    <div class="logo">
-                        <img src="https://i.ibb.co/pBgsjrQZ/APAQ0S-1.png" alt="Logo">
-                    </div>
+                    <div class="logo"><img src="https://i.ibb.co/pBgsjrQZ/APAQ0S-1.png" alt="Logo"></div>
                     <div class="brand-text">
                         <h1>MEDICAL & PSYCHOLOGICAL EVALUATION</h1>
                         <div class="subtitle">U.S.Army • Special Operations Command</div>
                     </div>
                 </div>
                 <div class="header-stats">
-                    <div class="stat-item">
-                        <div class="stat-value" id="totalPatients">0</div>
-                        <div class="stat-label">Gesamt</div>
-                    </div>
+                    <div class="stat-item"><div class="stat-value" id="totalPatients">0</div><div class="stat-label">Gesamt</div></div>
                     <div id="userInfoArea" class="user-info-bar" style="display: none;">
-                        <div class="user-details">
-                            <div class="user-name" id="userName">-</div>
-                            <div class="user-role" id="userRole">-</div>
-                        </div>
+                        <div class="user-details"><div class="user-name" id="userName">-</div><div class="user-role" id="userRole">-</div></div>
                         <img id="userAvatar" class="user-avatar" src="" alt="Avatar">
                         <button id="logoutBtn" class="logout-btn">Abmelden</button>
                     </div>
@@ -1209,13 +1185,8 @@
         
         <aside class="sidebar">
             <h3 class="section-title"><i class="fas fa-archive"></i> Soldatenarchiv</h3>
-            <div class="search-container">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" class="search-input" id="searchPatients" placeholder="Soldaten suchen...">
-            </div>
-            <div class="patient-cards" id="patientCards">
-                <div class="empty-state"><i class="fas fa-users"></i><p>Keine Soldaten gefunden</p><p style="font-size:12px;">Erstellen Sie Ihre erste Akte</p></div>
-            </div>
+            <div class="search-container"><i class="fas fa-search search-icon"></i><input type="text" class="search-input" id="searchPatients" placeholder="Soldaten suchen..."></div>
+            <div class="patient-cards" id="patientCards"><div class="empty-state"><i class="fas fa-users"></i><p>Keine Soldaten gefunden</p></div></div>
             <button class="new-patient-btn" onclick="openNewPatientModal()"><i class="fas fa-plus-circle"></i> Neue Akte</button>
         </aside>
         
@@ -1268,7 +1239,7 @@
                     <div class="section">
                         <div class="section-header"><div class="section-title-main"><div class="section-icon"><i class="fas fa-heartbeat"></i></div>Vitalparameter</div></div>
                         <table class="vital-table">
-                            <thead><tr><th>Parameter</th><th>Wert</th><th>Status</th><th>Normalwert</th> </thead>
+                            <thead> <th>Parameter</th><th>Wert</th><th>Status</th><th>Normalwert</th> </thead>
                             <tbody>
                                 <tr><td>Puls (bpm)</td><td><input type="number" class="form-input" id="vitalPulse" style="width:85px;"></td><td><span class="badge" id="pulseStatus">-</span></td><td>60–100 bpm</td></tr>
                                 <tr><td>Blutdruck (mmHg)</td><td><div style="display:flex;gap:4px;"><input type="number" class="form-input" id="vitalBpHigh" style="width:85px;"><span>/</span><input type="number" class="form-input" id="vitalBpLow" style="width:85px;"></div></td><td><span class="badge" id="bpStatus">-</span></td><td>110–140 / 60–90 mmHg</td></tr>
@@ -1286,7 +1257,7 @@
                     </div>
                 </div>
                 
-                <!-- Section 2 - Psychologische Fragen (25 Stück) -->
+                <!-- Section 2 -->
                 <div id="section2Tab" class="tab-pane" style="display:none;">
                     <div class="section">
                         <div class="section-header"><div class="section-title-main"><div class="section-icon"><i class="fas fa-brain"></i></div>Abschnitt 2 – Psychologische & Motivationsfragen</div><div class="badge badge-info">nicht für Bewerbungen</div></div>
@@ -1326,7 +1297,7 @@
                     </div>
                 </div>
                 
-                <!-- Section 3 - Medizinisches Gutachten -->
+                <!-- Section 3 -->
                 <div id="section3Tab" class="tab-pane" style="display:none;">
                     <div class="section">
                         <div class="section-header"><div class="section-title-main"><div class="section-icon"><i class="fas fa-file-medical"></i></div>Abschnitt 3 – Medizinisches Gutachten</div></div>
@@ -1346,7 +1317,7 @@
                     </div>
                 </div>
                 
-                <!-- Section 4 - Sporttest -->
+                <!-- Section 4 -->
                 <div id="section4Tab" class="tab-pane" style="display:none;">
                     <div class="section">
                         <div class="section-header"><div class="section-title-main"><div class="section-icon"><i class="fas fa-running"></i></div>Abschnitt 4 – Sporttest</div></div>
@@ -1359,7 +1330,7 @@
                     </div>
                 </div>
                 
-                <!-- Section 5 - Situative Fragen -->
+                <!-- Section 5 -->
                 <div id="section5Tab" class="tab-pane" style="display:none;">
                     <div class="section">
                         <div class="section-header"><div class="section-title-main"><div class="section-icon"><i class="fas fa-comments"></i></div>Abschnitt 5 – Situative Fragen</div><div class="badge badge-info">nicht für Bewerbungen</div></div>
