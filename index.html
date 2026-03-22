@@ -19,7 +19,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
     <style>
-        /* ===== VARIABLES ===== */
+        /* ===== VARIABLES - ALTE FARBEN ===== */
         :root {
             --primary: #3b82f6;
             --primary-dark: #2563eb;
@@ -203,7 +203,7 @@
             color: white;
         }
         
-        /* ===== REST DES STYLES ===== */
+        /* ===== REST DES STYLES - DEINE ORIGINALEN STYLES ===== */
         * {
             margin: 0;
             padding: 0;
@@ -1055,6 +1055,165 @@
             to { transform: rotate(360deg); }
         }
         
+        /* ===== REPORT PREVIEW STYLES ===== */
+        #reportPreview {
+            position: fixed;
+            top: -9999px;
+            left: -9999px;
+            width: 1200px;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            padding: 40px;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border-medium);
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .report-preview {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        .report-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 20px;
+        }
+        
+        .report-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+        
+        .report-header h2 {
+            font-size: 22px;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .report-subheader {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        .report-section {
+            background: #2d3a4f;
+            border: 1px solid var(--border-medium);
+            border-left: 4px solid var(--primary);
+            border-radius: var(--radius-lg);
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .report-section h3 {
+            color: var(--primary);
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-medium);
+            padding-bottom: 10px;
+        }
+        
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        
+        .report-item {
+            margin-bottom: 15px;
+        }
+        
+        .report-label {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        
+        .report-value {
+            color: var(--text-primary);
+            font-size: 14px;
+            background: var(--bg-input);
+            padding: 10px 15px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-light);
+            word-wrap: break-word;
+        }
+        
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: var(--bg-input);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+        
+        .report-table th {
+            background: var(--primary-soft);
+            color: var(--primary);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            border-bottom: 1px solid var(--primary);
+        }
+        
+        .report-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text-secondary);
+        }
+        
+        .report-signature {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        
+        .report-signature-left {
+            flex: 1;
+        }
+        
+        .report-signature-line {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .report-signature-name {
+            font-size: 20px;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+        
+        .report-signature-date {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        
+        .report-badge {
+            background: var(--primary-soft);
+            color: var(--primary);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 14px;
+            border: 1px solid var(--primary);
+        }
+        
         /* ===== DELETE PASSWORD MODAL ===== */
         .delete-password-modal {
             display: none;
@@ -1186,7 +1345,7 @@
         </div>
     </div>
     
-    <!-- REPORT PREVIEW -->
+    <!-- REPORT PREVIEW (unsichtbar, für PNG-Export) -->
     <div id="reportPreview"></div>
     
     <!-- Main App Container -->
@@ -1196,7 +1355,7 @@
             <div class="header-content">
                 <div class="brand">
                     <div class="logo">
-                        <img src="https://i.ibb.co/pBgsjrQZ/APAQ0S-1.png" alt="Logo">
+                        <a href="https://ibb.co/Hf0MTpCY"><img src="https://i.ibb.co/pBgsjrQZ/APAQ0S-1.png" alt="APAQ0S-1" border="0" /></a>
                     </div>
                     <div class="brand-text">
                         <h1>MEDICAL & PSYCHOLOGICAL EVALUATION</h1>
@@ -1225,17 +1384,20 @@
             <h3 class="section-title">
                 <i class="fas fa-archive"></i> Soldatenarchiv
             </h3>
+            
             <div class="search-container">
                 <i class="fas fa-search search-icon"></i>
                 <input type="text" class="search-input" id="searchPatients" placeholder="Soldaten suchen...">
             </div>
+            
             <div class="patient-cards" id="patientCards">
-                <div class="empty-state">
+                <div class="empty-state" id="emptyPatientList">
                     <i class="fas fa-users"></i>
                     <p>Keine Soldaten gefunden</p>
                     <p style="font-size: 12px; margin-top: 6px;">Erstellen Sie Ihre erste Akte</p>
                 </div>
             </div>
+            
             <button class="new-patient-btn" onclick="openNewPatientModal()">
                 <i class="fas fa-plus-circle"></i> Neue Akte
             </button>
@@ -1243,6 +1405,7 @@
         
         <!-- Main Content -->
         <main class="main-content">
+            <!-- Patient Header -->
             <div class="content-header" id="patientHeader" style="display: none;">
                 <div class="patient-info">
                     <h2 id="currentPatientName">Patient auswählen</h2>
@@ -1282,6 +1445,7 @@
                 </div>
             </div>
             
+            <!-- Tabs -->
             <div class="tabs-container">
                 <div class="tabs">
                     <button class="tab active" data-tab="section1">Abschnitt 1</button>
@@ -1292,8 +1456,9 @@
                 </div>
             </div>
             
+            <!-- Tab Contents - ALLE 5 SEKTIONEN VOLLSTÄNDIG AUS DEINER ORIGINALDATEI -->
             <div class="tab-content" id="tabContent">
-                <!-- Section 1 -->
+                <!-- Section 1 - Informationen & Vitalparameter (VOLLSTÄNDIG) -->
                 <div id="section1Tab" class="tab-pane active">
                     <div class="section">
                         <div class="section-header">
@@ -1302,6 +1467,7 @@
                                 Abschnitt 1 – Informationen
                             </div>
                         </div>
+                        
                         <div class="form-grid">
                             <div class="form-group">
                                 <label class="form-label">Bericht Titel:</label>
@@ -1324,12 +1490,14 @@
                                 <input type="text" class="form-input" id="examinerName" placeholder="Name des Untersuchers">
                             </div>
                         </div>
+                        
                         <div class="form-group" style="margin-top: 20px;">
                             <label class="form-label">Allgemeiner Eindruck:</label>
                             <textarea class="question-input" id="generalImpression" placeholder="Allgemeiner Eindruck des Soldaten..."></textarea>
                         </div>
                     </div>
                     
+                    <!-- Vital Parameters -->
                     <div class="section">
                         <div class="section-header">
                             <div class="section-title-main">
@@ -1337,11 +1505,14 @@
                                 Vitalparameter
                             </div>
                         </div>
+                        
                         <table class="vital-table">
-                            <thead><tr><th>Parameter</th><th>Wert</th><th>Status</th><th>Normalwert / Hinweise</th></tr></thead>
+                            <thead>
+                                <tr><th>Parameter</th><th>Wert</th><th>Status</th><th>Normalwert / Hinweise</th></tr>
+                            </thead>
                             <tbody>
                                 <tr><td>Puls (bpm)</td><td><input type="number" class="form-input" id="vitalPulse" style="width:85px;"></td><td><span class="badge" id="pulseStatus">-</span></td><td>60–100 bpm</td></tr>
-                                <tr><td>Blutdruck (mmHg)</td><td><div style="display:flex;gap:4px;"><input type="number" class="form-input" id="vitalBpHigh" style="width:85px;"><span>/</span><input type="number" class="form-input" id="vitalBpLow" style="width:85px;"></div></td><td><span class="badge" id="bpStatus">-</span></td><td>110–140 / 60–90 mmHg</td></tr>
+                                <tr><td>Blutdruck (mmHg)</td><td><div style="display:flex;gap:4px;"><input type="number" class="form-input" id="vitalBpHigh" style="width:85px;"><span style="align-self:center;">/</span><input type="number" class="form-input" id="vitalBpLow" style="width:85px;"></div></td><td><span class="badge" id="bpStatus">-</span></td><td>110–140 / 60–90 mmHg</td></tr>
                                 <tr><td>Körperkerntemperatur (°C)</td><td><input type="number" class="form-input" id="vitalTemp" step="0.1" style="width:85px;"></td><td><span class="badge" id="tempStatus">-</span></td><td>36,5–37,4 °C</td></tr>
                                 <tr><td>Atemfrequenz</td><td><input type="number" class="form-input" id="vitalRespiration" style="width:85px;"></td><td><span class="badge" id="respStatus">-</span></td><td>12–20 Atemzüge/min</td></tr>
                                 <tr><td>Sauerstoffsättigung (SpO2)</td><td><input type="number" class="form-input" id="vitalOxygen" style="width:85px;"></td><td><span class="badge" id="oxygenStatus">-</span></td><td>95–100%</td></tr>
@@ -1349,6 +1520,7 @@
                                 <tr><td>Gewicht (kg)</td><td><input type="number" class="form-input" id="vitalWeight" style="width:85px;"></td><td><span class="badge" id="bmiStatus">-</span></td><td>nur zur Dokumentation</td></tr>
                             </tbody>
                         </table>
+                        
                         <div class="form-group" style="margin-top:20px;">
                             <label class="form-label">Fitness-Eindruck:</label>
                             <div class="checkbox-group">
@@ -1356,45 +1528,252 @@
                                 <label class="checkbox-label"><input type="checkbox" name="fitness" value="average"> Durchschnittlich</label>
                                 <label class="checkbox-label"><input type="checkbox" name="fitness" value="weak"> Schwach</label>
                             </div>
+                            <div class="text-secondary" style="margin-top:8px; font-size:12px;">
+                                Dünn/Untergewichtig: BMI &lt; 18,5 | Normal: BMI 18,6–24,9 | Übergewichtig: BMI ≥ 25
+                            </div>
                         </div>
+                        
                         <div class="form-grid" style="margin-top:20px;">
-                            <div class="form-group"><label class="form-label">Letzte Mahlzeit (Stunden):</label><input type="number" class="form-input" id="lastMeal"></div>
-                            <div class="form-group"><label class="form-label">Allergien / Medikamente:</label><textarea class="form-input" id="allergies" style="min-height:50px;"></textarea></div>
+                            <div class="form-group">
+                                <label class="form-label">Letzte Mahlzeit (Stunden):</label>
+                                <input type="number" class="form-input" id="lastMeal">
+                                <div class="text-secondary" style="margin-top:4px; font-size:11px;">
+                                    0–6 Std. normal - Längere Fastenzeit kann Stress/Müdigkeit verstärken
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Allergien / Medikamente:</label>
+                                <textarea class="form-input" id="allergies" style="min-height:50px;" placeholder="Achten auf Allergien, die den Dienst behindern"></textarea>
+                            </div>
                         </div>
+                        
                         <div class="form-grid" style="margin-top:20px;">
-                            <div class="form-group"><label class="form-label">Aktuelle Verletzungen / Narben:</label><textarea class="form-input" id="injuries" style="min-height:50px;"></textarea></div>
-                            <div class="form-group"><label class="form-label">Mobilität:</label><div class="checkbox-group"><label class="checkbox-label"><input type="checkbox" name="mobility" value="normal"> Normal</label><label class="checkbox-label"><input type="checkbox" name="mobility" value="limited"> Eingeschränkt</label></div></div>
+                            <div class="form-group">
+                                <label class="form-label">Aktuelle Verletzungen / Narben:</label>
+                                <textarea class="form-input" id="injuries" style="min-height:50px;"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Mobilität:</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-label"><input type="checkbox" name="mobility" value="normal"> Normal</label>
+                                    <label class="checkbox-label"><input type="checkbox" name="mobility" value="limited"> Eingeschränkt</label>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group" style="margin-top:20px;"><label class="form-label">Andere Befunde:</label><textarea class="question-input" id="otherFindings"></textarea></div>
+                        
+                        <div class="form-group" style="margin-top:20px;">
+                            <label class="form-label">Andere Befunde:</label>
+                            <textarea class="question-input" id="otherFindings" placeholder="Zusätzliche Beobachtungen..."></textarea>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Section 2-5 (verkürzt, da identisch mit deiner Datei) -->
-                <div id="section2Tab" class="tab-pane" style="display:none;"><div class="section"><div class="section-header"><div class="section-title-main"><div class="section-icon"><i class="fas fa-brain"></i></div>Abschnitt 2 – Psychologische & Motivationsfragen</div><div class="badge badge-info">nicht für Bewerbungen</div></div><div class="questions-grid"><div class="question-card"><div class="question-text">1. Persönlichkeit & Hintergrund</div></div><div class="question-card"><div class="question-text">Wie würden Sie Ihre wichtigsten Charaktereigenschaften beschreiben?</div><textarea class="question-input" data-question="psych_1"></textarea></div><div class="question-card"><div class="question-text">Gab es in Ihrem Leben Ereignisse, die Sie nachhaltig geprägt haben?</div><textarea class="question-input" data-question="psych_2"></textarea></div><div class="question-card"><div class="question-text">Welche Ziele verfolgen Sie langfristig in Ihrem Leben?</div><textarea class="question-input" data-question="psych_3"></textarea></div></div></div></div>
-                <div id="section3Tab" class="tab-pane" style="display:none;"><div class="section"><div class="section-header"><div class="section-title-main"><div class="section-icon"><i class="fas fa-file-medical"></i></div>Abschnitt 3 – Medizinisches Gutachten</div></div><div class="questions-grid"><div class="question-card"><div class="question-text">Nehmen Sie regelmäßig Medikamente ein?</div><textarea class="question-input" data-question="med1"></textarea></div><div class="question-card"><div class="question-text">Haben Sie in letzter Zeit Gewichtsab-/Zunahme bemerkt?</div><textarea class="question-input" data-question="med2"></textarea></div></div></div></div>
-                <div id="section4Tab" class="tab-pane" style="display:none;"><div class="section"><div class="section-header"><div class="section-title-main"><div class="section-icon"><i class="fas fa-running"></i></div>Abschnitt 4 – Sporttest</div></div><div class="questions-grid"><div class="question-card"><div class="question-text">1. 15x Push-Ups (Ergebnis)</div><select class="question-input" data-question="fit1"><option value="">Ergebnis auswählen</option><option value="excellent">Ausgezeichnet (15)</option><option value="good">Gut (10-14)</option></select></div></div></div></div>
-                <div id="section5Tab" class="tab-pane" style="display:none;"><div class="section"><div class="section-header"><div class="section-title-main"><div class="section-icon"><i class="fas fa-comments"></i></div>Abschnitt 5 – Situative Fragen</div></div><div class="questions-grid"><div class="question-card"><div class="question-text">1. Waren Sie mit den letzten Einsätzen zufrieden?</div><textarea class="question-input" data-question="sit1"></textarea></div></div></div></div>
+                <!-- Section 2 – Psychologische & Motivationsfragen (VOLLSTÄNDIG) -->
+                <div id="section2Tab" class="tab-pane" style="display:none;">
+                    <div class="section">
+                        <div class="section-header">
+                            <div class="section-title-main">
+                                <div class="section-icon"><i class="fas fa-brain"></i></div>
+                                Abschnitt 2 – Psychologische & Motivationsfragen
+                            </div>
+                            <div class="badge badge-info">nicht für Bewerbungen</div>
+                        </div>
+                        
+                        <div class="info-text" style="margin-bottom:20px; color:var(--text-secondary); font-size:14px; background:var(--bg-input); padding:15px; border-radius:var(--radius-md);">
+                            Nachfolgende Fragen dienen der Einschätzung der Motivation, Teamfähigkeit des Soldaten. (Es müssen nicht alle abgearbeitet werden)
+                        </div>
+                        
+                        <div class="questions-grid">
+                            <!-- 1. Persönlichkeit & Hintergrund -->
+                            <div class="question-card"><div class="question-text" style="color:var(--primary);">1. Persönlichkeit & Hintergrund</div></div>
+                            <div class="question-card"><div class="question-text">Wie würden Sie Ihre wichtigsten Charaktereigenschaften beschreiben?</div><textarea class="question-input" data-question="psych_1"></textarea></div>
+                            <div class="question-card"><div class="question-text">Gab es in Ihrem Leben Ereignisse, die Sie nachhaltig geprägt haben?</div><textarea class="question-input" data-question="psych_2"></textarea></div>
+                            <div class="question-card"><div class="question-text">Welche Ziele verfolgen Sie langfristig in Ihrem Leben?</div><textarea class="question-input" data-question="psych_3"></textarea></div>
+                            
+                            <!-- 2. Emotionale Stabilität -->
+                            <div class="question-card"><div class="question-text" style="color:var(--primary);">2. Emotionale Stabilität</div></div>
+                            <div class="question-card"><div class="question-text">Wie reagieren Sie, wenn Sie plötzlich unter starken Druck geraten?</div><textarea class="question-input" data-question="psych_4"></textarea></div>
+                            <div class="question-card"><div class="question-text">Haben Sie Schwierigkeiten, wieder zur Ruhe zu kommen, wenn Sie gestresst sind?</div><textarea class="question-input" data-question="psych_5"></textarea></div>
+                            <div class="question-card"><div class="question-text">Haben Sie Albträume oder Schlafstörungen?</div><textarea class="question-input" data-question="psych_6"></textarea></div>
+                            <div class="question-card"><div class="question-text">Können Sie starke negative Gefühle bewusst kontrollieren?</div><textarea class="question-input" data-question="psych_7"></textarea></div>
+                            
+                            <!-- 3. Aggressionskontrolle -->
+                            <div class="question-card"><div class="question-text" style="color:var(--primary);">3. Aggressionskontrolle</div></div>
+                            <div class="question-card"><div class="question-text">Wie gehen Sie mit Situationen um, in denen Sie wütend werden?</div><textarea class="question-input" data-question="psych_8"></textarea></div>
+                            <div class="question-card"><div class="question-text">Haben Sie schon einmal die Kontrolle über Ihr Verhalten verloren?</div><textarea class="question-input" data-question="psych_9"></textarea></div>
+                            <div class="question-card"><div class="question-text">Können Sie in Konflikten ruhig bleiben, selbst wenn Sie provoziert werden?</div><textarea class="question-input" data-question="psych_10"></textarea></div>
+                            <div class="question-card"><div class="question-text">Was war die schwierigste Situation, in der Sie Ihre Aggressionen beherrschen mussten?</div><textarea class="question-input" data-question="psych_11"></textarea></div>
+                            <div class="question-card"><div class="question-text">Wie reagieren Sie auf Respektlosigkeit oder Beleidigungen?</div><textarea class="question-input" data-question="psych_12"></textarea></div>
+                            
+                            <!-- 4. Teamfähigkeit & Disziplin -->
+                            <div class="question-card"><div class="question-text" style="color:var(--primary);">4. Teamfähigkeit & Disziplin</div></div>
+                            <div class="question-card"><div class="question-text">Welche Rolle übernehmen Sie üblicherweise in einem Team?</div><textarea class="question-input" data-question="psych_13"></textarea></div>
+                            <div class="question-card"><div class="question-text">Können Sie Entscheidungen akzeptieren, auch wenn Sie anderer Meinung sind?</div><textarea class="question-input" data-question="psych_14"></textarea></div>
+                            <div class="question-card"><div class="question-text">Haben Sie Probleme mit Autoritätspersonen?</div><textarea class="question-input" data-question="psych_15"></textarea></div>
+                            <div class="question-card"><div class="question-text">Wie würden Sie Ihr Verantwortungsbewusstsein beschreiben?</div><textarea class="question-input" data-question="psych_16"></textarea></div>
+                            
+                            <!-- 5. Moral & Entscheidungsfindung -->
+                            <div class="question-card"><div class="question-text" style="color:var(--primary);">5. Moral & Entscheidungsfindung</div></div>
+                            <div class="question-card"><div class="question-text">Wo ziehen Sie Ihre persönlichen moralischen Grenzen im Einsatz?</div><textarea class="question-input" data-question="psych_17"></textarea></div>
+                            <div class="question-card"><div class="question-text">Können Sie harte Entscheidungen treffen, wenn die Situation es erfordert?</div><textarea class="question-input" data-question="psych_18"></textarea></div>
+                            <div class="question-card"><div class="question-text">Wie gehen Sie mit Schuldgefühlen nach schwierigen Entscheidungen um?</div><textarea class="question-input" data-question="psych_19"></textarea></div>
+                            <div class="question-card"><div class="question-text">Was ist für Sie wichtiger: der Auftrag oder das Gewissen?</div><textarea class="question-input" data-question="psych_20"></textarea></div>
+                            
+                            <!-- 6. Psychische Gesundheit -->
+                            <div class="question-card"><div class="question-text" style="color:var(--primary);">6. Psychische Gesundheit</div></div>
+                            <div class="question-card"><div class="question-text">Haben Sie jemals psychologische Hilfe in Anspruch genommen?</div><textarea class="question-input" data-question="psych_21"></textarea></div>
+                            <div class="question-card"><div class="question-text">Haben Sie in letzter Zeit Veränderungen in Ihrer Stimmung oder Ihrem Denken bemerkt?</div><textarea class="question-input" data-question="psych_22"></textarea></div>
+                            <div class="question-card"><div class="question-text">Leiden Sie unter Angst, Panik oder depressiven Phasen?</div><textarea class="question-input" data-question="psych_23"></textarea></div>
+                            <div class="question-card"><div class="question-text">Konsumieren Sie Substanzen zur Stressbewältigung?</div><textarea class="question-input" data-question="psych_24"></textarea></div>
+                            <div class="question-card"><div class="question-text">Haben / hatten Sie negative Gedanken anderen oder Ihnen selbst gegenüber?</div><textarea class="question-input" data-question="psych_25"></textarea></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Section 3 – Medizinisches Gutachten (VOLLSTÄNDIG) -->
+                <div id="section3Tab" class="tab-pane" style="display:none;">
+                    <div class="section">
+                        <div class="section-header">
+                            <div class="section-title-main">
+                                <div class="section-icon"><i class="fas fa-file-medical"></i></div>
+                                Abschnitt 3 – Medizinisches Gutachten
+                            </div>
+                        </div>
+                        
+                        <div class="questions-grid">
+                            <!-- 1. Allgemeiner Gesundheitszustand -->
+                            <div class="question-card"><div class="question-text" style="color:var(--primary);">1. Allgemeiner Gesundheitszustand</div></div>
+                            <div class="question-card"><div class="question-text">Nehmen Sie regelmäßig Medikamente ein?</div><textarea class="question-input" data-question="med1"></textarea></div>
+                            <div class="question-card"><div class="question-text">Haben Sie in letzter Zeit Gewichtsab-/Zunahme bemerkt?</div><textarea class="question-input" data-question="med2"></textarea></div>
+                            
+                            <!-- 2. Verletzungshistorie -->
+                            <div class="question-card"><div class="question-text" style="color:var(--primary);">2. Verletzungshistorie</div></div>
+                            <div class="question-card"><div class="question-text">Haben Sie in der Vergangenheit Knochenbrüche, Operationen oder schwere Verletzungen erlitten?</div><textarea class="question-input" data-question="med3"></textarea></div>
+                            <div class="question-card"><div class="question-text">Wurden Sie jemals ohnmächtig oder haben Sie Bewusstseinsverluste erlebt?</div><textarea class="question-input" data-question="med4"></textarea></div>
+                            <div class="question-card"><div class="question-text">Haben Sie Probleme mit dem Gleichgewicht, Schwindel oder Koordinationsstörungen?</div><textarea class="question-input" data-question="med5"></textarea></div>
+                            
+                            <!-- 3. Substanzen & Abhängigkeiten -->
+                            <div class="question-card"><div class="question-text" style="color:var(--primary);">3. Substanzen & Abhängigkeiten</div></div>
+                            <div class="question-card"><div class="question-text">Konsumieren Sie Alkohol oder andere psychoaktive Stoffe?</div><textarea class="question-input" data-question="med6"></textarea></div>
+                            <div class="question-card"><div class="question-text">Wurden Sie jemals wegen Drogen- oder Alkoholmissbrauchs behandelt?</div><textarea class="question-input" data-question="med7"></textarea></div>
+                            <div class="question-card"><div class="question-text">Gibt es in Ihrer Familie bekannte Suchterkrankungen?</div><textarea class="question-input" data-question="med8"></textarea></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Section 4 – Sporttest (VOLLSTÄNDIG) -->
+                <div id="section4Tab" class="tab-pane" style="display:none;">
+                    <div class="section">
+                        <div class="section-header">
+                            <div class="section-title-main">
+                                <div class="section-icon"><i class="fas fa-running"></i></div>
+                                Abschnitt 4 – Sporttest (am Sportplatz ausführen)
+                            </div>
+                        </div>
+                        
+                        <div class="questions-grid">
+                            <div class="question-card">
+                                <div class="question-text">1. 15x Push-Ups (Ergebnis)</div>
+                                <select class="question-input" data-question="fit1">
+                                    <option value="">Ergebnis auswählen</option>
+                                    <option value="excellent">Ausgezeichnet (15)</option>
+                                    <option value="good">Gut (10-14)</option>
+                                    <option value="average">Durchschnittlich (5-9)</option>
+                                    <option value="poor">Schwach (1-4)</option>
+                                    <option value="failed">Durchgefallen (0)</option>
+                                </select>
+                            </div>
+                            <div class="question-card">
+                                <div class="question-text">2. 10x Sit-Ups (Ergebnis)</div>
+                                <select class="question-input" data-question="fit2">
+                                    <option value="">Ergebnis auswählen</option>
+                                    <option value="excellent">Ausgezeichnet (10)</option>
+                                    <option value="good">Gut (7-9)</option>
+                                    <option value="average">Durchschnittlich (4-6)</option>
+                                    <option value="poor">Schwach (1-3)</option>
+                                    <option value="failed">Durchgefallen (0)</option>
+                                </select>
+                            </div>
+                            <div class="question-card">
+                                <div class="question-text">3. 10x Burpee (Ergebnis)</div>
+                                <select class="question-input" data-question="fit3">
+                                    <option value="">Ergebnis auswählen</option>
+                                    <option value="excellent">Ausgezeichnet (10)</option>
+                                    <option value="good">Gut (7-9)</option>
+                                    <option value="average">Durchschnittlich (4-6)</option>
+                                    <option value="poor">Schwach (1-3)</option>
+                                    <option value="failed">Durchgefallen (0)</option>
+                                </select>
+                            </div>
+                            <div class="question-card">
+                                <div class="question-text">4. 2 Runden rennen</div>
+                                <input type="number" class="question-input" data-question="fit4" placeholder="z.B. 120">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Section 5 – Situative Fragen (VOLLSTÄNDIG) -->
+                <div id="section5Tab" class="tab-pane" style="display:none;">
+                    <div class="section">
+                        <div class="section-header">
+                            <div class="section-title-main">
+                                <div class="section-icon"><i class="fas fa-comments"></i></div>
+                                Abschnitt 5 – Situative Fragen für Einsätze
+                            </div>
+                            <div class="badge badge-info">nicht für Bewerbungen</div>
+                        </div>
+                        
+                        <div class="questions-grid">
+                            <div class="question-card">
+                                <div class="question-text">1. Waren Sie mit den letzten Einsätzen zufrieden?</div>
+                                <textarea class="question-input" data-question="sit1" style="min-height:90px;" placeholder=""></textarea>
+                            </div>
+                            <div class="question-card">
+                                <div class="question-text">2. Gibt es bestimmte Situationen im Dienst, die Sie besonders stören?</div>
+                                <textarea class="question-input" data-question="sit2" style="min-height:90px;" placeholder=""></textarea>
+                            </div>
+                            <div class="question-card">
+                                <div class="question-text">3. Selbstreflektion des Einsatzes/der normalen Unitarbeit.</div>
+                                <textarea class="question-input" data-question="sit3" style="min-height:120px;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
     
+    <!-- New Patient Modal -->
     <div id="newPatientModal" class="modal">
         <div class="modal-content">
-            <h2><i class="fas fa-user-plus"></i> Neue Soldatenakte</h2>
-            <div><label class="modal-label">Name des Soldaten:</label><input type="text" class="modal-input" id="newPatientName"></div>
-            <div><button class="btn btn-secondary" onclick="closeModal('newPatientModal')">Abbrechen</button><button class="btn btn-primary" onclick="createPatient()">Akte erstellen</button></div>
+            <h2 style="margin-bottom:20px; display:flex; align-items:center; gap:10px; font-size:18px;">
+                <i class="fas fa-user-plus"></i> Neue Soldatenakte
+            </h2>
+            <div>
+                <label class="modal-label">Name des Soldaten:</label>
+                <input type="text" class="modal-input" id="newPatientName" placeholder="Vorname Nachname">
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:24px;">
+                <button class="btn btn-secondary" onclick="closeModal('newPatientModal')">Abbrechen</button>
+                <button class="btn btn-primary" onclick="createPatient()"><i class="fas fa-plus-circle"></i> Akte erstellen</button>
+            </div>
         </div>
     </div>
-    
-    <div id="autoSaveIndicator" class="auto-save-indicator" style="display: none;"><div class="auto-save-spinner"></div><span id="autoSaveText">Autospeichern in 10s...</span></div>
-    
+
+    <!-- Auto-Save Indicator -->
+    <div id="autoSaveIndicator" class="auto-save-indicator" style="display: none;">
+        <div class="auto-save-spinner"></div>
+        <span id="autoSaveText">Autospeichern in 10s...</span>
+    </div>
+
     <script>
         // ===== DISCORD OAUTH KONFIGURATION =====
         const CLIENT_ID = '1432942180770644079';
         const REDIRECT_URI = encodeURIComponent('https://corleonecity.github.io/S.O.C/');
-        const WORKER_URL = 'https://discord-oauth.ehrlichcolin2.workers.dev';  // ✅ HIER MIT https://
+        const WORKER_URL = 'https://discord-oauth.ehrlichcolin2.workers.dev';
         
-        // ===== LÖSCH-PASSWORT (bleibt für Berichtslöschung) =====
+        // ===== LÖSCH-PASSWORT =====
         const DELETE_PASSWORD = "L0sch3n_2024#S3cur3";
         
         // ===== FIREBASE =====
@@ -1417,6 +1796,7 @@
         let currentReportId = null;
         let autoSaveCountdown = 10;
         let autoSaveInterval = null;
+        let isSaving = false;
         
         // ===== DISCORD LOGIN FUNKTIONEN =====
         function redirectToDiscord() {
@@ -1517,25 +1897,33 @@
             }
         }
         
-        // ===== FIREBASE FUNKTIONEN (gekürzt, da identisch) =====
+        // ===== FIREBASE FUNKTIONEN (DEINE ORIGINALEN) =====
         async function loadPatients() {
             try {
                 const snap = await db.collection('patients').orderBy('createdAt', 'desc').get();
                 patients = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderPatientList();
                 updateStats();
-            } catch (e) { loadMockPatients(); }
+            } catch (e) { 
+                console.error('Fehler', e); 
+                loadMockPatients(); 
+            }
         }
         
         async function savePatient(p) {
-            try { await db.collection('patients').doc(p.id).set(p); return true; }
-            catch (e) { return false; }
+            try { 
+                await db.collection('patients').doc(p.id).set(p); 
+                return true; 
+            } catch (e) { 
+                console.error('Fehler beim Speichern:', e); 
+                return false; 
+            }
         }
         
         function renderPatientList() {
             const container = document.getElementById('patientCards');
             if (!patients.length) {
-                container.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>Keine Soldaten gefunden</p></div>';
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>Keine Soldaten gefunden</p><p style="font-size:12px;">Erstellen Sie Ihre erste Akte</p></div>';
                 return;
             }
             container.innerHTML = '';
@@ -1543,7 +1931,19 @@
                 const card = document.createElement('div');
                 card.className = `patient-card ${currentPatient?.id === p.id ? 'active' : ''}`;
                 card.onclick = () => selectPatient(p, card);
-                card.innerHTML = `<div class="patient-header"><div class="patient-name">${p.fullName}</div><div class="patient-id">${p.id}</div></div><div class="patient-details">Erstellt: ${new Date(p.createdAt).toLocaleDateString()}</div><div class="patient-report-count"><i class="fas fa-file-medical"></i> ${p.reports?.length || 0} Bericht(e)</div>`;
+                card.innerHTML = `
+                    <div class="patient-header">
+                        <div class="patient-name">${p.fullName}</div>
+                        <div class="patient-id">${p.id}</div>
+                    </div>
+                    <div class="patient-details">
+                        <div>Erstellt: ${new Date(p.createdAt).toLocaleDateString()}</div>
+                        <div>Letzte: ${p.lastReportDate ? new Date(p.lastReportDate).toLocaleDateString() : '-'}</div>
+                    </div>
+                    <div class="patient-report-count">
+                        <i class="fas fa-file-medical"></i> ${p.reports?.length || 0} Bericht(e)
+                    </div>
+                `;
                 container.appendChild(card);
             });
         }
@@ -1565,26 +1965,40 @@
             updateReportSelector();
             if (p.reports?.length) loadReport(p.reports[p.reports.length-1].id);
             else clearForm();
+            resetAutoSave();
         }
         
         function updateReportSelector() {
             const sel = document.getElementById('reportSelector');
-            sel.innerHTML = '<option value="">Bericht auswählen...</option>';
-            if (!currentPatient?.reports?.length) return;
+            sel.innerHTML = '';
+            if (!currentPatient?.reports?.length) {
+                sel.innerHTML = '<option value="">Keine Berichte</option>';
+                return;
+            }
             [...currentPatient.reports].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(r => {
                 const opt = document.createElement('option');
                 opt.value = r.id;
-                opt.textContent = `${new Date(r.date).toLocaleDateString()} - ${r.examiner || 'Unbekannt'}`;
+                const d = r.formData?.date ? new Date(r.formData.date) : new Date(r.date);
+                const title = r.reportTitle ? `[${r.reportTitle}] ` : '';
+                opt.textContent = `${d.toLocaleDateString()} - ${title}${r.examiner || 'Unbekannt'}`;
                 sel.appendChild(opt);
             });
-            if (currentReportId) sel.value = currentReportId;
+            if (currentReportId && [...sel.options].some(o => o.value === currentReportId)) {
+                sel.value = currentReportId;
+            } else if (currentPatient.reports.length) {
+                sel.value = currentPatient.reports[currentPatient.reports.length-1].id;
+                currentReportId = sel.value;
+            }
         }
         
         function loadReport(id) {
+            if (!currentPatient?.reports) return;
             const r = currentPatient.reports.find(r => r.id === id);
             if (!r) return;
+            
             currentReportId = id;
             document.getElementById('currentExaminerDisplay').textContent = r.examiner || '-';
+            
             document.getElementById('reportTitle').value = r.reportTitle || '';
             document.getElementById('patientName').value = r.formData?.name || currentPatient.fullName;
             document.getElementById('patientRankUnit').value = r.formData?.rankUnit || '';
@@ -1595,6 +2009,10 @@
             document.getElementById('allergies').value = r.formData?.allergies || '';
             document.getElementById('injuries').value = r.formData?.injuries || '';
             document.getElementById('otherFindings').value = r.formData?.otherFindings || '';
+            
+            document.querySelectorAll('input[name="fitness"]').forEach(cb => cb.checked = r.formData?.fitness?.includes(cb.value) || false);
+            document.querySelectorAll('input[name="mobility"]').forEach(cb => cb.checked = r.formData?.mobility?.includes(cb.value) || false);
+            
             if (r.vitals) {
                 document.getElementById('vitalPulse').value = r.vitals.pulse || '';
                 document.getElementById('vitalBpHigh').value = r.vitals.bpHigh || '';
@@ -1605,8 +2023,17 @@
                 document.getElementById('vitalHeight').value = r.vitals.height || '';
                 document.getElementById('vitalWeight').value = r.vitals.weight || '';
             }
+            
+            document.querySelectorAll('.question-input').forEach(input => {
+                const q = input.getAttribute('data-question');
+                if (q) {
+                    input.value = (r.answers && r.answers[q] !== undefined) ? r.answers[q] : '';
+                }
+            });
+            
             updateAllVitalStatuses();
             calculateBMI();
+            resetAutoSave();
         }
         
         function clearForm() {
@@ -1621,6 +2048,10 @@
             document.getElementById('allergies').value = '';
             document.getElementById('injuries').value = '';
             document.getElementById('otherFindings').value = '';
+            
+            document.querySelectorAll('input[name="fitness"]').forEach(cb => cb.checked = false);
+            document.querySelectorAll('input[name="mobility"]').forEach(cb => cb.checked = false);
+            
             document.getElementById('vitalPulse').value = '';
             document.getElementById('vitalBpHigh').value = '';
             document.getElementById('vitalBpLow').value = '';
@@ -1629,41 +2060,83 @@
             document.getElementById('vitalOxygen').value = '';
             document.getElementById('vitalHeight').value = '';
             document.getElementById('vitalWeight').value = '';
+            
+            document.querySelectorAll('.question-input').forEach(i => i.value = '');
+            
             updateAllVitalStatuses();
             calculateBMI();
             currentReportId = null;
         }
         
-        function switchReport() { const id = document.getElementById('reportSelector').value; if (id) loadReport(id); }
+        function switchReport() {
+            const id = document.getElementById('reportSelector').value;
+            if (id) loadReport(id);
+        }
         
         async function createNewReport() {
             if (!currentPatient) { alert('Bitte Patient wählen'); return; }
+            
             const newId = `RPT-${Date.now()}`;
-            const newReport = { id: newId, date: new Date().toISOString(), examiner: '', reportTitle: '', formData: {}, vitals: {}, answers: {} };
+            const today = new Date().toISOString();
+            
+            const newReport = {
+                id: newId,
+                date: today,
+                examiner: '',
+                reportTitle: '',
+                formData: {
+                    name: currentPatient.fullName,
+                    rankUnit: '',
+                    date: '',
+                    examiner: '',
+                    generalImpression: '',
+                    fitness: [],
+                    lastMeal: '',
+                    allergies: '',
+                    injuries: '',
+                    mobility: [],
+                    otherFindings: ''
+                },
+                vitals: {
+                    pulse: null, bpHigh: null, bpLow: null, temperature: null,
+                    respiration: null, oxygen: null, height: null, weight: null, bmi: null
+                },
+                answers: {}
+            };
+            
             if (!currentPatient.reports) currentPatient.reports = [];
             currentPatient.reports.push(newReport);
+            currentPatient.lastReportDate = today;
             currentReportId = newId;
-            if (await savePatient(currentPatient)) { updateReportSelector(); loadReport(newId); renderPatientList(); }
-            else alert('Fehler');
+            
+            if (await savePatient(currentPatient)) {
+                updateReportSelector();
+                loadReport(newId);
+                renderPatientList();
+            } else alert('Fehler beim Erstellen');
         }
         
         async function saveAssessment(isAuto = false) {
-            if (!currentPatient) return;
-            const report = currentPatient.reports?.find(r => r.id === currentReportId);
-            if (!report) return;
-            report.examiner = document.getElementById('examinerName').value || '';
-            report.reportTitle = document.getElementById('reportTitle').value || '';
-            report.formData = {
+            if (!currentPatient) { if (!isAuto) alert('Kein Patient'); return; }
+            
+            const examiner = document.getElementById('examinerName').value || '';
+            const reportTitle = document.getElementById('reportTitle').value || '';
+            
+            const formData = {
                 name: document.getElementById('patientName').value.trim() || currentPatient.fullName,
                 rankUnit: document.getElementById('patientRankUnit').value.trim(),
                 date: document.getElementById('examinationDate').value,
+                examiner: examiner,
                 generalImpression: document.getElementById('generalImpression').value.trim(),
+                fitness: Array.from(document.querySelectorAll('input[name="fitness"]:checked')).map(cb => cb.value),
                 lastMeal: document.getElementById('lastMeal').value,
                 allergies: document.getElementById('allergies').value.trim(),
                 injuries: document.getElementById('injuries').value.trim(),
+                mobility: Array.from(document.querySelectorAll('input[name="mobility"]:checked')).map(cb => cb.value),
                 otherFindings: document.getElementById('otherFindings').value.trim()
             };
-            report.vitals = {
+            
+            const vitals = {
                 pulse: parseInt(document.getElementById('vitalPulse').value) || null,
                 bpHigh: parseInt(document.getElementById('vitalBpHigh').value) || null,
                 bpLow: parseInt(document.getElementById('vitalBpLow').value) || null,
@@ -1673,15 +2146,161 @@
                 height: parseFloat(document.getElementById('vitalHeight').value) || null,
                 weight: parseFloat(document.getElementById('vitalWeight').value) || null
             };
-            report.date = new Date().toISOString();
-            if (await savePatient(currentPatient)) {
-                if (!isAuto) alert('Gespeichert!');
+            if (vitals.height && vitals.weight) {
+                vitals.bmi = vitals.weight / ((vitals.height/100) ** 2);
+            }
+            
+            const answers = {};
+            document.querySelectorAll('.question-input').forEach(input => {
+                const q = input.getAttribute('data-question');
+                if (q) {
+                    answers[q] = input.value.trim();
+                }
+            });
+            
+            let report = currentPatient.reports?.find(r => r.id === currentReportId);
+            if (!report) {
+                currentReportId = `RPT-${Date.now()}`;
+                report = { 
+                    id: currentReportId, 
+                    date: new Date().toISOString(), 
+                    examiner,
+                    reportTitle,
+                    formData, 
+                    vitals, 
+                    answers 
+                };
+                if (!currentPatient.reports) currentPatient.reports = [];
+                currentPatient.reports.push(report);
+            } else {
+                report.date = new Date().toISOString();
+                report.examiner = examiner;
+                report.reportTitle = reportTitle;
+                report.formData = formData;
+                report.vitals = vitals;
+                report.answers = answers;
+            }
+            
+            currentPatient.lastReportDate = new Date().toISOString();
+            
+            const success = await savePatient(currentPatient);
+            
+            if (success) {
+                document.getElementById('currentExaminerDisplay').textContent = examiner || '-';
+                if (!isAuto) {
+                    const btn = document.querySelector('.btn-secondary');
+                    const orig = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i> Gespeichert';
+                    btn.style.background = '#10b981';
+                    btn.style.color = 'white';
+                    btn.style.border = 'none';
+                    setTimeout(() => { 
+                        btn.innerHTML = orig; 
+                        btn.style.background = ''; 
+                        btn.style.color = ''; 
+                    }, 2000);
+                }
                 updateReportSelector();
                 renderPatientList();
+            } else if (!isAuto) {
+                alert('Fehler beim Speichern');
             }
         }
         
-        function generateReportHTML() { alert('HTML-Export wird generiert...'); }
+        function generateReportHTML() {
+            if (!currentPatient || !currentReportId) { 
+                alert('Kein Bericht ausgewählt'); 
+                return; 
+            }
+            
+            const r = currentPatient.reports.find(r => r.id === currentReportId);
+            if (!r) return;
+            
+            const today = new Date();
+            const formattedDate = today.toLocaleDateString('de-DE');
+            
+            const fitMap = { 
+                'excellent': 'Ausgezeichnet', 
+                'good': 'Gut', 
+                'average': 'Durchschnittlich', 
+                'poor': 'Schwach', 
+                'failed': 'Durchgefallen' 
+            };
+            
+            const titlePart = r.reportTitle ? r.reportTitle.replace(/[^a-zA-Z0-9]/g, '_') : 'Bericht';
+            const namePart = currentPatient.fullName.replace(/\s/g, '_');
+            const datePart = new Date().toISOString().slice(0,10);
+            
+            let html = generateReportHTMLContent(r, currentPatient, formattedDate, fitMap);
+            
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${namePart}_${titlePart}_${datePart}.html`;
+            a.click();
+        }
+        
+        function generateReportHTMLContent(r, patient, formattedDate, fitMap) {
+            return `<!DOCTYPE html>
+            <html>
+            <head><meta charset="UTF-8"><title>Bewertung - ${patient.fullName}</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; background: #0f172a; color: #f8fafc; }
+                h1 { color: #3b82f6; border-bottom: 3px solid #3b82f6; padding-bottom: 10px; }
+                h2 { color: #3b82f6; margin-top: 30px; border-left: 5px solid #3b82f6; padding-left: 15px; }
+                .info-box { background: #1e293b; padding: 20px; border-radius: 10px; margin: 20px 0; border: 1px solid #475569; }
+                .question-block { margin: 20px 0; background: #1e293b; padding: 20px; border-radius: 10px; border-left: 4px solid #3b82f6; }
+                .question-text { font-weight: 600; color: #3b82f6; margin-bottom: 10px; }
+                .answer-text { background: #334155; padding: 15px; border-radius: 8px; white-space: pre-wrap; }
+                .signature-container { margin-top: 50px; border-top: 2px solid #3b82f6; padding-top: 20px; }
+                table { width: 100%; border-collapse: collapse; margin: 20px 0; background: #1e293b; border-radius: 10px; overflow: hidden; }
+                th { background: #1e3a8a; padding: 12px; text-align: left; }
+                td { border: 1px solid #334155; padding: 10px; }
+                .badge { background: #1e3a8a; color: #3b82f6; padding: 5px 15px; border-radius: 20px; display: inline-block; }
+            </style>
+            </head>
+            <body>
+                <h1>MEDIZINISCHE & PSYCHOLOGISCHE BEWERTUNG</h1>
+                <div class="info-box">
+                    <div><strong>Soldat:</strong> ${r.formData?.name || patient.fullName}</div>
+                    <div><strong>Rang/Einheit:</strong> ${r.formData?.rankUnit || '-'}</div>
+                    <div><strong>Datum:</strong> ${r.formData?.date ? new Date(r.formData.date).toLocaleDateString() : new Date(r.date).toLocaleDateString()}</div>
+                    <div><strong>Prüfer:</strong> ${r.examiner || '-'}</div>
+                    ${r.reportTitle ? `<div><strong>Bericht:</strong> ${r.reportTitle}</div>` : ''}
+                </div>
+                ${generateVitalsHTML(r.vitals)}
+                ${generateAnswersHTML(r.answers, fitMap)}
+                <div class="signature-container">
+                    <div><strong>Unterschrift:</strong> ${r.examiner || ''}</div>
+                    <div>Datum: ${formattedDate}</div>
+                </div>
+            </body>
+            </html>`;
+        }
+        
+        function generateVitalsHTML(vitals) {
+            if (!vitals || Object.values(vitals).every(v => v === null)) return '';
+            return `<h2>Vitalparameter</h2>
+            <table><tr><th>Parameter</th><th>Wert</th></tr>
+            <tr><td>Puls</td><td>${vitals.pulse || '-'} bpm</td></tr>
+            <tr><td>Blutdruck</td><td>${vitals.bpHigh && vitals.bpLow ? vitals.bpHigh + '/' + vitals.bpLow : '-'} mmHg</td></tr>
+            <tr><td>Temperatur</td><td>${vitals.temperature || '-'} °C</td></tr>
+            <tr><td>BMI</td><td>${vitals.bmi ? vitals.bmi.toFixed(1) : '-'}</td></tr>
+            </table>`;
+        }
+        
+        function generateAnswersHTML(answers, fitMap) {
+            let html = '';
+            const psychKeys = Object.keys(answers || {}).filter(k => k.startsWith('psych_'));
+            if (psychKeys.length) {
+                html += `<h2>Psychologische Fragen</h2>`;
+                psychKeys.forEach(key => {
+                    if (answers[key]) html += `<div class="question-block"><div class="question-text">${key}</div><div class="answer-text">${answers[key]}</div></div>`;
+                });
+            }
+            return html;
+        }
         
         function openDeletePasswordModal() {
             if (!currentPatient || !currentReportId) { alert('Kein Bericht ausgewählt'); return; }
@@ -1690,7 +2309,9 @@
             document.getElementById('deletePasswordModal').classList.add('active');
         }
         
-        function closeDeletePasswordModal() { document.getElementById('deletePasswordModal').classList.remove('active'); }
+        function closeDeletePasswordModal() {
+            document.getElementById('deletePasswordModal').classList.remove('active');
+        }
         
         function verifyDeletePassword() {
             const password = document.getElementById('deletePassword').value.trim();
@@ -1707,9 +2328,20 @@
             const idx = currentPatient.reports.findIndex(r => r.id === currentReportId);
             if (idx === -1) return;
             currentPatient.reports.splice(idx, 1);
-            if (!currentPatient.reports.length) { clearForm(); currentReportId = null; }
-            else { const last = currentPatient.reports[currentPatient.reports.length-1]; currentReportId = last.id; loadReport(last.id); }
-            if (await savePatient(currentPatient)) { updateReportSelector(); renderPatientList(); alert('Bericht gelöscht!'); }
+            if (!currentPatient.reports.length) {
+                currentPatient.lastReportDate = null;
+                currentReportId = null;
+                clearForm();
+            } else {
+                const last = currentPatient.reports[currentPatient.reports.length-1];
+                currentReportId = last.id;
+                loadReport(last.id);
+            }
+            if (await savePatient(currentPatient)) {
+                updateReportSelector();
+                renderPatientList();
+                alert('Bericht gelöscht!');
+            } else alert('Fehler beim Löschen');
         }
         
         function openNewPatientModal() { document.getElementById('newPatientModal').classList.add('active'); }
@@ -1718,7 +2350,13 @@
         async function createPatient() {
             const name = document.getElementById('newPatientName').value.trim();
             if (!name) { alert('Name eingeben'); return; }
-            const newPat = { id: `PAT-${new Date().getFullYear()}-${String(patients.length+1).padStart(3,'0')}`, fullName: name, createdAt: new Date().toISOString(), lastReportDate: null, reports: [] };
+            const newPat = {
+                id: `PAT-${new Date().getFullYear()}-${String(patients.length+1).padStart(3,'0')}`,
+                fullName: name,
+                createdAt: new Date().toISOString(),
+                lastReportDate: null,
+                reports: []
+            };
             if (await savePatient(newPat)) {
                 patients.unshift(newPat);
                 closeModal('newPatientModal');
@@ -1726,7 +2364,7 @@
                 const cards = document.querySelectorAll('.patient-card');
                 if (cards.length) selectPatient(newPat, cards[0]);
                 document.getElementById('newPatientName').value = '';
-            } else alert('Fehler');
+            } else alert('Fehler beim Erstellen');
         }
         
         function updateStats() { document.getElementById('totalPatients').textContent = patients.length; }
@@ -1739,24 +2377,33 @@
         
         function updateVitalStatus(id) {
             const get = i => document.getElementById(i);
+            const set = (el, cls, txt) => { if (el) { el.className = 'badge ' + cls; el.textContent = txt; } };
+            
             if (id === 'vitalPulse') {
                 const v = parseInt(get('vitalPulse').value);
-                const s = get('pulseStatus');
-                if (s) { s.className = 'badge ' + (v ? (v>=60&&v<=100 ? 'badge-success' : v<60 ? 'badge-warning' : 'badge-danger') : ''); s.textContent = v ? (v>=60&&v<=100 ? 'Normal' : v<60 ? 'Niedrig' : 'Hoch') : '-'; }
+                set(get('pulseStatus'), v ? (v>=60&&v<=100 ? 'badge-success' : v<60 ? 'badge-warning' : 'badge-danger') : '', v ? (v>=60&&v<=100 ? 'Normal' : v<60 ? 'Niedrig' : 'Hoch') : '-');
             }
             if (id === 'vitalBpHigh' || id === 'vitalBpLow') {
                 const h = parseInt(get('vitalBpHigh').value), l = parseInt(get('vitalBpLow').value);
-                const s = get('bpStatus');
-                if (s) { s.className = 'badge ' + (h&&l ? (h>=110&&h<=140&&l>=60&&l<=90 ? 'badge-success' : 'badge-danger') : ''); s.textContent = h&&l ? (h>=110&&h<=140&&l>=60&&l<=90 ? 'Normal' : 'Abweichend') : '-'; }
+                set(get('bpStatus'), h&&l ? (h>=110&&h<=140&&l>=60&&l<=90 ? 'badge-success' : (h<110||l<60) ? 'badge-warning' : 'badge-danger') : '', h&&l ? (h>=110&&h<=140&&l>=60&&l<=90 ? 'Normal' : (h<110||l<60) ? 'Niedrig' : 'Hoch') : '-');
             }
             if (id === 'vitalTemp') {
                 const v = parseFloat(get('vitalTemp').value);
-                const s = get('tempStatus');
-                if (s) { s.className = 'badge ' + (v ? (v>=36.5&&v<=37.4 ? 'badge-success' : 'badge-danger') : ''); s.textContent = v ? (v>=36.5&&v<=37.4 ? 'Normal' : 'Abweichend') : '-'; }
+                set(get('tempStatus'), v ? (v>=36.5&&v<=37.4 ? 'badge-success' : v<36.5 ? 'badge-warning' : 'badge-danger') : '', v ? (v>=36.5&&v<=37.4 ? 'Normal' : v<36.5 ? 'Niedrig' : 'Fieber') : '-');
+            }
+            if (id === 'vitalRespiration') {
+                const v = parseInt(get('vitalRespiration').value);
+                set(get('respStatus'), v ? (v>=12&&v<=20 ? 'badge-success' : v<12 ? 'badge-warning' : 'badge-danger') : '', v ? (v>=12&&v<=20 ? 'Normal' : v<12 ? 'Niedrig' : 'Hoch') : '-');
+            }
+            if (id === 'vitalOxygen') {
+                const v = parseInt(get('vitalOxygen').value);
+                set(get('oxygenStatus'), v ? (v>=95 ? 'badge-success' : v>=90 ? 'badge-warning' : 'badge-danger') : '', v ? (v>=95 ? 'Normal' : v>=90 ? 'Niedrig' : 'Kritisch') : '-');
             }
         }
         
-        function updateAllVitalStatuses() { ['vitalPulse','vitalBpHigh','vitalTemp'].forEach(id => updateVitalStatus(id)); }
+        function updateAllVitalStatuses() {
+            ['vitalPulse','vitalBpHigh','vitalTemp','vitalRespiration','vitalOxygen'].forEach(id => updateVitalStatus(id));
+        }
         
         function calculateBMI() {
             const h = parseFloat(document.getElementById('vitalHeight').value)/100;
@@ -1764,10 +2411,12 @@
             const s = document.getElementById('bmiStatus');
             if (h && w && h>0) {
                 const bmi = w/(h*h);
-                if (bmi < 18.5) { s.textContent = 'Untergewichtig'; s.className = 'badge badge-warning'; }
-                else if (bmi <= 24.9) { s.textContent = 'Normal'; s.className = 'badge badge-success'; }
-                else if (bmi <= 29.9) { s.textContent = 'Übergewichtig'; s.className = 'badge badge-warning'; }
-                else { s.textContent = 'Adipös'; s.className = 'badge badge-danger'; }
+                let txt, cls;
+                if (bmi < 18.5) { txt = 'Untergewichtig'; cls = 'badge-warning'; }
+                else if (bmi <= 24.9) { txt = 'Normal'; cls = 'badge-success'; }
+                else if (bmi <= 29.9) { txt = 'Übergewichtig'; cls = 'badge-warning'; }
+                else { txt = 'Adipös'; cls = 'badge-danger'; }
+                s.textContent = txt; s.className = 'badge ' + cls;
             } else { s.textContent = '-'; s.className = 'badge'; }
         }
         
@@ -1791,10 +2440,44 @@
         
         function startAutoSave() {
             autoSaveInterval = setInterval(() => {
-                if (!currentPatient || !currentReportId) return;
+                if (!currentPatient || !currentReportId) {
+                    document.getElementById('autoSaveIndicator').style.display = 'none';
+                    return;
+                }
+                document.getElementById('autoSaveIndicator').style.display = 'flex';
                 autoSaveCountdown--;
-                if (autoSaveCountdown <= 0) { autoSaveCountdown = 10; saveAssessment(true); }
+                updateAutoSaveIndicator();
+                if (autoSaveCountdown <= 0) triggerAutoSave();
             }, 1000);
+        }
+        
+        function resetAutoSave() { autoSaveCountdown = 10; updateAutoSaveIndicator(); }
+        
+        function updateAutoSaveIndicator() {
+            const ind = document.getElementById('autoSaveIndicator');
+            const txt = document.getElementById('autoSaveText');
+            if (!currentPatient || !currentReportId) { ind.style.display = 'none'; return; }
+            ind.style.display = 'flex';
+            if (isSaving) {
+                ind.className = 'auto-save-indicator saving';
+                txt.textContent = 'Speichern...';
+            } else {
+                ind.className = 'auto-save-indicator';
+                txt.textContent = `Autospeichern in ${autoSaveCountdown}s...`;
+            }
+        }
+        
+        async function triggerAutoSave() {
+            if (!currentPatient || !currentReportId || isSaving) return;
+            isSaving = true;
+            updateAutoSaveIndicator();
+            await saveAssessment(true);
+            isSaving = false;
+            autoSaveCountdown = 10;
+            const ind = document.getElementById('autoSaveIndicator');
+            ind.className = 'auto-save-indicator saved';
+            document.getElementById('autoSaveText').textContent = 'Gespeichert!';
+            setTimeout(() => { if (!isSaving) { ind.className = 'auto-save-indicator'; updateAutoSaveIndicator(); } }, 2000);
         }
         
         // ===== INIT =====
@@ -1807,12 +2490,18 @@
             document.getElementById('logoutBtn').addEventListener('click', logout);
             handleLoginCallback();
             const storedToken = getStoredToken();
-            if (storedToken) {
+            const storedUser = getStoredUser();
+            if (storedToken && storedUser) {
                 verifyUserWithWorker(storedToken).then(v => {
-                    if (v.isAuthorized) { currentUser = getStoredUser(); currentRole = getStoredRole(); showApp(); }
-                    else clearAuthData();
+                    if (v.isAuthorized) {
+                        currentUser = storedUser;
+                        currentRole = getStoredRole();
+                        showApp();
+                    } else clearAuthData();
                 });
             }
+            document.addEventListener('input', () => { if (currentPatient && currentReportId) resetAutoSave(); });
+            document.addEventListener('change', () => { if (currentPatient && currentReportId) resetAutoSave(); });
         });
     </script>
 </body>
