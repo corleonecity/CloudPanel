@@ -2,116 +2,68 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Corleone City - Karte</title>
+<title>Corleone City - KARTE</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
 
 <style>
-html, body {
-  height: 100%;
-  margin: 0;
-}
-
-#map {
-  height: 100vh;
-  width: 100%;
-}
-
-#searchBox {
-  position: absolute;
-  top: 10px;
-  left: 50px;
-  z-index: 1000;
-  width: 260px;
-}
-
-.title {
-  position: absolute;
-  top: 10px;
-  right: 20px;
-  z-index: 1000;
-  background: rgba(0,0,0,0.7);
-  color: #fff;
-  padding: 6px 12px;
-  border-radius: 8px;
-}
+html, body { height:100%; margin:0; }
+#map { height:100vh; background:#84B2CE; }
 </style>
 </head>
 
 <body>
-
-<div class="title">Corleone City Karte</div>
-
-<input id="searchBox" class="form-control" placeholder="Suche Ort...">
 
 <div id="map"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
-// 🔥 Fehler sichtbar machen
-window.onerror = function(msg, url, line) {
-  console.error("JS Fehler:", msg, "Zeile:", line);
-};
+// GTA Map Setup (dein Original behalten)
+const bounds = [[-3000, -3000], [3000, 3000]];
 
-// 🌍 Karte starten
-const map = L.map('map').setView([51.0, 10.5], 6);
+const map = L.map('map', {
+  crs: L.CRS.Simple,
+  center: [-170, 125],
+  zoom: 5,
+  minZoom: 2,
+  maxZoom: 5,
+  maxBounds: bounds
+});
 
-// ✅ Funktionierende Tiles
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap'
+// 👉 DEINE TILES (falls vorhanden)
+L.tileLayer('tiles/{z}/{x}/{y}.png', {
+  minZoom: 2,
+  maxZoom: 5,
+  noWrap: true,
+  bounds: bounds
 }).addTo(map);
 
-// 📍 Demo POIs (ersetzt Backend)
-const pois = [
-  {name: "Berlin", lat: 52.52, lng: 13.405, kategorie: "Stadt"},
-  {name: "Erfurt", lat: 50.9848, lng: 11.0299, kategorie: "Stadt"},
-  {name: "Hamburg", lat: 53.5511, lng: 9.9937, kategorie: "Stadt"},
-  {name: "München", lat: 48.1351, lng: 11.5820, kategorie: "Stadt"},
-  {name: "Park Beispiel", lat: 51.2, lng: 10.8, kategorie: "Park"}
-];
+// 👉 FALLBACK falls Tiles fehlen
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-let markers = [];
 
-// Marker erstellen
-pois.forEach(p => {
-  const marker = L.marker([p.lat, p.lng])
+// ✅ POIs aus JSON laden
+fetch('data/pois.json')
+.then(res => res.json())
+.then(pois => {
+  pois.forEach(poi => {
+
+    let iconHtml = `<i class="${poi.icon}" style="color:${poi.iconColor};font-size:20px;"></i>`;
+
+    L.marker([poi.x, poi.y], {
+      icon: L.divIcon({
+        html: iconHtml,
+        className: ''
+      })
+    })
     .addTo(map)
-    .bindPopup("<b>" + p.name + "</b><br>" + p.kategorie);
+    .bindPopup(poi.name);
 
-  markers.push({marker, data: p});
-});
-
-// 🔍 Suche
-const searchBox = document.getElementById("searchBox");
-
-searchBox.addEventListener("input", function() {
-  const val = this.value.toLowerCase();
-
-  markers.forEach(m => {
-    if (m.data.name.toLowerCase().includes(val)) {
-      map.setView(m.marker.getLatLng(), 10);
-      m.marker.openPopup();
-    }
   });
-});
-
-// ➕ Marker per Klick hinzufügen (wie Admin light)
-map.on("click", function(e) {
-  const name = prompt("Name des Ortes?");
-  if (!name) return;
-
-  const marker = L.marker(e.latlng)
-    .addTo(map)
-    .bindPopup(name)
-    .openPopup();
-
-  markers.push({
-    marker,
-    data: {name, lat: e.latlng.lat, lng: e.latlng.lng}
-  });
-});
+})
+.catch(err => console.error("POI Fehler:", err));
 
 </script>
 
