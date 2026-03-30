@@ -1,71 +1,832 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<title>Corleone City - KARTE</title>
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
-
-<style>
-html, body { height:100%; margin:0; }
-#map { height:100vh; background:#84B2CE; }
-</style>
+  <meta charset="UTF-8">
+  <title>Corleone City - KARTE</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css"/>
+  <!-- FontAwesome für Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    body {
+      position: relative;
+      height: 100vh;
+      width: 100vw;
+    }
+    #map {
+      position: absolute;
+      top: 56px; /* Höhe der Bootstrap-Navbar */
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100vw;
+      background: #1a4d6b;
+    }
+    .bezirk-label {
+      text-align: center;
+      pointer-events: none;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+    .herz-overlay {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 9999;
+      background: rgba(255,255,255,0.95);
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      padding: 8px 18px 8px 14px;
+      font-size: 1.05em;
+      color: #c00;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #eee;
+      pointer-events: none;
+      user-select: none;
+    }
+    .herz-emoji {
+      font-size: 1.3em;
+      margin-right: 2px;
+    }
+    /* CSS für Layer-Kategorien */
+    .layercat {
+      font-weight: bold;
+      color: #333;
+      margin: 6px 0 2px 0;
+      padding-left: 2px;
+      font-size: 1em;
+    }
+    .tip-label {
+      display: inline-block;
+      position: relative;
+      background: #fff;
+      border-radius: 6px;
+      padding: 2px 10px 2px 8px;
+      font-weight: bold;
+      color: #c00;
+      font-size: 1em;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      border: 1px solid #c00;
+      text-shadow: 1px 1px 4px #fff;
+    }
+    .tip-label .tip-arrow {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: -8px;
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 10px solid #c00;
+    }
+    .highlight-poi-marker {
+      box-shadow: 0 0 0 6px #ffe066, 0 0 18px 10px #ffd70099;
+      border-radius: 10px;
+      background: #fffbe6;
+      transition: box-shadow 0.2s;
+      z-index: 9999;
+    }
+    .highlight-strasse-polyline {
+      stroke: #ffd700 !important;
+      stroke-width: 12 !important;
+      filter: drop-shadow(0 0 8px #ffd700cc);
+    }
+    .leaflet-control-layers {
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .leaflet-control-layers-overlays {
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+    #bezirkeToggleBtn {
+      margin: 5px 10px 10px 10px;
+      width: calc(100% - 20px);
+    }
+  </style>
 </head>
-
 <body>
+  <!-- Bootstrap Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <span class="navbar-brand">🏙️ Corleone City - Interaktive Karte</span>
+      <form class="d-flex me-3" style="width:280px;" autocomplete="off" onsubmit="return false;">
+        <input id="searchInput" class="form-control form-control-sm" type="search" placeholder="🔍 Suche POI/Straße..." aria-label="Suche">
+        <div id="searchResults" class="dropdown-menu show" style="display:none;max-height:260px;overflow:auto;position:absolute;z-index:2000;width:100%;top:38px;"></div>
+      </form>
+      <div class="d-flex ms-auto align-items-center">
+        <span id="adminStatus" class="navbar-text me-3">👤 Nicht eingeloggt</span>
+        <button id="adminLoginBtn" class="btn btn-outline-light btn-sm me-2" data-bs-toggle="modal" data-bs-target="#adminLoginModal">🔑 Admin-Login</button>
+        <button id="adminLogoutBtn" class="btn btn-outline-warning btn-sm d-none">🚪 Logout</button>
+      </div>
+    </div>
+  </nav>
+  <div id="map"></div>
+  <div class="herz-overlay">
+    <span class="herz-emoji">❤️</span> von Lukas Birkenfeld erstellt
+  </div>
+  
+  <!-- Login Modal für versteckte POIs -->
+  <div id="loginBox" class="modal fade" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="loginModalLabel">🔒 Verstecke Punkte anzeigen</h5> 
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button> 
+        </div>
+        <div class="modal-body">
+          <form id="loginForm"> 
+            <label class="form-label">Passwort:
+              <input type="password" id="pw" autocomplete="off" class="form-control my-2" />
+            </label>
+            <div id="loginMsg" class="text-danger small mb-2"></div>
+            <div class="form-text mb-2">⚠️ Die jeweilige Fraktion ist für die Dokumentation und Sicherstellung des Passworts selbst verantwortlich!</div>
+            <button type="submit" class="btn btn-primary w-100">🔓 Freischalten</button>
+          </form>
+        </div>
+      </div>
+    </div> 
+  </div>
+  
+  <!-- Modal für Bezirk-Bearbeitung -->
+  <div id="bezirkModal" class="modal fade" tabindex="-1" aria-labelledby="bezirkModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="bezirkModalLabel">🏘️ Bezirk bearbeiten</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+        </div>
+        <div class="modal-body">
+          <form id="bezirkForm">
+            <div class="mb-3">
+              <label for="bezirkName" class="form-label">Name</label>
+              <input type="text" class="form-control" id="bezirkName" required>
+            </div>
+            <div class="mb-3">
+              <label for="bezirkColor" class="form-label">Farbe</label>
+              <input type="color" class="form-control form-control-color" id="bezirkColor" value="#007bff">
+            </div>
+            <div class="mb-3">
+              <label for="bezirkLabelColor" class="form-label">Label-Farbe</label>
+              <input type="color" class="form-control form-control-color" id="bezirkLabelColor" value="#ffffff">
+            </div>
+            <button type="submit" class="btn btn-primary w-100">💾 Speichern</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Admin-Login Modal -->
+  <div id="adminLoginModal" class="modal fade" tabindex="-1" aria-labelledby="adminLoginModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="adminLoginModalLabel">👑 Admin-Login</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+        </div>
+        <div class="modal-body">
+          <form id="adminLoginForm">
+            <div class="mb-3">
+              <label for="adminUser" class="form-label">Benutzername</label>
+              <input type="text" class="form-control" id="adminUser" required autocomplete="username">
+            </div>
+            <div class="mb-3">
+              <label for="adminPw" class="form-label">Passwort</label>
+              <input type="password" class="form-control" id="adminPw" required autocomplete="current-password">
+            </div>
+            <div id="adminLoginMsg" class="text-danger small mb-2"></div>
+            <button type="submit" class="btn btn-primary w-100">🔑 Login</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal für Straßen-Bearbeitung -->
+  <div id="strasseModal" class="modal fade" tabindex="-1" aria-labelledby="strasseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="strasseModalLabel">🛣️ Straße bearbeiten</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+        </div>
+        <div class="modal-body">
+          <form id="strasseForm">
+            <div class="mb-3">
+              <label for="strasseName" class="form-label">Name</label>
+              <input type="text" class="form-control" id="strasseName" required>
+            </div>
+            <div class="mb-3">
+              <label for="strasseColor" class="form-label">Farbe</label>
+              <input type="color" class="form-control form-control-color" id="strasseColor" value="#444">
+            </div>
+            <div class="mb-3">
+              <label for="strasseLabelColor" class="form-label">Label-Farbe</label>
+              <input type="color" class="form-control form-control-color" id="strasseLabelColor" value="#ffffff">
+            </div>
+            <div class="mb-3">
+              <label for="strasseKategorie" class="form-label">Kategorie</label>
+              <input type="text" class="form-control" id="strasseKategorie" placeholder="z.B. Hauptstraße, Nebenstraße">
+            </div>
+            <button type="submit" class="btn btn-primary w-100">💾 Speichern</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal für POI-Bearbeitung/Anlegen -->
+  <div id="poiModal" class="modal fade" tabindex="-1" aria-labelledby="poiModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="poiModalLabel">📍 POI bearbeiten/anlegen</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+        </div>
+        <div class="modal-body">
+          <form id="poiForm">
+            <div class="mb-3">
+              <label for="poiName" class="form-label">Name</label>
+              <input type="text" class="form-control" id="poiName" required>
+            </div>
+            <div class="mb-3">
+              <label for="poiKategorie" class="form-label">Kategorie</label>
+              <input type="text" class="form-control" id="poiKategorie" list="poiKategorieList" required>
+              <datalist id="poiKategorieList"></datalist>
+            </div>
+            <div class="mb-3">
+              <label for="poiIcon" class="form-label">Icon</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="poiIcon" list="poiIconList" placeholder="z.B. fa-solid fa-tree">
+                <datalist id="poiIconList">
+                  <option value="fa-solid fa-location-dot">📍 Standard</option>
+                  <option value="fa-solid fa-car">🚗 Auto</option>
+                  <option value="fa-solid fa-building">🏢 Gebäude</option>
+                  <option value="fa-solid fa-utensils">🍽️ Restaurant</option>
+                  <option value="fa-solid fa-hospital">🏥 Krankenhaus</option>
+                  <option value="fa-solid fa-gas-pump">⛽ Tankstelle</option>
+                  <option value="fa-solid fa-store">🏪 Laden</option>
+                  <option value="fa-solid fa-tree">🌳 Park</option>
+                  <option value="fa-solid fa-user-secret">🕵️ Geheim</option>
+                  <option value="fa-solid fa-star">⭐ Besonderes</option>
+                  <option value="fa-solid fa-crown">👑 Königlich</option>
+                  <option value="fa-solid fa-gun">🔫 Waffenladen</option>
+                </datalist>
+                <span class="input-group-text" id="poiIconPreview"><i class="fa-solid fa-location-dot"></i></span>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="poiIconColor" class="form-label">Icon-Farbe</label>
+              <input type="color" class="form-control form-control-color" id="poiIconColor" value="#c00">
+            </div>
+            <div class="mb-3 form-check">
+              <input type="checkbox" class="form-check-input" id="poiProtected"> 
+              <label class="form-check-label" for="poiProtected">🔒 Geschützt (Passwort benötigt)</label>
+            </div>
+            <div class="mb-3" id="poiPwDiv" style="display:none;">
+              <label for="poiPw" class="form-label">Passwort für Kategorie</label>
+              <input type="password" class="form-control" id="poiPw" placeholder="Passwort für diese Kategorie">
+            </div>
+            <button type="submit" class="btn btn-primary w-100">💾 Speichern</button>
+          </form>
+          <div id="poiDeleteDiv" class="mt-3" style="display:none;">
+            <button id="poiDeleteBtn" class="btn btn-danger w-100">🗑️ Löschen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
+  
+  <script>
+    // Definiere die Bounds im Game-Koordinatensystem
+    const bounds = [[-3000, -3000], [3000, 3000]];
+    
+    // Beispieldaten für die Karte (damit sofort etwas zu sehen ist)
+    const demoBezirke = [
+      {
+        id: 1,
+        name: "Downtown",
+        color: "#ff4444",
+        labelColor: "#ffffff",
+        coords: [[-500, -200], [-500, 200], [0, 400], [500, 200], [500, -200], [0, -400]],
+        kategorie: "Bezirke"
+      },
+      {
+        id: 2,
+        name: "Industriegebiet",
+        color: "#44ff44",
+        labelColor: "#000000",
+        coords: [[-1000, -800], [-1000, -200], [-200, -200], [-200, -800]],
+        kategorie: "Bezirke"
+      },
+      {
+        id: 3,
+        name: "Villenviertel",
+        color: "#ffaa44",
+        labelColor: "#ffffff",
+        coords: [[600, 400], [600, 800], [1000, 800], [1000, 400]],
+        kategorie: "Bezirke"
+      }
+    ];
+    
+    const demoStrassen = [
+      {
+        id: 1,
+        name: "Main Street",
+        color: "#888888",
+        labelColor: "#ffffff",
+        coords: [[-800, 0], [-400, 0], [0, 0], [400, 0], [800, 0]],
+        kategorie: "Hauptstraße"
+      },
+      {
+        id: 2,
+        name: "Coast Highway",
+        color: "#44aaff",
+        labelColor: "#ffffff",
+        coords: [[-1000, -600], [-500, -300], [0, -200], [500, -300], [1000, -600]],
+        kategorie: "Küstenstraße"
+      }
+    ];
+    
+    const demoPOIs = [
+      {
+        id: 1,
+        name: "Rathaus",
+        kategorie: "Öffentlich",
+        icon: "fa-solid fa-building",
+        iconColor: "#3366cc",
+        x: 0,
+        y: 0,
+        protected: 0
+      },
+      {
+        id: 2,
+        name: "Polizei HQ",
+        kategorie: "Behörden",
+        icon: "fa-solid fa-shield-haltered",
+        iconColor: "#0033cc",
+        x: -300,
+        y: 150,
+        protected: 0
+      },
+      {
+        id: 3,
+        name: "Krankenhaus",
+        kategorie: "Medizin",
+        icon: "fa-solid fa-hospital",
+        iconColor: "#ff3333",
+        x: 400,
+        y: -200,
+        protected: 0
+      },
+      {
+        id: 4,
+        name: "Casino Royal",
+        kategorie: "Unterhaltung",
+        icon: "fa-solid fa-crown",
+        iconColor: "#ffaa00",
+        x: 200,
+        y: 300,
+        protected: 1
+      }
+    ];
 
-<div id="map"></div>
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-<script>
-// GTA Map Setup (dein Original behalten)
-const bounds = [[-3000, -3000], [3000, 3000]];
-
-const map = L.map('map', {
-  crs: L.CRS.Simple,
-  center: [-170, 125],
-  zoom: 5,
-  minZoom: 2,
-  maxZoom: 5,
-  maxBounds: bounds
-});
-
-// 👉 DEINE TILES (falls vorhanden)
-L.tileLayer('tiles/{z}/{x}/{y}.png', {
-  minZoom: 2,
-  maxZoom: 5,
-  noWrap: true,
-  bounds: bounds
-}).addTo(map);
-
-// 👉 FALLBACK falls Tiles fehlen
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-
-// ✅ POIs aus JSON laden
-fetch('data/pois.json')
-.then(res => res.json())
-.then(pois => {
-  pois.forEach(poi => {
-
-    let iconHtml = `<i class="${poi.icon}" style="color:${poi.iconColor};font-size:20px;"></i>`;
-
-    L.marker([poi.x, poi.y], {
-      icon: L.divIcon({
-        html: iconHtml,
-        className: ''
-      })
-    })
-    .addTo(map)
-    .bindPopup(poi.name);
-
-  });
-})
-.catch(err => console.error("POI Fehler:", err));
-
-</script>
-
-</body>
+    // Initialisiere die Karte
+    const map = L.map('map', { 
+      crs: L.CRS.Simple, 
+      center: [-170, 125],
+      zoom: 4,
+      minZoom: 3,
+      maxZoom: 6,
+      maxBounds: bounds,
+      maxBoundsViscosity: 1.0
+    });
+    
+    // Erstelle einfache Tile-Layer (alternativ zu fehlenden Bildern)
+    // Verwende einen einfachen Grid-Layer als Ersatz für die fehlenden Tiles
+    L.gridLayer({
+      attribution: 'Corleone City Karte',
+      tileSize: 256,
+      bounds: bounds
+    }).addTo(map);
+    
+    // Füge ein Raster-Gitter hinzu, damit man die Koordinaten sieht
+    const gridLayer = L.gridLayer({
+      attribution: 'Koordinatengitter',
+      tileSize: 256,
+      bounds: bounds
+    });
+    gridLayer.createTile = function(coords) {
+      const tile = document.createElement('div');
+      tile.style.width = '256px';
+      tile.style.height = '256px';
+      tile.style.border = '1px solid rgba(255,255,255,0.2)';
+      tile.style.backgroundColor = `rgba(100, 150, 200, ${0.2 + (coords.x + coords.y) % 3 * 0.1})`;
+      tile.style.display = 'flex';
+      tile.style.alignItems = 'center';
+      tile.style.justifyContent = 'center';
+      tile.style.color = 'white';
+      tile.style.fontSize = '12px';
+      tile.style.textShadow = '1px 1px 0 black';
+      tile.innerHTML = `${coords.x},${coords.y}`;
+      return tile;
+    };
+    gridLayer.addTo(map);
+    
+    // LayerGroups
+    const bezirkeLayer = new L.FeatureGroup().addTo(map);
+    const strassenLayer = new L.FeatureGroup().addTo(map);
+    const poiLayerGroups = {};
+    let allPOIData = [];
+    let allMarkers = [];
+    let strassenData = [];
+    let isAdmin = false;
+    
+    // Bezirke laden (Demo)
+    function ladeBezirke() {
+      bezirkeLayer.clearLayers();
+      demoBezirke.forEach(bezirk => {
+        const polygon = L.polygon(bezirk.coords, {
+          color: bezirk.color,
+          fillColor: bezirk.color,
+          fillOpacity: 0.3,
+          weight: 2
+        }).bindPopup(`<b>${bezirk.name}</b><br>Bezirk`);
+        
+        polygon._bezirkId = bezirk.id;
+        
+        // Label hinzufügen
+        const center = polygon.getBounds().getCenter();
+        const label = L.marker(center, {
+          icon: L.divIcon({
+            className: 'bezirk-label',
+            html: `<div style="color:${bezirk.labelColor};font-size:1.1em;background:rgba(0,0,0,0.6);padding:2px 8px;border-radius:4px;">${bezirk.name}</div>`,
+            iconSize: [100, 30],
+            iconAnchor: [50, 15]
+          }),
+          interactive: false
+        });
+        
+        bezirkeLayer.addLayer(polygon);
+        bezirkeLayer.addLayer(label);
+      });
+    }
+    
+    // Straßen laden (Demo)
+    function ladeStrassen() {
+      strassenLayer.clearLayers();
+      strassenData = demoStrassen;
+      
+      demoStrassen.forEach(strasse => {
+        const polyline = L.polyline(strasse.coords, {
+          color: strasse.color,
+          weight: 5,
+          opacity: 0.8
+        }).bindPopup(`<b>${strasse.name}</b><br>${strasse.kategorie || 'Straße'}`);
+        
+        polyline._strasseId = strasse.id;
+        
+        // Label hinzufügen (Mitte der Linie)
+        const coords = strasse.coords;
+        const midIdx = Math.floor(coords.length / 2);
+        const center = coords[midIdx];
+        
+        const label = L.marker(center, {
+          icon: L.divIcon({
+            className: 'tip-label',
+            html: `<div style="background:${strasse.color};color:${strasse.labelColor};padding:2px 8px;border-radius:4px;">${strasse.name}</div>`,
+            iconSize: [80, 28],
+            iconAnchor: [40, 14]
+          }),
+          interactive: false
+        });
+        
+        strassenLayer.addLayer(polyline);
+        strassenLayer.addLayer(label);
+      });
+    }
+    
+    // POIs laden (Demo)
+    function ladePOIs() {
+      allPOIData = demoPOIs;
+      
+      // Bestehende Marker entfernen
+      Object.values(poiLayerGroups).forEach(group => {
+        if (group && map.hasLayer(group)) map.removeLayer(group);
+      });
+      Object.keys(poiLayerGroups).forEach(k => delete poiLayerGroups[k]);
+      allMarkers = [];
+      
+      demoPOIs.forEach(poi => {
+        // Geschützte POIs nur anzeigen, wenn freigeschaltet
+        if (poi.protected == 1 && !isPoiCategoryUnlocked(poi.kategorie)) return;
+        
+        const category = poi.kategorie || 'Öffentlich';
+        if (!poiLayerGroups[category]) {
+          poiLayerGroups[category] = L.layerGroup().addTo(map);
+        }
+        
+        const iconClass = poi.icon || 'fa-solid fa-location-dot';
+        const iconColor = poi.iconColor || '#c00';
+        const iconHtml = `<div style='display:flex;flex-direction:column;align-items:center;'>
+          <i class='${iconClass}' style='color:${iconColor};font-size:2em;'></i>
+          <span style='background:rgba(0,0,0,0.7);color:white;font-size:0.85em;padding:2px 6px;border-radius:12px;margin-top:2px;white-space:nowrap;'>${poi.name}</span>
+        </div>`;
+        
+        const marker = L.marker([poi.x, poi.y], {
+          icon: L.divIcon({
+            className: 'fa-marker',
+            html: iconHtml,
+            iconSize: [90, 52],
+            iconAnchor: [45, 48]
+          })
+        }).bindPopup(`<b>${poi.name}</b><br>${poi.kategorie}${poi.protected == 1 ? '<br><span style="color:red;">🔒 Geschützt</span>' : ''}`);
+        
+        marker.addTo(poiLayerGroups[category]);
+        allMarkers.push(marker);
+      });
+      
+      updateLayerControl();
+      if (isAdmin) enablePoiDirectEdit();
+    }
+    
+    // LayerControl aktualisieren
+    function updateLayerControl() {
+      if (window.layerControl) {
+        map.removeControl(window.layerControl);
+      }
+      
+      const overlayLayers = {};
+      
+      // Bezirke Layer
+      overlayLayers['🏘️ Bezirke'] = bezirkeLayer;
+      
+      // Straßen Layer
+      overlayLayers['🛣️ Straßen'] = strassenLayer;
+      
+      // POI Layer nach Kategorie
+      Object.keys(poiLayerGroups).forEach(cat => {
+        const icon = cat === 'Öffentlich' ? '📍' : cat === 'Behörden' ? '👮' : cat === 'Medizin' ? '🏥' : cat === 'Unterhaltung' ? '🎰' : '📍';
+        overlayLayers[`${icon} ${cat}`] = poiLayerGroups[cat];
+      });
+      
+      window.layerControl = L.control.layers(null, overlayLayers, { collapsed: false, position: 'topright' }).addTo(map);
+    }
+    
+    // POI Direktbearbeitung für Admins
+    function enablePoiDirectEdit() {
+      allMarkers.forEach(marker => {
+        marker.off('click');
+        marker.on('click', function(e) {
+          if (isAdmin) {
+            const poi = allPOIData.find(p => p.x === marker.getLatLng().lat && p.y === marker.getLatLng().lng);
+            if (poi) showPoiModal(poi);
+          }
+        });
+      });
+    }
+    
+    // POI Modal anzeigen
+    let poiModal, poiModalData = null;
+    function showPoiModal(poi) {
+      poiModalData = poi || null;
+      document.getElementById('poiName').value = poi ? poi.name : '';
+      document.getElementById('poiKategorie').value = poi ? (poi.kategorie || '') : '';
+      document.getElementById('poiProtected').checked = poi ? (poi.protected == 1) : false;
+      document.getElementById('poiPwDiv').style.display = (poi && poi.protected == 1) ? 'block' : 'none';
+      document.getElementById('poiPw').value = '';
+      document.getElementById('poiDeleteDiv').style.display = poi ? 'block' : 'none';
+      
+      const iconSel = document.getElementById('poiIcon');
+      iconSel.value = poi && poi.icon ? poi.icon : 'fa-solid fa-location-dot';
+      const iconColorSel = document.getElementById('poiIconColor');
+      iconColorSel.value = poi && poi.iconColor ? poi.iconColor : '#c00';
+      document.getElementById('poiIconPreview').innerHTML = `<i class='${iconSel.value}' style='color:${iconColorSel.value};'></i>`;
+      
+      if (!poiModal) poiModal = new bootstrap.Modal(document.getElementById('poiModal'));
+      poiModal.show();
+    }
+    
+    // Icon-Vorschau
+    const poiIconInput = document.getElementById('poiIcon');
+    const poiIconColorInput = document.getElementById('poiIconColor');
+    function updatePoiIconPreview() {
+      document.getElementById('poiIconPreview').innerHTML = `<i class='${poiIconInput.value}' style='color:${poiIconColorInput.value};'></i>`;
+    }
+    poiIconInput.oninput = updatePoiIconPreview;
+    poiIconColorInput.oninput = updatePoiIconPreview;
+    
+    // POI Formular
+    document.getElementById('poiForm').onsubmit = function(e) {
+      e.preventDefault();
+      // In einer echten Implementierung würde hier der POI gespeichert
+      alert('In einer vollständigen Implementierung würde der POI hier gespeichert werden.');
+      if (poiModal) poiModal.hide();
+    };
+    
+    document.getElementById('poiDeleteBtn').onclick = function() {
+      if (!confirm('Diesen POI wirklich löschen?')) return;
+      alert('Löschen in Demo nicht implementiert');
+      if (poiModal) poiModal.hide();
+    };
+    
+    // POI Kategorien Datalist
+    function ladePoiKategorien() {
+      const kategorien = ['Öffentlich', 'Behörden', 'Medizin', 'Unterhaltung', 'Gastronomie', 'Einkaufen', 'Geheim'];
+      const datalist = document.getElementById('poiKategorieList');
+      datalist.innerHTML = '';
+      kategorien.forEach(k => {
+        const opt = document.createElement('option');
+        opt.value = k;
+        datalist.appendChild(opt);
+      });
+    }
+    
+    // Login/Admin Funktionen
+    function isPoiCategoryUnlocked(category) {
+      const unlocked = JSON.parse(localStorage.getItem('poiCategoryUnlocked') || '{}');
+      return !!unlocked[category];
+    }
+    
+    function setPoiCategoryUnlocked(category, unlocked) {
+      const unlockedCats = JSON.parse(localStorage.getItem('poiCategoryUnlocked') || '{}');
+      unlockedCats[category] = unlocked;
+      localStorage.setItem('poiCategoryUnlocked', JSON.stringify(unlockedCats));
+    }
+    
+    // Login Modal
+    let loginModal;
+    function showLoginBox() {
+      if (!loginModal) loginModal = new bootstrap.Modal(document.getElementById('loginBox'));
+      document.getElementById('loginMsg').innerText = '';
+      document.getElementById('pw').value = '';
+      loginModal.show();
+    }
+    
+    document.getElementById('loginForm').onsubmit = function(e) {
+      e.preventDefault();
+      const pw = document.getElementById('pw').value;
+      // Demo-Passwort für Casino Royal
+      if (pw === 'casino123') {
+        setPoiCategoryUnlocked('Unterhaltung', true);
+        loginModal.hide();
+        ladePOIs();
+      } else {
+        document.getElementById('loginMsg').innerText = 'Falsches Passwort!';
+      }
+    };
+    
+    // Admin UI
+    function updateAdminUI() {
+      document.getElementById('adminStatus').innerText = isAdmin ? '👑 Admin eingeloggt' : '👤 Nicht eingeloggt';
+      document.getElementById('adminLoginBtn').classList.toggle('d-none', isAdmin);
+      document.getElementById('adminLogoutBtn').classList.toggle('d-none', !isAdmin);
+      
+      if (isAdmin) {
+        enablePoiDirectEdit();
+        // Doppelklick zum POI anlegen
+        map.on('dblclick', function(e) {
+          if (isAdmin) showPoiModal(null);
+        });
+      } else {
+        map.off('dblclick');
+      }
+    }
+    
+    document.getElementById('adminLoginForm').onsubmit = function(e) {
+      e.preventDefault();
+      const user = document.getElementById('adminUser').value;
+      const pw = document.getElementById('adminPw').value;
+      if (user === 'admin' && pw === 'admin123') {
+        isAdmin = true;
+        updateAdminUI();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('adminLoginModal'));
+        modal.hide();
+        document.getElementById('adminLoginMsg').innerText = '';
+      } else {
+        document.getElementById('adminLoginMsg').innerText = 'Falscher Benutzername oder Passwort!';
+      }
+    };
+    
+    document.getElementById('adminLogoutBtn').onclick = function() {
+      isAdmin = false;
+      updateAdminUI();
+    };
+    
+    // Suchfunktion
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+    let lastHighlight = null;
+    
+    function clearHighlight() {
+      if (lastHighlight) {
+        if (lastHighlight._icon) lastHighlight._icon.classList.remove('highlight-poi-marker');
+        if (lastHighlight.setStyle) {
+          lastHighlight.setStyle({ color: lastHighlight._origColor, weight: lastHighlight._origWeight });
+        }
+        lastHighlight = null;
+      }
+    }
+    
+    searchInput.addEventListener('input', function() {
+      clearHighlight();
+      const val = this.value.trim().toLowerCase();
+      searchResults.innerHTML = '';
+      if (!val) {
+        searchResults.style.display = 'none';
+        return;
+      }
+      
+      const results = [];
+      allPOIData.forEach(poi => {
+        if (poi.name.toLowerCase().includes(val)) {
+          results.push({ type: 'poi', name: poi.name, x: poi.x, y: poi.y });
+        }
+      });
+      strassenData.forEach(str => {
+        if (str.name.toLowerCase().includes(val)) {
+          results.push({ type: 'strasse', name: str.name, coords: str.coords });
+        }
+      });
+      
+      if (results.length === 0) {
+        searchResults.style.display = 'none';
+        return;
+      }
+      
+      results.slice(0, 10).forEach(res => {
+        const el = document.createElement('a');
+        el.className = 'dropdown-item';
+        el.href = '#';
+        el.innerHTML = res.type === 'poi' ? `📍 ${res.name}` : `🛣️ ${res.name}`;
+        el.onclick = function(e) {
+          e.preventDefault();
+          if (res.type === 'poi') {
+            map.setView([res.x, res.y], 5);
+            allMarkers.forEach(m => {
+              if (m.getLatLng().lat === res.x && m.getLatLng().lng === res.y) {
+                m.openPopup();
+                if (m._icon) m._icon.classList.add('highlight-poi-marker');
+                lastHighlight = m;
+              }
+            });
+          } else {
+            // Straße finden und fokussieren
+            strassenLayer.eachLayer(layer => {
+              if (layer instanceof L.Polyline) {
+                const bounds = layer.getBounds();
+                map.fitBounds(bounds);
+                lastHighlight = layer;
+                layer._origColor = layer.options.color;
+                layer._origWeight = layer.options.weight;
+                layer.setStyle({ color: '#ffd700', weight: 8 });
+                setTimeout(() => {
+                  if (lastHighlight === layer) {
+                    layer.setStyle({ color: layer._origColor, weight: layer._origWeight });
+                  }
+                }, 3000);
+              }
+            });
+          }
+          searchResults.style.display = 'none';
+          searchInput.value = '';
+        };
+        searchResults.appendChild(el);
+      });
+      searchResults.style.display = 'block';
+    });
+    
+    document.addEventListener('click', function(e) {
+      if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+        searchResults.style.display = 'none';
+      }
+    });
+    
+    // Initialisierung
+    ladePoiKategorien();
+    ladeBezirke();
+    ladeStrassen();
+    ladePOIs();
+    updateAdminUI();
+    
+    // Kartensteuerung Info
+    console.log('Karte geladen - Demo-Modus mit Beispieldaten');
+  </script>
+</body> 
 </html>
