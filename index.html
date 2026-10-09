@@ -70,6 +70,7 @@
     .who em { font-style: normal; font-size: 10px; background: #5865f2; color: white; border-radius: 4px; padding: 1px 4px; letter-spacing: 0.04em; }
     .who time { color: var(--muted); font-size: 12px; }
     .embed { margin-top: 8px; background: #11151b; border-left: 4px solid #57f287; border-radius: 4px; padding: 12px 14px; }
+    .embed + .embed, .check + .embed { margin-top: 14px; }
     .embed h3 { margin: 0 0 8px; font-size: 16px; }
     .embed p, .embed li { margin: 0 0 10px; white-space: pre-wrap; }
     .embed a { display: block; color: #7eb6ff; text-decoration: none; margin-bottom: 6px; }
@@ -94,8 +95,7 @@
         <div><small>Community</small><strong>Leitstand</strong></div>
       </div>
       <nav>
-        <button type="button" data-view="regeln" aria-current="page">Regeln</button>
-        <button type="button" data-view="schritte">Schritte</button>
+        <button type="button" data-view="regeln" aria-current="page">#server-regeln</button>
         <button type="button" data-view="link">Verbindung</button>
       </nav>
       <p class="side-note">Änderungen bleiben in diesem Browser, bis du sie an Discord schickst. Der Bot schreibt die vorhandene Nachricht um.</p>
@@ -103,8 +103,8 @@
     <section class="stage">
       <div class="top">
         <div>
-          <h1 id="title">Regeln</h1>
-          <p class="lede" id="lede">Der Text, den der Haken unter #server-regeln zeigt.</p>
+          <h1 id="title">#server-regeln</h1>
+          <p class="lede" id="lede">Regeln und Schritte stehen hier zusammen. Der Bot schreibt beides in denselben Kanal.</p>
         </div>
         <div>
           <div class="actions">
@@ -123,18 +123,15 @@
           <label><span>Einleitung</span><textarea id="rulesIntro"></textarea></label>
         </div>
         <div class="card">
-          <div class="hint">Eine Regel pro Karte</div>
+          <div class="hint">Eine Regel pro Karte. Im Kanal steht dazwischen eine Leerzeile.</div>
           <div id="ruleList"></div>
           <button type="button" class="add" id="addRule">Regel hinzufügen</button>
         </div>
-      </div>
-
-      <div class="view" id="view-schritte">
         <div class="card">
-          <label><span>Titel</span><input id="stepsTitle"></label>
+          <label><span>Titel der zweiten Nachricht</span><input id="stepsTitle"></label>
         </div>
         <div class="card">
-          <div class="hint">So kommt jemand auf den Server</div>
+          <div class="hint">Schritte, direkt unter den Regeln im selben Kanal</div>
           <div id="stepList"></div>
           <button type="button" class="add" id="addStep">Schritt hinzufügen</button>
         </div>
@@ -147,8 +144,9 @@
       <div class="view" id="view-link">
         <div class="card grid">
           <label><span>Worker</span><input id="workerUrl"></label>
-          <label><span>Admin-Schlüssel, derselbe Wert wie das Secret ADMIN_KEY</span><input id="adminKey" type="password" autocomplete="off"></label>
+          <label><span>Admin-Schlüssel</span><input id="adminKey" autocomplete="off"></label>
           <label><span>Kanal-ID von #server-regeln</span><input id="channelId" placeholder="Rechtsklick auf den Kanal, ID kopieren"></label>
+          <label><span>Rollen-ID, die der Haken vergibt</span><input id="roleId" placeholder="Rechtsklick auf die Rolle, ID kopieren"></label>
         </div>
       </div>
     </section>
@@ -165,7 +163,11 @@
             <a href="https://discord.com/guidelines">https://discord.com/guidelines</a>
             <ol id="prevRules"></ol>
           </div>
-          <button type="button" class="check" id="prevButton">Regeln akzeptieren</button>
+          <button type="button" class="check" id="prevButton">✓</button>
+          <div class="embed" id="stepsEmbed">
+            <h3 id="prevStepsTitle">wie kann ich schreiben?</h3>
+            <ol id="prevSteps"></ol>
+          </div>
         </div>
       </article>
     </aside>
@@ -174,17 +176,18 @@
     const KEY = "leitstand-sync-v1";
     const base = {
       workerUrl: "https://colincommnunity.keulecolin2005.workers.dev",
-      adminKey: "",
+      adminKey: "leitstand-colin",
       channelId: "",
+      roleId: "",
       serverName: "Colin's Community",
       rulesIntro: "Wir werden stets die Nutzungsbedingungen (ToS) und die Community-Richtlinien von Discord durchsetzen.",
       rules: "Die Einhaltung der allgemeinen Netiquette ist unerlässlich. Behandle andere Mitglieder des Servers mit Respekt und Freundlichkeit.\nBelästigung, Mobbing, Diskriminierung oder Drohungen werden nicht toleriert. Jeder Nutzer sollte sich sicher und wohl fühlen.\nSpamming ist verboten. Sende keine wiederholten, unnötigen oder unerwünschten Nachrichten.\nWerbung für andere Discord-Server oder externe Plattformen ist nur mit Erlaubnis eines Administrators gestattet.\nAnstößige, rassistische, sexistische oder pornografische Inhalte sind streng verboten.\nDas Teilen persönlicher Informationen anderer Nutzer ohne deren Zustimmung ist nicht erlaubt.\nDas Verbreiten von Viren, schadhafter Software oder betrügerischen Inhalten ist streng verboten. Dies schließt das Senden von Phishing-Links ein.\nDas Erstellen mehrerer Konten, um Strafen zu umgehen oder den Server zu stören, ist nicht gestattet.\nDiskussionen über politische oder religiöse Themen sollten respektvoll geführt werden. Jeder Nutzer hat das Recht auf seine eigene Meinung.\nBei Verstößen gegen diese Regeln behalten sich die Administratoren das Recht vor, geeignete Maßnahmen zu ergreifen, einschließlich des Entzugs von Chat- oder Serverrechten.\nIn der Regel zu Auto-Rollen setzen wir die Wahrheit strikt durch. Wer mehr Rollen zugewiesen bekommt als erlaubt oder die Anforderungen nicht erfüllt, wird entsprechend bestraft.",
       stepsTitle: "wie kann ich schreiben?",
       steps: "Akzeptiere die Regeln unter #server-regeln und drücke den Button.\nGehe zu #verifizieren-hub, der hinzugefügt wird, nachdem du die Regeln akzeptiert hast.\nVerifiziere dich: drücke einfach den Button.\nGehe zum Kanal #wähle-deine-spiele und wähle dein Spiel aus. Danach siehst du den Kanal für dein Spiel.",
-      buttonLabel: "Regeln akzeptieren",
+      buttonLabel: "✓",
       acceptReply: "Regeln akzeptiert. Die Rolle ist drauf."
     };
-    const copy = ["workerUrl", "adminKey", "channelId", "serverName", "rulesIntro", "stepsTitle", "buttonLabel", "acceptReply"];
+    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "serverName", "rulesIntro", "stepsTitle", "buttonLabel", "acceptReply"];
     let rules = [];
     let steps = [];
     const lines = (text) => String(text || "").split(/\n/).map((line) => line.trim()).filter(Boolean);
@@ -192,6 +195,8 @@
     function load() {
       const saved = JSON.parse(localStorage.getItem(KEY) || "null") || {};
       const data = { ...base, ...saved };
+      if (!data.adminKey) data.adminKey = base.adminKey;
+      if (!data.buttonLabel || data.buttonLabel === "Regeln akzeptieren") data.buttonLabel = "✓";
       copy.forEach((id) => { document.getElementById(id).value = data[id] || ""; });
       rules = lines(data.rules);
       steps = lines(data.steps);
@@ -240,7 +245,15 @@
         item.textContent = rule;
         root.append(item);
       });
-      document.getElementById("prevButton").textContent = document.getElementById("buttonLabel").value || "Regeln akzeptieren";
+      document.getElementById("prevButton").textContent = document.getElementById("buttonLabel").value || "✓";
+      document.getElementById("prevStepsTitle").textContent = document.getElementById("stepsTitle").value || "wie kann ich schreiben?";
+      const stepsRoot = document.getElementById("prevSteps");
+      stepsRoot.innerHTML = "";
+      steps.map((step) => step.trim()).filter(Boolean).forEach((step) => {
+        const item = document.createElement("li");
+        item.textContent = step;
+        stepsRoot.append(item);
+      });
     }
     function setStatus(text, kind) {
       const el = document.getElementById("status");
@@ -248,9 +261,8 @@
       el.className = "status" + (kind ? " " + kind : "");
     }
     const pages = {
-      regeln: ["Regeln", "Der Text, den der Haken unter #server-regeln zeigt."],
-      schritte: ["Schritte", "Die zweite Nachricht und was nach dem Haken passiert."],
-      link: ["Verbindung", "Worker, Schlüssel und der Kanal, in den geschrieben wird."]
+      regeln: ["#server-regeln", "Regeln und Schritte stehen hier zusammen. Der Bot schreibt beides in denselben Kanal."],
+      link: ["Verbindung", "Worker, Schlüssel, Kanal und die Rolle, die der Haken gibt."]
     };
     document.querySelectorAll("nav button").forEach((button) => {
       button.addEventListener("click", () => {
@@ -288,7 +300,8 @@
             steps: lines(data.steps),
             buttonLabel: data.buttonLabel,
             acceptReply: data.acceptReply,
-            channelId: data.channelId.trim()
+            channelId: data.channelId.trim(),
+            roleId: data.roleId.trim()
           })
         });
         const body = await res.json();
