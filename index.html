@@ -202,6 +202,7 @@
           <div class="pair">
             <label><span>Titel</span><input id="verifyTitle"></label>
             <label><span>Farbe der Leiste</span><input id="verifyColor" type="color"></label>
+            <label><span>Text auf dem Haken</span><input id="verifyLabel" placeholder="Leer lassen, wenn nur das Emoji"></label>
             <label><span>Emoji auf dem Haken</span><input id="verifyEmoji" maxlength="8" placeholder="✅"></label>
             <label><span>Farbe des Hakens</span>
               <select id="verifyStyle">
@@ -303,11 +304,12 @@
       verifyTitle: "Verifizierung",
       verifyColor: "#57f287",
       verifyEmoji: "✅",
+      verifyLabel: "",
       verifyStyle: "1",
       verifyText: "Um dich zu verifizieren, klicke unten auf den Button.",
       verifyReply: "Verifiziert. Die Rolle ist drauf."
     };
-    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyStyle", "verifyText", "verifyReply"];
+    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply"];
     let rules = [];
     let steps = [];
     const lines = (text) => String(text || "").split(/\n/).map((line) => line.trim()).filter(Boolean);
@@ -424,7 +426,7 @@
       const verifyStyles = { "1": "#5865f2", "2": "#4e5058", "3": "#248046", "4": "#da373c" };
       const verifyButton = document.getElementById("prevVerifyButton");
       verifyButton.style.background = verifyStyles[document.getElementById("verifyStyle").value] || verifyStyles["1"];
-      verifyButton.textContent = document.getElementById("verifyEmoji").value.trim() || "✅";
+      verifyButton.textContent = (document.getElementById("verifyEmoji").value.trim() + " " + document.getElementById("verifyLabel").value.trim()).trim() || "✅";
     }
     function setStatus(text, kind) {
       const el = document.getElementById("status");
@@ -503,6 +505,7 @@
             verifyTitle: data.verifyTitle,
             verifyColor: data.verifyColor,
             verifyEmoji: data.verifyEmoji,
+            verifyLabel: data.verifyLabel,
             verifyStyle: data.verifyStyle,
             verifyText: data.verifyText,
             verifyReply: data.verifyReply,
