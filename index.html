@@ -112,13 +112,13 @@
         <div><strong id="serverTitle">Leitstand</strong></div>
       </div>
       <nav>
+        <button type="button" data-view="link">Einstellung</button>
         <button type="button" data-view="regeln" aria-current="page">#server-regeln</button>
         <button type="button" data-view="news">#server-ankündigungen</button>
         <button type="button" data-view="verify">#verifizieren-hub</button>
         <button type="button" data-view="spiele">#wähle-deine-spiele</button>
         <button type="button" data-view="creators">#content-creators</button>
         <button type="button" data-view="giveaway">#giveaway</button>
-        <button type="button" data-view="link">Verbindung</button>
       </nav>
       <p class="side-note">Änderungen bleiben in diesem Browser, bis du sie an Discord schickst. Der Bot schreibt die vorhandene Nachricht um.</p>
     </aside>
@@ -310,6 +310,35 @@
           <label><span>Worker</span><input id="workerUrl"></label>
           <label><span>Admin-Schlüssel</span><input id="adminKey" autocomplete="off"></label>
         </div>
+        <div class="card">
+          <div class="hint">XP pro Aktion. Text braucht mindestens ein paar Buchstaben. Dieselbe Nachricht und schnelles Spam geben nichts. Sprachchat zählt pro Minute, dafür muss das Server-Widget an sein.</div>
+          <div class="pair">
+            <label><span>XP für Text</span><input id="levelXpText" inputmode="numeric"></label>
+            <label><span>XP für Sprachnachricht</span><input id="levelXpVoiceMsg" inputmode="numeric"></label>
+            <label><span>XP für Foto</span><input id="levelXpImage" inputmode="numeric"></label>
+            <label><span>XP für Datei</span><input id="levelXpFile" inputmode="numeric"></label>
+            <label><span>XP pro Minute im Sprachchat</span><input id="levelXpVoice" inputmode="numeric"></label>
+            <label><span>Pause zwischen Nachrichten, Sekunden</span><input id="levelCooldown" inputmode="numeric"></label>
+            <label><span>Mindestlänge für Text</span><input id="levelMinLen" inputmode="numeric"></label>
+            <label><span>XP-Deckel pro Stunde</span><input id="levelHourCap" inputmode="numeric"></label>
+          </div>
+        </div>
+        <div class="card">
+          <label><span>Kanal-IDs, die XP geben. Leer = alle Textkanäle. Eine ID pro Zeile.</span><textarea id="levelChannels" placeholder="Rechtsklick auf den Kanal, ID kopieren"></textarea></label>
+          <label><span>Level-Rollen. Eine Zeile: Level und Rollen-ID. Beispiel 5 und dann die ID. Die höchste passende Rolle bleibt, die alte wird entfernt.</span><textarea id="levelRolesText" placeholder="5 123456789012345678"></textarea></label>
+        </div>
+        <div class="card">
+          <div class="hint">XP löschen nimmt auch die Level-Rolle ab. Zurücksetzen leert die ganze Liste.</div>
+          <label><span>User-ID, deren XP weg soll</span><input id="levelWipeId" placeholder="User-ID"></label>
+          <div class="actions">
+            <button type="button" id="levelWipe">XP löschen</button>
+            <button type="button" id="levelReset">Alles zurücksetzen</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="hint">Beste User. In Discord sieht das jeder mit /leaderboard.</div>
+          <div id="levelBoard">Wird geladen…</div>
+        </div>
       </div>
     </section>
     <aside class="preview-col">
@@ -405,6 +434,8 @@
     </form>
   </dialog>
   <script>
+    if (history.scrollRestoration) history.scrollRestoration = "manual";
+    window.scrollTo(0, 0);
     const KEY = "leitstand-sync-v1";
     const base = {
       workerUrl: "https://colincommnunity.keulecolin2005.workers.dev",
@@ -460,9 +491,20 @@
       giveawayGuildId: "",
       giveawayRoleStart: "",
       giveawayRoleEnd: "",
-      giveawayRoleReroll: ""
+      giveawayRoleReroll: "",
+      levelXpText: "15",
+      levelXpVoiceMsg: "20",
+      levelXpImage: "20",
+      levelXpFile: "10",
+      levelXpVoice: "8",
+      levelCooldown: "60",
+      levelMinLen: "5",
+      levelHourCap: "400",
+      levelChannels: "",
+      levelRolesText: "",
+      levelWipeId: ""
     };
-    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole"];
+    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole", "levelXpText", "levelXpVoiceMsg", "levelXpImage", "levelXpFile", "levelXpVoice", "levelCooldown", "levelMinLen", "levelHourCap", "levelChannels", "levelRolesText", "levelWipeId"];
     const baseGames = [
       { text: "Phasmophobia", roleId: "" },
       { text: "Terraria", roleId: "" },
@@ -560,6 +602,20 @@
         giveawayRoleEnd: data.giveawayRoleEnd.trim(),
         giveawayRoleReroll: data.giveawayRoleReroll.trim(),
         giveawayBoosterRole: data.giveawayBoosterRole.trim(),
+        levelXpText: data.levelXpText,
+        levelXpVoiceMsg: data.levelXpVoiceMsg,
+        levelXpImage: data.levelXpImage,
+        levelXpFile: data.levelXpFile,
+        levelXpVoice: data.levelXpVoice,
+        levelCooldown: data.levelCooldown,
+        levelMinLen: data.levelMinLen,
+        levelHourCap: data.levelHourCap,
+        levelChannels: lines(data.levelChannels),
+        levelRoles: String(data.levelRolesText || "").split(/\n/).map((line) => {
+          const parts = line.trim().split(/[\s,;]+/);
+          return { level: Number(parts[0]) || 0, roleId: String(parts[1] || "").replace(/\D/g, "") };
+        }).filter((tier) => tier.level > 0 && tier.roleId),
+        levelWipeId: data.levelWipeId.trim(),
         target
       };
     }
@@ -733,7 +789,7 @@
       spiele: ["#wähle-deine-spiele", "Dropdown. Jede Zeile ist ein Spiel und eine Rolle."],
       creators: ["#content-creators", "Links von YouTube, Twitch, TikTok oder Kick. Ein neues Live wird in den Kanal geschickt."],
       giveaway: ["#giveaway", "Preis, Zeit und Gewinner. Der Button im Kanal trägt ein, danach wird gezogen."],
-      link: ["Verbindung", "Worker und Admin-Schlüssel."]
+      link: ["Einstellung", "XP, Level-Rollen und die Verbindung. /leaderboard kann jeder benutzen."]
     };
     document.querySelectorAll("nav button").forEach((button) => {
       button.addEventListener("click", () => {
@@ -750,10 +806,12 @@
         document.getElementById("previewGames").hidden = view !== "spiele";
         document.getElementById("previewCreators").hidden = view !== "creators";
         document.getElementById("previewGiveaway").hidden = view !== "giveaway";
-        const titles = { news: "Vorschau Ankündigungen", verify: "Vorschau Verifizierung", spiele: "Vorschau Spiele", creators: "Vorschau Live", giveaway: "Vorschau Giveaway" };
+        const titles = { news: "Vorschau Ankündigungen", verify: "Vorschau Verifizierung", spiele: "Vorschau Spiele", creators: "Vorschau Live", giveaway: "Vorschau Giveaway", link: "Leaderboard" };
         document.querySelector(".preview-col h2").textContent = titles[view] || "Vorschau Regeln";
         preview();
         if (view === "giveaway") loadGiveaways();
+        if (view === "link") loadLevels();
+        window.scrollTo(0, 0);
       });
     });
     document.getElementById("addRule").onclick = () => { rules.push(""); render(); };
@@ -763,7 +821,7 @@
     async function giveawayAction(target) {
       const data = pack();
       localStorage.setItem(KEY, JSON.stringify(data));
-      setStatus("Giveaway…");
+      setStatus(target.startsWith("level") ? "Level…" : "Giveaway…");
       try {
         const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/sync", {
           method: "POST",
@@ -771,8 +829,9 @@
           body: JSON.stringify(syncBody(data, target))
         });
         const body = await res.json();
-        setStatus(body.ok ? "Giveaway " + (body.mode || "fertig") + "." : (body.error || "Klappt nicht."), body.ok ? "ok" : "bad");
-        if (body.ok) loadGiveaways();
+        setStatus(body.ok ? (body.mode || "fertig") + "." : (body.error || "Klappt nicht."), body.ok ? "ok" : "bad");
+        if (body.ok && target.startsWith("level")) loadLevels();
+        else if (body.ok) loadGiveaways();
       } catch {
         setStatus("Worker nicht erreichbar.", "bad");
       }
@@ -781,6 +840,8 @@
     document.getElementById("giveawayReroll").onclick = () => giveawayAction("giveaway-reroll");
     document.getElementById("giveawayCommands").onclick = () => giveawayAction("giveaway-commands");
     document.getElementById("giveawayRefresh").onclick = () => loadGiveaways();
+    document.getElementById("levelWipe").onclick = () => giveawayAction("level-wipe");
+    document.getElementById("levelReset").onclick = () => giveawayAction("level-reset");
     let editingId = "";
     function localStamp(ms) {
       if (!ms) return "";
@@ -1015,6 +1076,37 @@
     }
     loadChannels();
     setInterval(loadChannels, 60000);
+    async function loadLevels() {
+      const data = pack();
+      const board = document.getElementById("levelBoard");
+      if (!board || !data.workerUrl || !data.adminKey) return;
+      try {
+        const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/levels", { headers: { "x-admin-key": data.adminKey } });
+        const body = await res.json();
+        board.innerHTML = "";
+        (body.top || []).forEach((row, index) => {
+          const line = document.createElement("div");
+          line.className = "user-row";
+          const img = document.createElement("img");
+          img.alt = "";
+          img.src = avatarUrl(row);
+          const text = document.createElement("div");
+          const strong = document.createElement("strong");
+          strong.textContent = (index + 1) + ". " + (row.name || row.username || "User");
+          const sub = document.createElement("span");
+          sub.textContent = "Level " + row.level + " · " + row.xp + " XP · " + row.id;
+          text.append(strong, sub);
+          line.append(img, text);
+          board.append(line);
+        });
+        if (!(body.top || []).length) board.textContent = "Noch niemand hat XP.";
+      } catch {
+        board.textContent = "Liste nicht geladen.";
+      }
+    }
+    loadLevels();
+    setInterval(loadLevels, 60000);
+    window.scrollTo(0, 0);
     const wait = 60;
     let nextAt = Date.now() + 8 * 1000;
     let checking = false;
@@ -1038,7 +1130,9 @@
           steps: Array.isArray(cfg.steps) ? cfg.steps.join("\n") : "",
           links: Array.isArray(cfg.links) ? cfg.links.join("\n") : "",
           workerUrl: data.workerUrl,
-          adminKey: data.adminKey
+          adminKey: data.adminKey,
+          levelRolesText: Array.isArray(cfg.levelRoles) ? cfg.levelRoles.map((tier) => tier.level + " " + tier.roleId).join("\n") : (cfg.levelRolesText || ""),
+          levelChannels: Array.isArray(cfg.levelChannels) ? cfg.levelChannels.join("\n") : (cfg.levelChannels || "")
         };
         localStorage.setItem(KEY, JSON.stringify(saved));
         load();
