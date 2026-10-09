@@ -800,7 +800,7 @@
       line.append(text, button);
       return line;
     }
-    function openGiveawayEdit(item) {
+    async function openGiveawayEdit(item) {
       editingId = item.messageId || "";
       document.getElementById("editPrize").value = item.prize || "";
       document.getElementById("editWinners").value = item.winnerCount || 1;
@@ -818,6 +818,20 @@
       });
       if (!(item.entrants || []).length) people.textContent = "Noch niemand.";
       document.getElementById("giveawayEdit").showModal();
+      try {
+        const data = pack();
+        const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/giveaway", { headers: { "x-admin-key": data.adminKey } });
+        const body = await res.json();
+        const fresh = [body.active, ...(body.history || [])].find((entry) => entry && entry.messageId === item.messageId);
+        if (!fresh) return;
+        people.innerHTML = "";
+        (fresh.entrants || []).forEach((entrant) => {
+          const li = document.createElement("li");
+          li.textContent = (entrant.name || "Unbekannt") + " · " + entrant.id;
+          people.append(li);
+        });
+        if (!(fresh.entrants || []).length) people.textContent = "Noch niemand.";
+      } catch {}
     }
     document.getElementById("editClose").onclick = () => document.getElementById("giveawayEdit").close();
     document.getElementById("editDelete").onclick = () => saveGiveawayEdit(true);
