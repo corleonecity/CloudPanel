@@ -1396,7 +1396,7 @@
         Object.entries(fields).forEach(([key, id]) => {
           if (body[key]) document.getElementById(id).value = body[key];
         });
-        const views = { regeln: body.regeln, news: body.news, verify: body.verify, spiele: body.spiele, creators: body.creators, giveaway: body.giveaway };
+        const views = { regeln: body.regeln, news: body.news, verify: body.verify, spiele: body.spiele, creators: body.creators, giveaway: body.giveaway, ticket: body.ticket };
         Object.entries(views).forEach(([view, name]) => {
           const button = document.querySelector('nav button[data-view="' + view + '"]');
           if (button && name) button.textContent = "#" + String(name).replace(/^#/, "");
