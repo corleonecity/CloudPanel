@@ -316,6 +316,7 @@
           <button type="button" class="mod on" data-mod="level"><strong>Level</strong><span>XP, Rollen, Suche und Rangliste.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="link"><strong>Verbindung</strong><span>Worker und Admin-Schlüssel.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="suggest"><strong>Vorschläge</strong><span>Der Bot setzt zwei Emojis auf neue Nachrichten.</span><em>Einstellungen</em></button>
+          <button type="button" class="mod" data-mod="voice"><strong>Sprachkanal</strong><span>Rein gehen erstellt einen Kanal. Leer heißt weg.</span><em>Einstellungen</em></button>
         </div>
         <div id="mod-level">
           <div class="card">
@@ -367,6 +368,17 @@
             <div class="pair">
               <label><span>Emoji 1</span><input id="suggestUp" maxlength="40" placeholder="⭐"></label>
               <label><span>Emoji 2</span><input id="suggestDown" maxlength="40" placeholder="❌"></label>
+            </div>
+          </div>
+        </div>
+        <div id="mod-voice" hidden>
+          <div class="card">
+            <div class="hint">Kanal-ID von dem Sprachkanal, in den man reingeht. Der Bot macht einen eigenen Kanal und zieht dich rein. Ist niemand mehr drin, wird er gelöscht. Geht der Owner raus, bekommt jemand anderes den Kanal. /voice open, close, kick, invite, name, size, owner gehen nur für den Owner und nur für seinen Kanal.</div>
+            <label><span>Start-Kanal-ID</span><input id="voiceHubId" placeholder="Rechtsklick auf den Sprachkanal, ID kopieren"></label>
+            <label><span>Kategorie-ID, leer = gleiche Kategorie wie der Start-Kanal</span><input id="voiceCategoryId" placeholder="Rechtsklick auf die Kategorie, ID kopieren"></label>
+            <div class="pair">
+              <label><span>Name, {name} ist der User</span><input id="voiceName" placeholder="{name}"></label>
+              <label><span>Größe, 0 ist unbegrenzt</span><input id="voiceLimit" inputmode="numeric" placeholder="0"></label>
             </div>
           </div>
         </div>
@@ -537,9 +549,13 @@
       levelAmount: "15",
       suggestChannelId: "",
       suggestUp: "⭐",
-      suggestDown: "❌"
+      suggestDown: "❌",
+      voiceHubId: "",
+      voiceCategoryId: "",
+      voiceName: "{name}",
+      voiceLimit: "0"
     };
-    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole", "levelXpText", "levelXpVoiceMsg", "levelXpImage", "levelXpFile", "levelXpVoice", "levelCooldown", "levelMinLen", "levelHourCap", "levelChannels", "levelRolesText", "levelWipeId", "levelAmount", "suggestChannelId", "suggestUp", "suggestDown"];
+    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole", "levelXpText", "levelXpVoiceMsg", "levelXpImage", "levelXpFile", "levelXpVoice", "levelCooldown", "levelMinLen", "levelHourCap", "levelChannels", "levelRolesText", "levelWipeId", "levelAmount", "suggestChannelId", "suggestUp", "suggestDown", "voiceHubId", "voiceCategoryId", "voiceName", "voiceLimit"];
     const baseGames = [
       { text: "Phasmophobia", roleId: "" },
       { text: "Terraria", roleId: "" },
@@ -655,6 +671,10 @@
         suggestChannelId: data.suggestChannelId.trim(),
         suggestUp: data.suggestUp.trim(),
         suggestDown: data.suggestDown.trim(),
+        voiceHubId: data.voiceHubId.trim(),
+        voiceCategoryId: data.voiceCategoryId.trim(),
+        voiceName: data.voiceName.trim(),
+        voiceLimit: data.voiceLimit,
         target
       };
     }
@@ -888,6 +908,7 @@
         document.getElementById("mod-level").hidden = button.dataset.mod !== "level";
         document.getElementById("mod-link").hidden = button.dataset.mod !== "link";
         document.getElementById("mod-suggest").hidden = button.dataset.mod !== "suggest";
+        document.getElementById("mod-voice").hidden = button.dataset.mod !== "voice";
       };
     });
     let levelUsers = [];
