@@ -315,6 +315,7 @@
         <div class="mods">
           <button type="button" class="mod on" data-mod="level"><strong>Level</strong><span>XP, Rollen, Suche und Rangliste.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="link"><strong>Verbindung</strong><span>Worker und Admin-Schlüssel.</span><em>Einstellungen</em></button>
+          <button type="button" class="mod" data-mod="suggest"><strong>Vorschläge</strong><span>Der Bot setzt zwei Emojis auf neue Nachrichten.</span><em>Einstellungen</em></button>
         </div>
         <div id="mod-level">
           <div class="card">
@@ -357,6 +358,16 @@
           <div class="card grid">
             <label><span>Worker</span><input id="workerUrl"></label>
             <label><span>Admin-Schlüssel</span><input id="adminKey" autocomplete="off"></label>
+          </div>
+        </div>
+        <div id="mod-suggest" hidden>
+          <div class="card">
+            <div class="hint">Kanal-ID von #vorschläge. Neue Nachrichten bekommen die zwei Emojis automatisch. Alte Nachrichten nicht.</div>
+            <label><span>Kanal-ID</span><input id="suggestChannelId" placeholder="Rechtsklick auf den Kanal, ID kopieren"></label>
+            <div class="pair">
+              <label><span>Emoji 1</span><input id="suggestUp" maxlength="40" placeholder="⭐"></label>
+              <label><span>Emoji 2</span><input id="suggestDown" maxlength="40" placeholder="❌"></label>
+            </div>
           </div>
         </div>
       </div>
@@ -523,9 +534,12 @@
       levelChannels: "",
       levelRolesText: "",
       levelWipeId: "",
-      levelAmount: "15"
+      levelAmount: "15",
+      suggestChannelId: "",
+      suggestUp: "⭐",
+      suggestDown: "❌"
     };
-    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole", "levelXpText", "levelXpVoiceMsg", "levelXpImage", "levelXpFile", "levelXpVoice", "levelCooldown", "levelMinLen", "levelHourCap", "levelChannels", "levelRolesText", "levelWipeId", "levelAmount"];
+    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole", "levelXpText", "levelXpVoiceMsg", "levelXpImage", "levelXpFile", "levelXpVoice", "levelCooldown", "levelMinLen", "levelHourCap", "levelChannels", "levelRolesText", "levelWipeId", "levelAmount", "suggestChannelId", "suggestUp", "suggestDown"];
     const baseGames = [
       { text: "Phasmophobia", roleId: "" },
       { text: "Terraria", roleId: "" },
@@ -638,6 +652,9 @@
         }).filter((tier) => tier.level > 0 && tier.roleId),
         levelWipeId: data.levelWipeId.trim(),
         levelAmount: data.levelAmount,
+        suggestChannelId: data.suggestChannelId.trim(),
+        suggestUp: data.suggestUp.trim(),
+        suggestDown: data.suggestDown.trim(),
         target
       };
     }
@@ -870,6 +887,7 @@
         document.querySelectorAll(".mod").forEach((item) => item.classList.toggle("on", item === button));
         document.getElementById("mod-level").hidden = button.dataset.mod !== "level";
         document.getElementById("mod-link").hidden = button.dataset.mod !== "link";
+        document.getElementById("mod-suggest").hidden = button.dataset.mod !== "suggest";
       };
     });
     let levelUsers = [];
