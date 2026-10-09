@@ -373,8 +373,8 @@
         </div>
         <div id="mod-voice" hidden>
           <div class="card">
-            <div class="hint">Alle 5 Sekunden, solange dieser Tab offen ist. Rein gehen erstellt den Kanal, leer löscht ihn.</div>
-            <p class="hint" id="roomCooldown">Nächste Prüfung in 5s</p>
+            <div class="hint">Jede Sekunde, solange dieser Tab offen ist. Rein gehen erstellt den Kanal, leer löscht ihn.</div>
+            <p class="hint" id="roomCooldown">Nächste Prüfung in 1s</p>
             <label><span>Start-Kanal-ID</span><input id="voiceHubId" placeholder="Rechtsklick auf den Sprachkanal, ID kopieren"></label>
             <label><span>Kategorie-ID, leer = gleiche Kategorie wie der Start-Kanal</span><input id="voiceCategoryId" placeholder="Rechtsklick auf die Kategorie, ID kopieren"></label>
             <div class="pair">
@@ -1200,10 +1200,10 @@
       if (voiceSocket && voiceSocket.readyState < 2) return;
       const url = data.workerUrl.replace(/\/$/, "").replace(/^http/, "ws") + "/api/voice-ws?key=" + encodeURIComponent(data.adminKey);
       voiceSocket = new WebSocket(url);
-      voiceSocket.onclose = () => setTimeout(connectVoice, 5000);
+      voiceSocket.onclose = () => setTimeout(connectVoice, 15000);
     }
     connectVoice();
-    const roomWait = 5;
+    const roomWait = 1;
     let roomNext = Date.now() + roomWait * 1000;
     let roomBusy = false;
     let roomNote = "";
@@ -1222,6 +1222,7 @@
         const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/rooms", { method: "POST", headers: { "x-admin-key": data.adminKey } });
         const body = await res.json();
         roomNote = body.ok ? (body.note || "") : (body.error || "nicht geprüft");
+        if (/Verbindung|blockt|Login/.test(roomNote)) connectVoice();
       } catch {
         roomNote = "nicht geprüft";
       }
