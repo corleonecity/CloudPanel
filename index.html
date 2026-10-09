@@ -101,6 +101,7 @@
       <nav>
         <button type="button" data-view="regeln" aria-current="page">#server-regeln</button>
         <button type="button" data-view="news">#server-ankündigungen</button>
+        <button type="button" data-view="verify">#verifizieren-hub</button>
         <button type="button" data-view="link">Verbindung</button>
       </nav>
       <p class="side-note">Änderungen bleiben in diesem Browser, bis du sie an Discord schickst. Der Bot schreibt die vorhandene Nachricht um.</p>
@@ -191,6 +192,31 @@
         </div>
       </div>
 
+      <div class="view" id="view-verify">
+        <div class="card grid">
+          <label><span>Kanal-ID von #verifizieren-hub</span><input id="verifyChannelId" placeholder="Rechtsklick auf den Kanal, ID kopieren"></label>
+          <label><span>Rollen-ID, die der Haken vergibt</span><input id="verifyRoleId" placeholder="Rechtsklick auf die Rolle, ID kopieren"></label>
+        </div>
+        <div class="card">
+          <div class="hint">Eine Nachricht. Der Haken schreibt sie um und gibt die Rolle.</div>
+          <div class="pair">
+            <label><span>Titel</span><input id="verifyTitle"></label>
+            <label><span>Farbe der Leiste</span><input id="verifyColor" type="color"></label>
+            <label><span>Emoji auf dem Haken</span><input id="verifyEmoji" maxlength="8" placeholder="✅"></label>
+            <label><span>Farbe des Hakens</span>
+              <select id="verifyStyle">
+                <option value="1">Blau</option>
+                <option value="3">Grün</option>
+                <option value="2">Grau</option>
+                <option value="4">Rot</option>
+              </select>
+            </label>
+          </div>
+          <label><span>Text</span><textarea id="verifyText"></textarea></label>
+          <label><span>Antwort, wenn die Rolle gesetzt wurde</span><input id="verifyReply"></label>
+        </div>
+      </div>
+
       <div class="view" id="view-link">
         <div class="card grid">
           <label><span>Worker</span><input id="workerUrl"></label>
@@ -229,6 +255,17 @@
           </div>
         </div>
       </article>
+      <article class="msg" id="previewVerify" hidden>
+        <div class="avatar">L</div>
+        <div>
+          <div class="who"><strong>Leitstand</strong><em>APP</em><time>jetzt</time></div>
+          <div class="embed" id="verifyEmbed">
+            <h3 id="prevVerifyTitle">Verifizierung</h3>
+            <p id="prevVerifyText"></p>
+          </div>
+          <button type="button" class="check" id="prevVerifyButton">✅</button>
+        </div>
+      </article>
     </aside>
   </div>
   <script>
@@ -260,9 +297,17 @@
       newsTitle: "Ankündigungen",
       newsColor: "#f0b429",
       newsIntro: "",
-      newsPing: "@everyone"
+      newsPing: "@everyone",
+      verifyChannelId: "",
+      verifyRoleId: "",
+      verifyTitle: "Verifizierung",
+      verifyColor: "#57f287",
+      verifyEmoji: "✅",
+      verifyStyle: "1",
+      verifyText: "Um dich zu verifizieren, klicke unten auf den Button.",
+      verifyReply: "Verifiziert. Die Rolle ist drauf."
     };
-    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro"];
+    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyStyle", "verifyText", "verifyReply"];
     let rules = [];
     let steps = [];
     const lines = (text) => String(text || "").split(/\n/).map((line) => line.trim()).filter(Boolean);
@@ -373,6 +418,13 @@
       pingEl.style.display = ping ? "block" : "none";
       document.getElementById("prevNewsTitle").textContent = fill(document.getElementById("newsTitle").value || "Ankündigungen");
       document.getElementById("prevNewsIntro").textContent = fill(document.getElementById("newsIntro").value);
+      document.getElementById("verifyEmbed").style.borderLeftColor = document.getElementById("verifyColor").value || "#57f287";
+      document.getElementById("prevVerifyTitle").textContent = document.getElementById("verifyTitle").value || "Verifizierung";
+      document.getElementById("prevVerifyText").textContent = document.getElementById("verifyText").value;
+      const verifyStyles = { "1": "#5865f2", "2": "#4e5058", "3": "#248046", "4": "#da373c" };
+      const verifyButton = document.getElementById("prevVerifyButton");
+      verifyButton.style.background = verifyStyles[document.getElementById("verifyStyle").value] || verifyStyles["1"];
+      verifyButton.textContent = document.getElementById("verifyEmoji").value.trim() || "✅";
     }
     function setStatus(text, kind) {
       const el = document.getElementById("status");
@@ -381,7 +433,8 @@
     }
     const pages = {
       regeln: ["#server-regeln", "Regeln, Schritte und die vollen Kanalnamen. {regeln} wird zum Namen, den du oben einträgst."],
-      news: ["#server-ankündigungen", "Die feste Info in dem Kanal: was angekündigt wird und dass dort nicht gechattet wird."],
+      news: ["#server-ankündigungen", "Jede Ankündigung ist eine neue Nachricht. Der Ping steht über dem Text."],
+      verify: ["#verifizieren-hub", "Eine Nachricht mit Haken. Der Haken gibt die Rolle, die du hier einträgst."],
       link: ["Verbindung", "Worker und Admin-Schlüssel."]
     };
     document.querySelectorAll("nav button").forEach((button) => {
@@ -395,7 +448,8 @@
         document.getElementById("lede").textContent = pages[view][1];
         document.getElementById("previewRules").hidden = view !== "regeln";
         document.getElementById("previewNews").hidden = view !== "news";
-        document.querySelector(".preview-col h2").textContent = view === "news" ? "Vorschau Ankündigungen" : "Vorschau Regeln";
+        document.getElementById("previewVerify").hidden = view !== "verify";
+        document.querySelector(".preview-col h2").textContent = view === "news" ? "Vorschau Ankündigungen" : view === "verify" ? "Vorschau Verifizierung" : "Vorschau Regeln";
         preview();
       });
     });
@@ -444,7 +498,15 @@
             newsColor: data.newsColor,
             newsPing: data.newsPing,
             newsIntro: data.newsIntro,
-            target: view === "news" ? "news" : "regeln"
+            verifyChannelId: data.verifyChannelId.trim(),
+            verifyRoleId: data.verifyRoleId.trim(),
+            verifyTitle: data.verifyTitle,
+            verifyColor: data.verifyColor,
+            verifyEmoji: data.verifyEmoji,
+            verifyStyle: data.verifyStyle,
+            verifyText: data.verifyText,
+            verifyReply: data.verifyReply,
+            target: view === "news" ? "news" : view === "verify" ? "verify" : "regeln"
           })
         });
         const body = await res.json();
@@ -452,7 +514,8 @@
           document.getElementById("newsIntro").value = "";
           localStorage.setItem(KEY, JSON.stringify(pack()));
           preview();
-          setStatus("Ankündigung gesendet. Text ist wieder leer.", "ok");
+          const wanted = /@(everyone|here)/.test(data.newsPing || "");
+          setStatus(wanted && !body.ping ? "Gesendet, aber ohne Ping. In Cloudflare liegt noch das alte Skript." : "Ankündigung gesendet. Ping ist dabei. Text ist wieder leer.", wanted && !body.ping ? "bad" : "ok");
         } else {
           setStatus(body.ok ? "Discord-Nachricht " + body.mode + "." : (body.error || "Klappt nicht."), body.ok ? "ok" : "bad");
         }
