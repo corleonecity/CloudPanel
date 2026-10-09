@@ -60,12 +60,6 @@
     .mod strong { display: block; font-size: 18px; }
     .mod span { display: block; color: var(--muted); min-height: 44px; margin: 8px 0 12px; }
     .mod em { font-style: normal; color: var(--accent); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
-    .rank { display: flex; gap: 14px; align-items: center; margin-top: 12px; padding: 14px; border-radius: 16px; background: linear-gradient(90deg, #1a2028 0 78%, #1f6f78 78% 100%); }
-    .rank img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; background: #111; }
-    .rank strong, .rank span { display: block; }
-    .rank span { color: var(--muted); }
-    .bar { height: 8px; margin-top: 8px; border-radius: 99px; background: #fff; overflow: hidden; }
-    .bar i { display: block; height: 100%; background: #5ee0a0; }
     .user-row { display: flex; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); }
     .user-row strong, .user-row span { display: block; }
     .user-row span { color: var(--muted); font-size: 12px; }
@@ -324,7 +318,8 @@
         </div>
         <div id="mod-level">
           <div class="card">
-            <div class="hint">XP pro Aktion. Text braucht ein paar Buchstaben. Dieselbe Nachricht und Spam geben nichts.</div>
+            <div class="hint">XP pro Aktion. Text braucht ein paar Buchstaben. Dieselbe Nachricht und Spam geben nichts. Sprachchat zählt, solange die Seite offen ist oder der Trigger läuft.</div>
+            <p class="hint" id="voiceNote"></p>
             <div class="pair">
               <label><span>XP für Text</span><input id="levelXpText" inputmode="numeric"></label>
               <label><span>XP für Sprachnachricht</span><input id="levelXpVoiceMsg" inputmode="numeric"></label>
@@ -343,7 +338,6 @@
           <div class="card">
             <div class="hint">User suchen. Dann eine Zahl XP hinzufügen oder abziehen, nicht alles auf einmal.</div>
             <label><span>Suche nach Name oder ID</span><input id="levelSearch" placeholder="Name oder User-ID"></label>
-            <div id="levelCard"></div>
             <div class="pair">
               <label><span>User-ID</span><input id="levelWipeId" placeholder="wird beim Anklicken gefüllt"></label>
               <label><span>Anzahl XP</span><input id="levelAmount" inputmode="numeric" placeholder="15"></label>
@@ -879,36 +873,11 @@
       };
     });
     let levelUsers = [];
-    function rankCard(row) {
-      const card = document.createElement("div");
-      card.className = "rank";
-      const img = document.createElement("img");
-      img.alt = "";
-      img.src = avatarUrl(row);
-      const text = document.createElement("div");
-      const strong = document.createElement("strong");
-      strong.textContent = "@" + (row.username || row.name || "user");
-      const sub = document.createElement("span");
-      const into = row.into ?? 0;
-      const need = row.need || 100;
-      sub.textContent = "Level " + row.level + "   XP " + into + " / " + need + "   Rang " + row.rank;
-      const bar = document.createElement("div");
-      bar.className = "bar";
-      const fill = document.createElement("i");
-      fill.style.width = Math.max(0, Math.min(100, Math.round((into / need) * 100))) + "%";
-      bar.append(fill);
-      text.append(strong, sub, bar);
-      card.append(img, text);
-      return card;
-    }
     function showLevelUsers() {
       const query = (document.getElementById("levelSearch").value || "").trim().toLowerCase();
       const board = document.getElementById("levelBoard");
-      const card = document.getElementById("levelCard");
       board.innerHTML = "";
-      card.innerHTML = "";
       const list = levelUsers.filter((row) => !query || String(row.name || "").toLowerCase().includes(query) || String(row.username || "").toLowerCase().includes(query) || String(row.id).includes(query));
-      if (list[0]) card.append(rankCard(list[0]));
       list.forEach((row) => {
         const line = document.createElement("button");
         line.type = "button";
@@ -927,11 +896,7 @@
         sub.textContent = "Level " + row.level + " · " + row.xp + " XP · " + row.id;
         text.append(strong, sub);
         line.append(img, text);
-        line.onclick = () => {
-          document.getElementById("levelWipeId").value = row.id;
-          card.innerHTML = "";
-          card.append(rankCard(row));
-        };
+        line.onclick = () => { document.getElementById("levelWipeId").value = row.id; };
         board.append(line);
       });
       if (!list.length) board.textContent = query ? "Niemand gefunden." : "Noch niemand hat XP.";
@@ -1178,6 +1143,8 @@
         const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/levels", { headers: { "x-admin-key": data.adminKey } });
         const body = await res.json();
         levelUsers = body.users || body.top || [];
+        const note = document.getElementById("voiceNote");
+        if (note) note.textContent = body.voiceNote || "";
         showLevelUsers();
       } catch {
         board.textContent = "Liste nicht geladen.";
