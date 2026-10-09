@@ -104,6 +104,7 @@
         <button type="button" data-view="news">#server-ankündigungen</button>
         <button type="button" data-view="verify">#verifizieren-hub</button>
         <button type="button" data-view="spiele">#wähle-deine-spiele</button>
+        <button type="button" data-view="creators">#content-creators</button>
         <button type="button" data-view="link">Verbindung</button>
       </nav>
       <p class="side-note">Änderungen bleiben in diesem Browser, bis du sie an Discord schickst. Der Bot schreibt die vorhandene Nachricht um.</p>
@@ -238,6 +239,18 @@
         </div>
       </div>
 
+      <div class="view" id="view-creators">
+        <div class="card grid">
+          <label><span>Kanal-ID von #content-creators</span><input id="creatorsChannelId" placeholder="Rechtsklick auf den Kanal, ID kopieren"></label>
+          <label><span>Text, {name} wird zum Kanalnamen</span><input id="creatorsPing" placeholder="@everyone {name} ist live"></label>
+        </div>
+        <div class="card">
+          <div class="hint">YouTube, Twitch, TikTok oder Kick. Der Bot prüft alle 5 Minuten und schickt den Link nur, wenn ein Live neu startet. In Cloudflare unter Triggers einen Cron */5 * * * * anlegen.</div>
+          <div id="creatorList"></div>
+          <button type="button" class="add" id="addCreator">Link hinzufügen</button>
+        </div>
+      </div>
+
       <div class="view" id="view-link">
         <div class="card grid">
           <label><span>Worker</span><input id="workerUrl"></label>
@@ -297,6 +310,14 @@
           <div class="drop" id="prevGamesDrop">Triff eine Auswahl</div>
         </div>
       </article>
+      <article class="msg" id="previewCreators" hidden>
+        <div class="avatar">L</div>
+        <div>
+          <div class="who"><strong>Leitstand</strong><em>APP</em><time>jetzt</time></div>
+          <p id="prevCreatorPing">@everyone name ist live</p>
+          <a id="prevCreatorLink" href="https://www.twitch.tv/">https://www.twitch.tv/</a>
+        </div>
+      </article>
     </aside>
   </div>
   <script>
@@ -341,9 +362,11 @@
       gamesChannelId: "",
       gamesPlaceholder: "Triff eine Auswahl",
       gamesText: "Wenn du Spiele hinzufügst, siehst du deren Spielkanäle",
-      gamesColor: "#57f287"
+      gamesColor: "#57f287",
+      creatorsChannelId: "",
+      creatorsPing: "@everyone {name} ist live"
     };
-    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor"];
+    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing"];
     const baseGames = [
       { text: "Phasmophobia", roleId: "" },
       { text: "Terraria", roleId: "" },
@@ -354,6 +377,7 @@
     let rules = [];
     let steps = [];
     let games = [];
+    let creators = [];
     const lines = (text) => String(text || "").split(/\n/).map((line) => line.trim()).filter(Boolean);
 
     function load() {
@@ -372,12 +396,14 @@
       if (!rules.length) rules = [""];
       if (!steps.length) steps = [""];
       games = Array.isArray(data.games) && data.games.length ? data.games.map((game) => ({ text: String(game.text || ""), roleId: String(game.roleId || "") })) : baseGames.map((game) => ({ ...game }));
+      creators = Array.isArray(data.creators) && data.creators.length ? data.creators.map((item) => ({ url: String(item.url || "") })) : [{ url: "" }];
     }
     function pack() {
       const data = Object.fromEntries(copy.map((id) => [id, document.getElementById(id).value]));
       data.rules = rules.map((rule) => rule.trim()).filter(Boolean).join("\n");
       data.steps = steps.map((step) => step.trim()).filter(Boolean).join("\n");
       data.games = games.map((game) => ({ text: game.text.trim(), roleId: game.roleId.trim() }));
+      data.creators = creators.map((item) => ({ url: item.url.trim() })).filter((item) => item.url);
       return data;
     }
     function list(target, items, onInput, onRemove) {
@@ -429,6 +455,27 @@
         remove.addEventListener("click", () => { games.splice(index, 1); if (!games.length) games.push({ text: "", roleId: "" }); render(); });
         row.append(num, name, role, remove);
         gameRoot.append(row);
+      });
+      const creatorRoot = document.getElementById("creatorList");
+      creatorRoot.innerHTML = "";
+      creators.forEach((item, index) => {
+        const row = document.createElement("div");
+        row.className = "rule";
+        const num = document.createElement("div");
+        num.className = "num";
+        num.textContent = String(index + 1);
+        const url = document.createElement("input");
+        url.value = item.url;
+        url.placeholder = "https://www.twitch.tv/name";
+        url.addEventListener("input", () => { creators[index].url = url.value; preview(); });
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "icon";
+        remove.textContent = "×";
+        remove.setAttribute("aria-label", "Entfernen");
+        remove.addEventListener("click", () => { creators.splice(index, 1); if (!creators.length) creators.push({ url: "" }); render(); });
+        row.append(num, url, remove);
+        creatorRoot.append(row);
       });
       preview();
     }
@@ -500,6 +547,17 @@
       document.getElementById("prevGamesText").textContent = document.getElementById("gamesText").value;
       const names = games.map((game) => game.text.trim()).filter(Boolean);
       document.getElementById("prevGamesDrop").textContent = (document.getElementById("gamesPlaceholder").value.trim() || "Triff eine Auswahl") + (names.length ? "  ·  " + names.join(", ") : "");
+      const livePing = document.getElementById("creatorsPing").value || "@everyone {name} ist live";
+      const sample = creators.map((item) => item.url.trim()).find(Boolean) || "https://www.twitch.tv/name";
+      let sampleName = "name";
+      try {
+        const path = new URL(sample).pathname.split("/").filter(Boolean);
+        sampleName = (path.find((part) => part.startsWith("@")) || path[0] || "name").replace(/^@/, "");
+      } catch {}
+      document.getElementById("prevCreatorPing").textContent = livePing.replaceAll("{name}", sampleName);
+      const linkEl = document.getElementById("prevCreatorLink");
+      linkEl.textContent = sample;
+      linkEl.href = sample.startsWith("http") ? sample : "#";
     }
     function setStatus(text, kind) {
       const el = document.getElementById("status");
@@ -511,6 +569,7 @@
       news: ["#server-ankündigungen", "Jede Ankündigung ist eine neue Nachricht. Der Ping steht über dem Text."],
       verify: ["#verifizieren-hub", "Eine Nachricht mit Haken. Der Haken gibt die Rolle, die du hier einträgst."],
       spiele: ["#wähle-deine-spiele", "Dropdown. Jede Zeile ist ein Spiel und eine Rolle."],
+      creators: ["#content-creators", "Links von YouTube, Twitch, TikTok oder Kick. Ein neues Live wird in den Kanal geschickt."],
       link: ["Verbindung", "Worker und Admin-Schlüssel."]
     };
     document.querySelectorAll("nav button").forEach((button) => {
@@ -526,7 +585,8 @@
         document.getElementById("previewNews").hidden = view !== "news";
         document.getElementById("previewVerify").hidden = view !== "verify";
         document.getElementById("previewGames").hidden = view !== "spiele";
-        const titles = { news: "Vorschau Ankündigungen", verify: "Vorschau Verifizierung", spiele: "Vorschau Spiele" };
+        document.getElementById("previewCreators").hidden = view !== "creators";
+        const titles = { news: "Vorschau Ankündigungen", verify: "Vorschau Verifizierung", spiele: "Vorschau Spiele", creators: "Vorschau Live" };
         document.querySelector(".preview-col h2").textContent = titles[view] || "Vorschau Regeln";
         preview();
       });
@@ -534,8 +594,9 @@
     document.getElementById("addRule").onclick = () => { rules.push(""); render(); };
     document.getElementById("addStep").onclick = () => { steps.push(""); render(); };
     document.getElementById("addGame").onclick = () => { games.push({ text: "", roleId: "" }); render(); };
+    document.getElementById("addCreator").onclick = () => { creators.push({ url: "" }); render(); };
     document.querySelector(".stage").addEventListener("input", (event) => {
-      if (event.target.closest("#ruleList, #stepList, #gameList")) return;
+      if (event.target.closest("#ruleList, #stepList, #gameList, #creatorList")) return;
       preview();
     });
     document.getElementById("save").onclick = () => {
@@ -591,11 +652,16 @@
             gamesText: data.gamesText,
             gamesColor: data.gamesColor,
             games: data.games,
-            target: view === "news" ? "news" : view === "verify" ? "verify" : view === "spiele" ? "spiele" : "regeln"
+            creatorsChannelId: data.creatorsChannelId.trim(),
+            creatorsPing: data.creatorsPing,
+            creators: data.creators,
+            target: view === "news" ? "news" : view === "verify" ? "verify" : view === "spiele" ? "spiele" : view === "creators" ? "creators" : "regeln"
           })
         });
         const body = await res.json();
-        if (body.ok && view === "news") {
+        if (body.ok && view === "creators") {
+          setStatus(body.posted ? "Jemand ist live. Die Nachricht ist im Kanal." : "Links gespeichert. Gerade ist niemand neu live.", "ok");
+        } else if (body.ok && view === "news") {
           document.getElementById("newsIntro").value = "";
           localStorage.setItem(KEY, JSON.stringify(pack()));
           preview();
