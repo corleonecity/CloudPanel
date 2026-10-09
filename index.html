@@ -245,7 +245,8 @@
           <label><span>Text, {name} wird zum Kanalnamen</span><input id="creatorsPing" placeholder="@everyone {name} ist live"></label>
         </div>
         <div class="card">
-          <div class="hint">YouTube, Twitch, TikTok oder Kick. Der Bot prüft alle 5 Minuten und schickt den Link nur, wenn ein Live neu startet. In Cloudflare unter Triggers einen Cron */5 * * * * anlegen.</div>
+          <div class="hint">YouTube, Twitch, TikTok oder Kick. Diese Seite prüft jede Minute selbst, solange der Tab offen ist, und schickt ein neues Live einmal.</div>
+          <p class="status" id="cooldown">Nächste Prüfung in 60s</p>
           <div id="creatorList"></div>
           <button type="button" class="add" id="addCreator">Link hinzufügen</button>
         </div>
@@ -405,6 +406,53 @@
       data.games = games.map((game) => ({ text: game.text.trim(), roleId: game.roleId.trim() }));
       data.creators = creators.map((item) => ({ url: item.url.trim() })).filter((item) => item.url);
       return data;
+    }
+    function syncBody(data, target) {
+      return {
+        serverName: data.serverName,
+        rulesIntro: data.rulesIntro,
+        rules: lines(data.rules),
+        stepsTitle: data.stepsTitle,
+        steps: lines(data.steps),
+        buttonLabel: data.buttonLabel,
+        buttonEmoji: data.buttonEmoji,
+        buttonStyle: data.buttonStyle,
+        embedTitle: data.embedTitle,
+        embedColor: data.embedColor,
+        stepsColor: data.stepsColor,
+        footer: data.footer,
+        links: lines(data.links),
+        acceptReply: data.acceptReply,
+        channelId: data.channelId.trim(),
+        roleId: data.roleId.trim(),
+        nameRegeln: data.nameRegeln.trim(),
+        nameVerify: data.nameVerify.trim(),
+        nameSpiele: data.nameSpiele.trim(),
+        nameNews: data.nameNews.trim(),
+        newsChannelId: data.newsChannelId.trim(),
+        newsTitle: data.newsTitle,
+        newsColor: data.newsColor,
+        newsPing: data.newsPing,
+        newsIntro: data.newsIntro,
+        verifyChannelId: data.verifyChannelId.trim(),
+        verifyRoleId: data.verifyRoleId.trim(),
+        verifyTitle: data.verifyTitle,
+        verifyColor: data.verifyColor,
+        verifyEmoji: data.verifyEmoji,
+        verifyLabel: data.verifyLabel,
+        verifyStyle: data.verifyStyle,
+        verifyText: data.verifyText,
+        verifyReply: data.verifyReply,
+        gamesChannelId: data.gamesChannelId.trim(),
+        gamesPlaceholder: data.gamesPlaceholder,
+        gamesText: data.gamesText,
+        gamesColor: data.gamesColor,
+        games: data.games,
+        creatorsChannelId: data.creatorsChannelId.trim(),
+        creatorsPing: data.creatorsPing,
+        creators: data.creators,
+        target
+      };
     }
     function list(target, items, onInput, onRemove) {
       const root = document.getElementById(target);
@@ -599,9 +647,21 @@
       if (event.target.closest("#ruleList, #stepList, #gameList, #creatorList")) return;
       preview();
     });
-    document.getElementById("save").onclick = () => {
-      localStorage.setItem(KEY, JSON.stringify(pack()));
-      setStatus("Lokal gespeichert.", "ok");
+    document.getElementById("save").onclick = async () => {
+      const data = pack();
+      localStorage.setItem(KEY, JSON.stringify(data));
+      setStatus("Speichere in die Datenbank…");
+      try {
+        const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/sync", {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-admin-key": data.adminKey },
+          body: JSON.stringify(syncBody(data, "save"))
+        });
+        const body = await res.json();
+        setStatus(body.ok ? "In der Datenbank gespeichert." : (body.error || "Nicht gespeichert."), body.ok ? "ok" : "bad");
+      } catch {
+        setStatus("Nur in diesem Browser gespeichert. Datenbank nicht erreichbar.", "bad");
+      }
     };
     document.getElementById("push").onclick = async () => {
       const view = document.querySelector("nav button[aria-current]")?.dataset.view || "regeln";
@@ -612,55 +672,11 @@
         const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/sync", {
           method: "POST",
           headers: { "content-type": "application/json", "x-admin-key": data.adminKey },
-          body: JSON.stringify({
-            serverName: data.serverName,
-            rulesIntro: data.rulesIntro,
-            rules: lines(data.rules),
-            stepsTitle: data.stepsTitle,
-            steps: lines(data.steps),
-            buttonLabel: data.buttonLabel,
-            buttonEmoji: data.buttonEmoji,
-            buttonStyle: data.buttonStyle,
-            embedTitle: data.embedTitle,
-            embedColor: data.embedColor,
-            stepsColor: data.stepsColor,
-            footer: data.footer,
-            links: lines(data.links),
-            acceptReply: data.acceptReply,
-            channelId: data.channelId.trim(),
-            roleId: data.roleId.trim(),
-            nameRegeln: data.nameRegeln.trim(),
-            nameVerify: data.nameVerify.trim(),
-            nameSpiele: data.nameSpiele.trim(),
-            nameNews: data.nameNews.trim(),
-            newsChannelId: data.newsChannelId.trim(),
-            newsTitle: data.newsTitle,
-            newsColor: data.newsColor,
-            newsPing: data.newsPing,
-            newsIntro: data.newsIntro,
-            verifyChannelId: data.verifyChannelId.trim(),
-            verifyRoleId: data.verifyRoleId.trim(),
-            verifyTitle: data.verifyTitle,
-            verifyColor: data.verifyColor,
-            verifyEmoji: data.verifyEmoji,
-            verifyLabel: data.verifyLabel,
-            verifyStyle: data.verifyStyle,
-            verifyText: data.verifyText,
-            verifyReply: data.verifyReply,
-            gamesChannelId: data.gamesChannelId.trim(),
-            gamesPlaceholder: data.gamesPlaceholder,
-            gamesText: data.gamesText,
-            gamesColor: data.gamesColor,
-            games: data.games,
-            creatorsChannelId: data.creatorsChannelId.trim(),
-            creatorsPing: data.creatorsPing,
-            creators: data.creators,
-            target: view === "news" ? "news" : view === "verify" ? "verify" : view === "spiele" ? "spiele" : view === "creators" ? "creators" : "regeln"
-          })
+          body: JSON.stringify(syncBody(data, view === "news" ? "news" : view === "verify" ? "verify" : view === "spiele" ? "spiele" : view === "creators" ? "creators" : "regeln"))
         });
         const body = await res.json();
         if (body.ok && view === "creators") {
-          setStatus(body.posted ? "Live ist im Kanal." : ((body.lines || []).join(" · ") || "Gerade ist niemand live."), body.posted ? "ok" : "bad");
+          setStatus((body.posted ? "Live ist im Kanal. " : "") + ((body.lines || []).join(" · ") || "Gerade ist niemand live."), body.posted ? "ok" : "bad");
         } else if (body.ok && view === "news") {
           document.getElementById("newsIntro").value = "";
           localStorage.setItem(KEY, JSON.stringify(pack()));
@@ -676,6 +692,68 @@
     };
     load();
     render();
+    const wait = 60;
+    let nextAt = Date.now() + 8 * 1000;
+    let checking = false;
+    function tick() {
+      const left = Math.max(0, Math.ceil((nextAt - Date.now()) / 1000));
+      const el = document.getElementById("cooldown");
+      if (el) el.textContent = left ? "Nächste Prüfung in " + left + "s" : "Wird geprüft…";
+    }
+    async function pull() {
+      const data = pack();
+      if (!data.workerUrl || !data.adminKey) return;
+      try {
+        const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/config", { headers: { "x-admin-key": data.adminKey } });
+        const body = await res.json();
+        const cfg = body.config || {};
+        const useful = (cfg.rules || []).length || (cfg.creators || []).length || (cfg.games || []).length || cfg.channelId || cfg.creatorsChannelId || cfg.newsChannelId || cfg.verifyChannelId || cfg.gamesChannelId;
+        if (!body.ok || !useful) return;
+        const saved = {
+          ...cfg,
+          rules: Array.isArray(cfg.rules) ? cfg.rules.join("\n") : "",
+          steps: Array.isArray(cfg.steps) ? cfg.steps.join("\n") : "",
+          links: Array.isArray(cfg.links) ? cfg.links.join("\n") : "",
+          workerUrl: data.workerUrl,
+          adminKey: data.adminKey
+        };
+        localStorage.setItem(KEY, JSON.stringify(saved));
+        load();
+        render();
+      } catch {}
+    }
+    async function autoLive() {
+      if (checking) return;
+      const data = pack();
+      if (!data.workerUrl || !data.adminKey) return;
+      checking = true;
+      tick();
+      try {
+        await fetch(data.workerUrl.replace(/\/$/, "") + "/api/sync", {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-admin-key": data.adminKey },
+          body: JSON.stringify(syncBody(data, "save"))
+        });
+        const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/live", {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-admin-key": data.adminKey }
+        });
+        const body = await res.json();
+        if (document.querySelector("nav button[aria-current]")?.dataset.view === "creators") {
+          setStatus((body.posted ? "Live ist im Kanal. " : "Automatisch geprüft. ") + ((body.lines || []).join(" · ") || body.error || "keine Antwort"), body.ok ? "ok" : "bad");
+        }
+      } catch {}
+      nextAt = Date.now() + wait * 1000;
+      checking = false;
+      tick();
+    }
+    pull().finally(() => {
+      nextAt = Date.now() + 8 * 1000;
+      tick();
+      setInterval(tick, 250);
+      setTimeout(autoLive, 8000);
+      setInterval(autoLive, wait * 1000);
+    });
   </script>
 </body>
 </html>
