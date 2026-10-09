@@ -54,6 +54,13 @@
     label span, .hint { display: block; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
     .people { margin: 8px 0 0; padding: 0; list-style: none; }
     .people li { padding: 7px 0; border-top: 1px solid var(--line); }
+    .grow { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); }
+    .grow p { flex: 1; margin: 0; }
+    .emoji-btn { width: 44px; height: 44px; flex: none; border-radius: 12px; border: 1px solid var(--line); background: var(--panel-2); font-size: 20px; }
+    .scroll-list { max-height: 280px; overflow: auto; }
+    dialog { border: 0; padding: 0; background: transparent; color: inherit; }
+    dialog::backdrop { background: rgba(0, 0, 0, .62); }
+    .modal { width: min(520px, calc(100vw - 32px)); }
     input, textarea { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 12px; }
     select { width: 100%; min-height: 44px; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 0 12px; }
     input[type="color"] { width: 52px; height: 44px; padding: 4px; }
@@ -284,17 +291,14 @@
           </div>
         </div>
         <div class="card">
-          <div class="hint">Aktives Giveaway. Änderungen schreiben ändert die Nachricht in Discord, die Teilnehmer bleiben. Die Liste bleibt 7 Tage gespeichert.</div>
-          <p id="activeGiveawayInfo">Wird geladen…</p>
+          <div class="hint">Aktives Giveaway. Rechts auf den Stift, dann geht das Fenster auf und du kannst alles ändern. Die Teilnehmer bleiben. Beendete rutschen nach unten und bleiben 7 Tage.</div>
+          <div id="activeGiveawayInfo">Wird geladen…</div>
           <ul class="people" id="activeGiveawayPeople"></ul>
-          <div class="actions">
-            <button type="button" id="giveawayUpdate">Änderungen schreiben</button>
-            <button type="button" id="giveawayRefresh">Liste neu laden</button>
-          </div>
+          <button type="button" id="giveawayRefresh">Liste neu laden</button>
         </div>
         <div class="card">
           <div class="hint">Beendete Giveaways der letzten 7 Tage</div>
-          <div id="giveawayHistory"></div>
+          <div class="scroll-list" id="giveawayHistory"></div>
         </div>
       </div>
 
@@ -378,6 +382,24 @@
       </article>
     </aside>
   </div>
+  <dialog id="giveawayEdit">
+    <form class="card modal grid">
+      <div class="hint">Giveaway bearbeiten. Speichern schreibt die Nachricht in Discord um.</div>
+      <label><span>Preis</span><input id="editPrize"></label>
+      <label><span>Anzahl Gewinner</span><input id="editWinners" inputmode="numeric"></label>
+      <label><span>Ende</span><input id="editEnds" type="datetime-local"></label>
+      <label><span>Veranstaltet von</span><input id="editHost"></label>
+      <label><span>Farbe</span><input id="editColor" type="color"></label>
+      <label><span>Text auf dem Button</span><input id="editButton"></label>
+      <label><span>Bild-Link</span><input id="editImage"></label>
+      <div class="hint">Teilnehmer</div>
+      <ul class="people" id="editPeople"></ul>
+      <div class="actions">
+        <button type="button" id="editSave">Speichern</button>
+        <button type="button" id="editClose">Schließen</button>
+      </div>
+    </form>
+  </dialog>
   <script>
     const KEY = "leitstand-sync-v1";
     const base = {
@@ -753,21 +775,93 @@
     document.getElementById("giveawayEnd").onclick = () => giveawayAction("giveaway-end");
     document.getElementById("giveawayReroll").onclick = () => giveawayAction("giveaway-reroll");
     document.getElementById("giveawayCommands").onclick = () => giveawayAction("giveaway-commands");
-    document.getElementById("giveawayUpdate").onclick = () => giveawayAction("giveaway-update");
     document.getElementById("giveawayRefresh").onclick = () => loadGiveaways();
+    let editingId = "";
+    function localStamp(ms) {
+      if (!ms) return "";
+      const date = new Date(ms);
+      const pad = (n) => String(n).padStart(2, "0");
+      return date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate()) + "T" + pad(date.getHours()) + ":" + pad(date.getMinutes());
+    }
     function giveawayLine(item) {
       const when = item.endsAt ? new Date(item.endsAt).toLocaleString("de-DE") : "";
       const people = (item.entrants || []).map((entrant) => entrant.name || entrant.id).join(", ") || "niemand";
       return (item.ended ? "Beendet" : "Läuft") + " · " + (item.prize || "Giveaway") + " · Ende " + when + " · " + ((item.entrants || []).length) + " dabei: " + people;
     }
+    function giveawayRow(item) {
+      const line = document.createElement("div");
+      line.className = "grow";
+      const text = document.createElement("p");
+      text.textContent = giveawayLine(item);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "emoji-btn";
+      button.textContent = "✏️";
+      button.onclick = () => openGiveawayEdit(item);
+      line.append(text, button);
+      return line;
+    }
+    function openGiveawayEdit(item) {
+      editingId = item.messageId || "";
+      document.getElementById("editPrize").value = item.prize || "";
+      document.getElementById("editWinners").value = item.winnerCount || 1;
+      document.getElementById("editEnds").value = localStamp(item.endsAt);
+      document.getElementById("editHost").value = item.host || "";
+      document.getElementById("editColor").value = item.color || "#5865f2";
+      document.getElementById("editButton").value = item.buttonLabel || "Teilnehmen";
+      document.getElementById("editImage").value = item.image || "";
+      const people = document.getElementById("editPeople");
+      people.innerHTML = "";
+      (item.entrants || []).forEach((entrant) => {
+        const li = document.createElement("li");
+        li.textContent = (entrant.name || "Unbekannt") + " · " + entrant.id;
+        people.append(li);
+      });
+      if (!(item.entrants || []).length) people.textContent = "Noch niemand.";
+      document.getElementById("giveawayEdit").showModal();
+    }
+    document.getElementById("editClose").onclick = () => document.getElementById("giveawayEdit").close();
+    document.getElementById("editSave").onclick = async () => {
+      const data = pack();
+      const ends = document.getElementById("editEnds").value;
+      const body = syncBody(data, "giveaway-update");
+      body.giveawayMessageId = editingId;
+      body.giveawayPrize = document.getElementById("editPrize").value;
+      body.giveawayWinners = document.getElementById("editWinners").value;
+      body.giveawayEnds = ends;
+      body.giveawayEndsAt = ends ? new Date(ends).getTime() : 0;
+      body.giveawayHost = document.getElementById("editHost").value;
+      body.giveawayColor = document.getElementById("editColor").value;
+      body.giveawayButton = document.getElementById("editButton").value;
+      body.giveawayImage = document.getElementById("editImage").value;
+      setStatus("Giveaway wird geändert…");
+      try {
+        const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/sync", {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-admin-key": data.adminKey },
+          body: JSON.stringify(body)
+        });
+        const answer = await res.json();
+        setStatus(answer.ok ? "Giveaway aktualisiert." : (answer.error || "Klappt nicht."), answer.ok ? "ok" : "bad");
+        if (answer.ok) {
+          document.getElementById("giveawayEdit").close();
+          loadGiveaways();
+        }
+      } catch {
+        setStatus("Worker nicht erreichbar.", "bad");
+      }
+    };
     async function loadGiveaways() {
       const data = pack();
       if (!data.workerUrl || !data.adminKey) return;
+      const box = document.getElementById("activeGiveawayInfo");
       try {
         const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/giveaway", { headers: { "x-admin-key": data.adminKey } });
         const body = await res.json();
-        const active = body.active;
-        document.getElementById("activeGiveawayInfo").textContent = active && active.messageId ? giveawayLine(active) : "Keins läuft.";
+        const active = body.active && body.active.messageId && !body.active.ended ? body.active : null;
+        box.innerHTML = "";
+        if (active) box.append(giveawayRow(active));
+        else box.textContent = "Keins läuft.";
         const people = document.getElementById("activeGiveawayPeople");
         people.innerHTML = "";
         (active && active.entrants || []).forEach((entrant) => {
@@ -775,16 +869,20 @@
           li.textContent = (entrant.name || "Unbekannt") + " · " + entrant.id;
           people.append(li);
         });
+        const seen = new Set();
         const history = document.getElementById("giveawayHistory");
         history.innerHTML = "";
-        (body.history || []).forEach((item) => {
-          const p = document.createElement("p");
-          p.textContent = giveawayLine(item);
-          history.append(p);
+        const ended = [];
+        if (body.active && body.active.ended) ended.push(body.active);
+        (body.history || []).forEach((item) => ended.push(item));
+        ended.forEach((item) => {
+          if (!item || !item.messageId || seen.has(item.messageId)) return;
+          seen.add(item.messageId);
+          history.append(giveawayRow(item));
         });
-        if (!(body.history || []).length) history.textContent = "Noch keine.";
+        if (!seen.size) history.textContent = "Noch keine.";
       } catch {
-        document.getElementById("activeGiveawayInfo").textContent = "Liste nicht geladen.";
+        box.textContent = "Liste nicht geladen.";
       }
     }
     document.querySelector(".stage").addEventListener("input", (event) => {
