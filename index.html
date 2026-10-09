@@ -1194,15 +1194,18 @@
     loadLevels();
     setInterval(loadLevels, 60000);
     let voiceSocket = null;
-    function connectVoice() {
+    function connectVoice(force) {
       const data = pack();
       if (!data.workerUrl || !data.adminKey) return;
-      if (voiceSocket && voiceSocket.readyState < 2) return;
+      if (!force && voiceSocket && voiceSocket.readyState < 2) return;
+      try { if (voiceSocket) voiceSocket.close(); } catch {}
       const url = data.workerUrl.replace(/\/$/, "").replace(/^http/, "ws") + "/api/voice-ws?key=" + encodeURIComponent(data.adminKey);
       voiceSocket = new WebSocket(url);
-      voiceSocket.onclose = () => setTimeout(connectVoice, 15000);
+      voiceSocket.onopen = () => { roomNote = "Socket offen"; };
+      voiceSocket.onerror = () => { roomNote = "Socket Fehler"; };
+      voiceSocket.onclose = () => { roomNote = "Socket zu"; setTimeout(() => connectVoice(false), 5000); };
     }
-    connectVoice();
+    connectVoice(false);
     const roomWait = 1;
     let roomNext = Date.now() + roomWait * 1000;
     let roomBusy = false;
@@ -1222,7 +1225,7 @@
         const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/rooms", { method: "POST", headers: { "x-admin-key": data.adminKey } });
         const body = await res.json();
         roomNote = body.ok ? (body.note || "") : (body.error || "nicht geprüft");
-        if (/Verbindung|blockt|Login/.test(roomNote)) connectVoice();
+        if (/Verbindung weg|getrennt|Login fehl|Socket zu/.test(roomNote) && (!voiceSocket || voiceSocket.readyState === 3)) connectVoice(false);
       } catch {
         roomNote = "nicht geprüft";
       }
