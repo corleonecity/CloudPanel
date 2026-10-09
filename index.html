@@ -293,7 +293,6 @@
         <div class="card">
           <div class="hint">Aktives Giveaway. Rechts auf den Stift, dann geht das Fenster auf und du kannst alles ändern. Die Teilnehmer bleiben. Beendete rutschen nach unten und bleiben 7 Tage.</div>
           <div id="activeGiveawayInfo">Wird geladen…</div>
-          <ul class="people" id="activeGiveawayPeople"></ul>
           <button type="button" id="giveawayRefresh">Liste neu laden</button>
         </div>
         <div class="card">
@@ -392,10 +391,11 @@
       <label><span>Farbe</span><input id="editColor" type="color"></label>
       <label><span>Text auf dem Button</span><input id="editButton"></label>
       <label><span>Bild-Link</span><input id="editImage"></label>
-      <div class="hint">Teilnehmer</div>
+      <div class="hint">User</div>
       <ul class="people" id="editPeople"></ul>
       <div class="actions">
         <button type="button" id="editSave">Speichern</button>
+        <button type="button" id="editDelete">Giveaway löschen</button>
         <button type="button" id="editClose">Schließen</button>
       </div>
     </form>
@@ -785,8 +785,7 @@
     }
     function giveawayLine(item) {
       const when = item.endsAt ? new Date(item.endsAt).toLocaleString("de-DE") : "";
-      const people = (item.entrants || []).map((entrant) => entrant.name || entrant.id).join(", ") || "niemand";
-      return (item.ended ? "Beendet" : "Läuft") + " · " + (item.prize || "Giveaway") + " · Ende " + when + " · " + ((item.entrants || []).length) + " dabei: " + people;
+      return (item.deleted ? "Gelöscht" : item.ended ? "Beendet" : "Läuft") + " · " + (item.prize || "Giveaway") + " · Ende " + when + " · " + ((item.entrants || []).length) + " dabei";
     }
     function giveawayRow(item) {
       const line = document.createElement("div");
@@ -821,10 +820,12 @@
       document.getElementById("giveawayEdit").showModal();
     }
     document.getElementById("editClose").onclick = () => document.getElementById("giveawayEdit").close();
-    document.getElementById("editSave").onclick = async () => {
+    document.getElementById("editDelete").onclick = () => saveGiveawayEdit(true);
+    document.getElementById("editSave").onclick = () => saveGiveawayEdit(false);
+    async function saveGiveawayEdit(remove) {
       const data = pack();
       const ends = document.getElementById("editEnds").value;
-      const body = syncBody(data, "giveaway-update");
+      const body = syncBody(data, remove ? "giveaway-delete" : "giveaway-update");
       body.giveawayMessageId = editingId;
       body.giveawayPrize = document.getElementById("editPrize").value;
       body.giveawayWinners = document.getElementById("editWinners").value;
@@ -834,7 +835,7 @@
       body.giveawayColor = document.getElementById("editColor").value;
       body.giveawayButton = document.getElementById("editButton").value;
       body.giveawayImage = document.getElementById("editImage").value;
-      setStatus("Giveaway wird geändert…");
+      setStatus(remove ? "Giveaway wird gelöscht…" : "Giveaway wird geändert…");
       try {
         const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/sync", {
           method: "POST",
@@ -842,7 +843,7 @@
           body: JSON.stringify(body)
         });
         const answer = await res.json();
-        setStatus(answer.ok ? "Giveaway aktualisiert." : (answer.error || "Klappt nicht."), answer.ok ? "ok" : "bad");
+        setStatus(answer.ok ? (remove ? "Giveaway gelöscht. Nachrichten sind weg." : "Giveaway aktualisiert.") : (answer.error || "Klappt nicht."), answer.ok ? "ok" : "bad");
         if (answer.ok) {
           document.getElementById("giveawayEdit").close();
           loadGiveaways();
@@ -858,17 +859,10 @@
       try {
         const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/giveaway", { headers: { "x-admin-key": data.adminKey } });
         const body = await res.json();
-        const active = body.active && body.active.messageId && !body.active.ended ? body.active : null;
+        const active = body.active && body.active.messageId && !body.active.ended && !body.active.deleted ? body.active : null;
         box.innerHTML = "";
         if (active) box.append(giveawayRow(active));
         else box.textContent = "Keins läuft.";
-        const people = document.getElementById("activeGiveawayPeople");
-        people.innerHTML = "";
-        (active && active.entrants || []).forEach((entrant) => {
-          const li = document.createElement("li");
-          li.textContent = (entrant.name || "Unbekannt") + " · " + entrant.id;
-          people.append(li);
-        });
         const seen = new Set();
         const history = document.getElementById("giveawayHistory");
         history.innerHTML = "";
