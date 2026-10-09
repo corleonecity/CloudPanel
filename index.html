@@ -373,7 +373,7 @@
         </div>
         <div id="mod-voice" hidden>
           <div class="card">
-            <div class="hint">Kanal-ID von dem Sprachkanal, in den man reingeht. Der Bot macht einen eigenen Kanal und zieht dich rein. Ist niemand mehr drin, wird er gelöscht. Geht der Owner raus, bekommt jemand anderes den Kanal. /voice open, close, kick, invite, name, size, owner gehen nur für den Owner und nur für seinen Kanal.</div>
+            <div class="hint">Kanal-ID von dem Sprachkanal, in den man reingeht. Die Seite muss offen bleiben, dann geht der Kanal sofort auf und zu. Ist niemand mehr drin, wird er gelöscht. Geht der Owner raus, bekommt jemand anderes den Kanal. /voice open, close, kick, invite, name, size, owner gehen nur für den Owner und nur für seinen Kanal.</div>
             <label><span>Start-Kanal-ID</span><input id="voiceHubId" placeholder="Rechtsklick auf den Sprachkanal, ID kopieren"></label>
             <label><span>Kategorie-ID, leer = gleiche Kategorie wie der Start-Kanal</span><input id="voiceCategoryId" placeholder="Rechtsklick auf die Kategorie, ID kopieren"></label>
             <div class="pair">
@@ -1192,6 +1192,16 @@
     document.getElementById("levelSearch").addEventListener("input", showLevelUsers);
     loadLevels();
     setInterval(loadLevels, 60000);
+    let voiceSocket = null;
+    function connectVoice() {
+      const data = pack();
+      if (!data.workerUrl || !data.adminKey) return;
+      if (voiceSocket && voiceSocket.readyState < 2) return;
+      const url = data.workerUrl.replace(/\/$/, "").replace(/^http/, "ws") + "/api/voice-ws?key=" + encodeURIComponent(data.adminKey);
+      voiceSocket = new WebSocket(url);
+      voiceSocket.onclose = () => setTimeout(connectVoice, 5000);
+    }
+    connectVoice();
     window.scrollTo(0, 0);
     const wait = 60;
     let nextAt = Date.now() + 8 * 1000;
