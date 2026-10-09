@@ -258,7 +258,7 @@
           <label><span>Kanal-ID von #giveaway</span><input id="giveawayChannelId" placeholder="Rechtsklick auf den Kanal, ID kopieren"></label>
           <label><span>Preis</span><input id="giveawayPrize" placeholder="3x 300bonds"></label>
           <label><span>Anzahl Gewinner</span><input id="giveawayWinners" inputmode="numeric" placeholder="1"></label>
-          <label><span>Minuten, bis es endet</span><input id="giveawayMinutes" inputmode="numeric" placeholder="60"></label>
+          <label><span>Ende, Datum und Uhrzeit</span><input id="giveawayEnds" type="datetime-local"></label>
           <label><span>Veranstaltet von</span><input id="giveawayHost" placeholder="Colin"></label>
           <label><span>Farbe der Leiste</span><input id="giveawayColor" type="color"></label>
           <label><span>Text auf dem Button</span><input id="giveawayButton" placeholder="Teilnehmen"></label>
@@ -421,7 +421,7 @@
       giveawayRoleEnd: "",
       giveawayRoleReroll: ""
     };
-    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayMinutes", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll"];
+    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll"];
     const baseGames = [
       { text: "Phasmophobia", roleId: "" },
       { text: "Terraria", roleId: "" },
@@ -508,7 +508,8 @@
         giveawayChannelId: data.giveawayChannelId.trim(),
         giveawayPrize: data.giveawayPrize,
         giveawayWinners: data.giveawayWinners,
-        giveawayMinutes: data.giveawayMinutes,
+        giveawayEnds: data.giveawayEnds,
+        giveawayEndsAt: data.giveawayEnds ? new Date(data.giveawayEnds).getTime() : 0,
         giveawayHost: data.giveawayHost,
         giveawayColor: data.giveawayColor,
         giveawayButton: data.giveawayButton,
@@ -674,8 +675,8 @@
       linkEl.href = sample.startsWith("http") ? sample : "#";
       document.getElementById("giveawayEmbed").style.borderLeftColor = document.getElementById("giveawayColor").value || "#5865f2";
       document.getElementById("prevGiveawayPrize").textContent = document.getElementById("giveawayPrize").value || "Giveaway";
-      const minutes = document.getElementById("giveawayMinutes").value || "60";
-      document.getElementById("prevGiveawayBody").textContent = "Zeit: " + minutes + " Min\nVon: " + (document.getElementById("giveawayHost").value || "Colin") + "\nGewinner: " + (document.getElementById("giveawayWinners").value || "1");
+      const when = document.getElementById("giveawayEnds").value;
+      document.getElementById("prevGiveawayBody").textContent = "Ende: " + (when ? when.replace("T", " ") : "Datum fehlt") + "\nVon: " + (document.getElementById("giveawayHost").value || "Colin") + "\nGewinner: " + (document.getElementById("giveawayWinners").value || "1");
       document.getElementById("prevGiveawayButton").textContent = "🎉 " + (document.getElementById("giveawayButton").value || "Teilnehmen");
     }
     function setStatus(text, kind) {
