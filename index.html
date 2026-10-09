@@ -52,6 +52,8 @@
     .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
     label { display: block; }
     label span, .hint { display: block; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+    .people { margin: 8px 0 0; padding: 0; list-style: none; }
+    .people li { padding: 7px 0; border-top: 1px solid var(--line); }
     input, textarea { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 12px; }
     select { width: 100%; min-height: 44px; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 0 12px; }
     input[type="color"] { width: 52px; height: 44px; padding: 4px; }
@@ -280,6 +282,19 @@
             <button type="button" id="giveawayEnd">Jetzt ziehen</button>
             <button type="button" id="giveawayReroll">Neu verlosen</button>
           </div>
+        </div>
+        <div class="card">
+          <div class="hint">Aktives Giveaway. Änderungen schreiben ändert die Nachricht in Discord, die Teilnehmer bleiben. Die Liste bleibt 7 Tage gespeichert.</div>
+          <p id="activeGiveawayInfo">Wird geladen…</p>
+          <ul class="people" id="activeGiveawayPeople"></ul>
+          <div class="actions">
+            <button type="button" id="giveawayUpdate">Änderungen schreiben</button>
+            <button type="button" id="giveawayRefresh">Liste neu laden</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="hint">Beendete Giveaways der letzten 7 Tage</div>
+          <div id="giveawayHistory"></div>
         </div>
       </div>
 
@@ -711,6 +726,7 @@
         const titles = { news: "Vorschau Ankündigungen", verify: "Vorschau Verifizierung", spiele: "Vorschau Spiele", creators: "Vorschau Live", giveaway: "Vorschau Giveaway" };
         document.querySelector(".preview-col h2").textContent = titles[view] || "Vorschau Regeln";
         preview();
+        if (view === "giveaway") loadGiveaways();
       });
     });
     document.getElementById("addRule").onclick = () => { rules.push(""); render(); };
@@ -729,6 +745,7 @@
         });
         const body = await res.json();
         setStatus(body.ok ? "Giveaway " + (body.mode || "fertig") + "." : (body.error || "Klappt nicht."), body.ok ? "ok" : "bad");
+        if (body.ok) loadGiveaways();
       } catch {
         setStatus("Worker nicht erreichbar.", "bad");
       }
@@ -736,6 +753,40 @@
     document.getElementById("giveawayEnd").onclick = () => giveawayAction("giveaway-end");
     document.getElementById("giveawayReroll").onclick = () => giveawayAction("giveaway-reroll");
     document.getElementById("giveawayCommands").onclick = () => giveawayAction("giveaway-commands");
+    document.getElementById("giveawayUpdate").onclick = () => giveawayAction("giveaway-update");
+    document.getElementById("giveawayRefresh").onclick = () => loadGiveaways();
+    function giveawayLine(item) {
+      const when = item.endsAt ? new Date(item.endsAt).toLocaleString("de-DE") : "";
+      const people = (item.entrants || []).map((entrant) => entrant.name || entrant.id).join(", ") || "niemand";
+      return (item.ended ? "Beendet" : "Läuft") + " · " + (item.prize || "Giveaway") + " · Ende " + when + " · " + ((item.entrants || []).length) + " dabei: " + people;
+    }
+    async function loadGiveaways() {
+      const data = pack();
+      if (!data.workerUrl || !data.adminKey) return;
+      try {
+        const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/giveaway", { headers: { "x-admin-key": data.adminKey } });
+        const body = await res.json();
+        const active = body.active;
+        document.getElementById("activeGiveawayInfo").textContent = active && active.messageId ? giveawayLine(active) : "Keins läuft.";
+        const people = document.getElementById("activeGiveawayPeople");
+        people.innerHTML = "";
+        (active && active.entrants || []).forEach((entrant) => {
+          const li = document.createElement("li");
+          li.textContent = (entrant.name || "Unbekannt") + " · " + entrant.id;
+          people.append(li);
+        });
+        const history = document.getElementById("giveawayHistory");
+        history.innerHTML = "";
+        (body.history || []).forEach((item) => {
+          const p = document.createElement("p");
+          p.textContent = giveawayLine(item);
+          history.append(p);
+        });
+        if (!(body.history || []).length) history.textContent = "Noch keine.";
+      } catch {
+        document.getElementById("activeGiveawayInfo").textContent = "Liste nicht geladen.";
+      }
+    }
     document.querySelector(".stage").addEventListener("input", (event) => {
       if (event.target.closest("#ruleList, #stepList, #gameList, #creatorList")) return;
       preview();
@@ -846,6 +897,9 @@
       setInterval(tick, 250);
       setTimeout(autoLive, 8000);
       setInterval(autoLive, wait * 1000);
+      setInterval(() => {
+        if (document.querySelector("nav button[aria-current]")?.dataset.view === "giveaway") loadGiveaways();
+      }, 20000);
     });
   </script>
 </body>
