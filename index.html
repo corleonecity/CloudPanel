@@ -4,62 +4,178 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Leitstand · Colin's Community</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,520;6..72,620&display=swap" rel="stylesheet">
   <style>
-    :root { color-scheme: dark; --bg:#101411; --panel:#171c19; --line:#2c3530; --fg:#e7eee9; --muted:#93a199; --lime:#d6ff4a; --ink:#152006; }
+    :root {
+      color-scheme: dark;
+      --bg: #0b0d10;
+      --panel: #13171d;
+      --panel-2: #1a2028;
+      --line: #2a313c;
+      --fg: #e8edf2;
+      --muted: #8e99a8;
+      --accent: #5ee0a0;
+      --ink: #062117;
+      --bad: #e7a394;
+    }
     * { box-sizing: border-box; }
-    body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.5 Outfit, ui-sans-serif, system-ui, sans-serif; }
-    header, main { width:min(920px, calc(100% - 32px)); margin:0 auto; }
-    header { padding:28px 0 8px; display:flex; justify-content:space-between; gap:16px; align-items:end; }
-    h1 { font-family: Georgia, serif; font-size:40px; line-height:1; margin:0; font-weight:560; }
-    p { color:var(--muted); }
-    .row { display:flex; gap:8px; flex-wrap:wrap; }
-    button, .file { min-height:44px; border-radius:10px; border:1px solid var(--line); background:var(--panel); color:var(--fg); padding:0 14px; cursor:pointer; }
-    button.primary { background:var(--lime); color:var(--ink); border-color:transparent; font-weight:600; }
-    section { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; margin:14px 0; }
-    label { display:block; margin:12px 0; }
-    span { display:block; color:var(--muted); font-size:14px; margin-bottom:6px; }
-    input, textarea { width:100%; border:1px solid var(--line); background:var(--bg); color:var(--fg); border-radius:10px; padding:10px 12px; font:inherit; }
-    textarea { min-height:72px; resize:vertical; }
-    .preview { border-left:4px solid var(--lime); padding:12px 14px; background:#121714; border-radius:0 12px 12px 0; white-space:pre-wrap; }
-    pre { white-space:pre-wrap; word-break:break-word; background:var(--bg); border-radius:10px; padding:12px; max-height:280px; overflow:auto; }
-    .ok { color:var(--lime); }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--fg); }
+    body { font: 15px/1.5 Manrope, ui-sans-serif, system-ui, sans-serif; }
+    button, input, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .app { min-height: 100dvh; display: grid; grid-template-columns: 232px minmax(0, 1fr) 380px; }
+    aside, .stage, .preview-col { min-width: 0; }
+    aside { border-right: 1px solid var(--line); padding: 22px 16px; display: flex; flex-direction: column; gap: 22px; }
+    .brand { display: flex; gap: 12px; align-items: center; }
+    .mark { width: 36px; height: 36px; border-radius: 10px; background: var(--accent); color: var(--ink); display: grid; place-items: center; font-family: Newsreader, Georgia, serif; font-size: 22px; }
+    .brand small { display: block; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; font-size: 11px; }
+    .brand strong { font-family: Newsreader, Georgia, serif; font-size: 22px; font-weight: 520; }
+    nav { display: flex; flex-direction: column; gap: 4px; }
+    nav button { text-align: left; background: transparent; border: 0; border-radius: 10px; min-height: 44px; padding: 0 12px; color: var(--muted); }
+    nav button[aria-current="page"] { background: var(--panel-2); color: var(--fg); }
+    .side-note { margin-top: auto; color: var(--muted); font-size: 13px; }
+    .stage { padding: 28px 32px 48px; }
+    .top { display: flex; justify-content: space-between; gap: 16px; align-items: flex-end; margin-bottom: 22px; }
+    h1 { font-family: Newsreader, Georgia, serif; font-size: 42px; line-height: 0.95; font-weight: 520; margin: 0; }
+    .lede { color: var(--muted); margin: 8px 0 0; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .actions button, .add { min-height: 44px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); padding: 0 14px; }
+    .actions .primary { background: var(--accent); color: var(--ink); border-color: transparent; font-weight: 700; }
+    .status { min-height: 1.4em; margin: 10px 0 0; color: var(--muted); }
+    .status.ok { color: var(--accent); }
+    .status.bad { color: var(--bad); }
+    .view { display: none; }
+    .view.on { display: block; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+    label { display: block; }
+    label span, .hint { display: block; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+    input, textarea { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 12px; }
+    textarea { min-height: 88px; resize: vertical; }
+    .rule { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 10px 0; border-top: 1px solid var(--line); }
+    .rule:first-child { border-top: 0; }
+    .num { height: 36px; display: grid; place-items: center; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .rule textarea { min-height: 72px; }
+    .icon { width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--line); background: transparent; color: var(--muted); }
+    .add { margin-top: 8px; }
+    .grid { display: grid; gap: 12px; }
+    .preview-col { border-left: 1px solid var(--line); padding: 22px 18px; background: #10141a; }
+    .preview-col h2 { margin: 0 0 14px; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+    .msg { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; }
+    .avatar { width: 40px; height: 40px; border-radius: 50%; background: #1f6feb; display: grid; place-items: center; font-weight: 700; }
+    .who { display: flex; gap: 8px; align-items: baseline; }
+    .who strong { font-size: 15px; }
+    .who em { font-style: normal; font-size: 10px; background: #5865f2; color: white; border-radius: 4px; padding: 1px 4px; letter-spacing: 0.04em; }
+    .who time { color: var(--muted); font-size: 12px; }
+    .embed { margin-top: 8px; background: #11151b; border-left: 4px solid #57f287; border-radius: 4px; padding: 12px 14px; }
+    .embed h3 { margin: 0 0 8px; font-size: 16px; }
+    .embed p, .embed li { margin: 0 0 10px; white-space: pre-wrap; }
+    .embed a { display: block; color: #7eb6ff; text-decoration: none; margin-bottom: 6px; }
+    .embed ol { margin: 8px 0 0; padding-left: 18px; }
+    .check { margin-top: 8px; height: 32px; min-width: 32px; padding: 0 10px; border: 0; border-radius: 4px; background: #248046; color: white; font-weight: 700; }
+    @media (max-width: 1080px) {
+      .app { grid-template-columns: 1fr; }
+      aside { border-right: 0; border-bottom: 1px solid var(--line); }
+      nav { flex-direction: row; overflow: auto; }
+      .side-note { display: none; }
+      .preview-col { border-left: 0; border-top: 1px solid var(--line); }
+      .stage { padding: 22px 16px 40px; }
+      h1 { font-size: 34px; }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <div>
-      <p>GitHub-Dashboard · nur in diesem Browser gespeichert</p>
-      <h1>Leitstand</h1>
-    </div>
-    <div class="row">
-      <button class="primary" id="save">Speichern</button>
-      <button id="copy">Skript kopieren</button>
-      <button id="down">cloudflare-worker.js</button>
-    </div>
-  </header>
-  <main>
-    <section>
-      <label><span>Servername</span><input id="serverName"></label>
-      <label><span>Einleitung über den Regeln</span><textarea id="rulesIntro"></textarea></label>
-      <label><span>Regeln, eine pro Zeile</span><textarea id="rules" style="min-height:220px"></textarea></label>
-      <label><span>Titel der zweiten Nachricht</span><input id="stepsTitle"></label>
-      <label><span>Schritte, eine pro Zeile</span><textarea id="steps"></textarea></label>
-      <label><span>Text auf dem Haken-Button</span><input id="buttonLabel"></label>
-      <label><span>Antwort, wenn der Haken die Rolle setzt</span><input id="acceptReply"></label>
-      <p id="status" class="ok"></p>
+  <div class="app">
+    <aside>
+      <div class="brand">
+        <div class="mark">C</div>
+        <div><small>Community</small><strong>Leitstand</strong></div>
+      </div>
+      <nav>
+        <button type="button" data-view="regeln" aria-current="page">Regeln</button>
+        <button type="button" data-view="schritte">Schritte</button>
+        <button type="button" data-view="link">Verbindung</button>
+      </nav>
+      <p class="side-note">Änderungen bleiben in diesem Browser, bis du sie an Discord schickst. Der Bot schreibt die vorhandene Nachricht um.</p>
+    </aside>
+    <section class="stage">
+      <div class="top">
+        <div>
+          <h1 id="title">Regeln</h1>
+          <p class="lede" id="lede">Der Text, den der Haken unter #server-regeln zeigt.</p>
+        </div>
+        <div>
+          <div class="actions">
+            <button type="button" id="save">Lokal speichern</button>
+            <button type="button" class="primary" id="push">An Discord schreiben</button>
+          </div>
+          <p class="status" id="status"></p>
+        </div>
+      </div>
+
+      <div class="view on" id="view-regeln">
+        <div class="card">
+          <label><span>Servername</span><input id="serverName"></label>
+        </div>
+        <div class="card">
+          <label><span>Einleitung</span><textarea id="rulesIntro"></textarea></label>
+        </div>
+        <div class="card">
+          <div class="hint">Eine Regel pro Karte</div>
+          <div id="ruleList"></div>
+          <button type="button" class="add" id="addRule">Regel hinzufügen</button>
+        </div>
+      </div>
+
+      <div class="view" id="view-schritte">
+        <div class="card">
+          <label><span>Titel</span><input id="stepsTitle"></label>
+        </div>
+        <div class="card">
+          <div class="hint">So kommt jemand auf den Server</div>
+          <div id="stepList"></div>
+          <button type="button" class="add" id="addStep">Schritt hinzufügen</button>
+        </div>
+        <div class="card grid">
+          <label><span>Text auf dem Haken</span><input id="buttonLabel"></label>
+          <label><span>Antwort, wenn die Rolle gesetzt wurde</span><input id="acceptReply"></label>
+        </div>
+      </div>
+
+      <div class="view" id="view-link">
+        <div class="card grid">
+          <label><span>Worker</span><input id="workerUrl"></label>
+          <label><span>Admin-Schlüssel, derselbe Wert wie das Secret ADMIN_KEY</span><input id="adminKey" type="password" autocomplete="off"></label>
+          <label><span>Kanal-ID von #server-regeln</span><input id="channelId" placeholder="Rechtsklick auf den Kanal, ID kopieren"></label>
+        </div>
+      </div>
     </section>
-    <section>
-      <p>Vorschau #server-regeln</p>
-      <div class="preview" id="preview"></div>
-    </section>
-    <section>
-      <p>Cloudflare-Skript aus diesen Texten. Secrets bleiben außerhalb: DISCORD_TOKEN, TURSO_TOKEN, VERIFIED_ROLE_ID.</p>
-      <pre id="script"></pre>
-    </section>
-  </main>
+    <aside class="preview-col">
+      <h2>Vorschau im Kanal</h2>
+      <article class="msg">
+        <div class="avatar">L</div>
+        <div>
+          <div class="who"><strong>Leitstand</strong><em>APP</em><time>jetzt</time></div>
+          <div class="embed">
+            <h3>Regeln</h3>
+            <p id="prevIntro"></p>
+            <a href="https://discord.com/terms">https://discord.com/terms</a>
+            <a href="https://discord.com/guidelines">https://discord.com/guidelines</a>
+            <ol id="prevRules"></ol>
+          </div>
+          <button type="button" class="check" id="prevButton">Regeln akzeptieren</button>
+        </div>
+      </article>
+    </aside>
+  </div>
   <script>
-    const KEY = "leitstand-texte-v1";
+    const KEY = "leitstand-sync-v1";
     const base = {
+      workerUrl: "https://colincommnunity.keulecolin2005.workers.dev",
+      adminKey: "",
+      channelId: "",
       serverName: "Colin's Community",
       rulesIntro: "Wir werden stets die Nutzungsbedingungen (ToS) und die Community-Richtlinien von Discord durchsetzen.",
       rules: "Die Einhaltung der allgemeinen Netiquette ist unerlässlich. Behandle andere Mitglieder des Servers mit Respekt und Freundlichkeit.\nBelästigung, Mobbing, Diskriminierung oder Drohungen werden nicht toleriert. Jeder Nutzer sollte sich sicher und wohl fühlen.\nSpamming ist verboten. Sende keine wiederholten, unnötigen oder unerwünschten Nachrichten.\nWerbung für andere Discord-Server oder externe Plattformen ist nur mit Erlaubnis eines Administrators gestattet.\nAnstößige, rassistische, sexistische oder pornografische Inhalte sind streng verboten.\nDas Teilen persönlicher Informationen anderer Nutzer ohne deren Zustimmung ist nicht erlaubt.\nDas Verbreiten von Viren, schadhafter Software oder betrügerischen Inhalten ist streng verboten. Dies schließt das Senden von Phishing-Links ein.\nDas Erstellen mehrerer Konten, um Strafen zu umgehen oder den Server zu stören, ist nicht gestattet.\nDiskussionen über politische oder religiöse Themen sollten respektvoll geführt werden. Jeder Nutzer hat das Recht auf seine eigene Meinung.\nBei Verstößen gegen diese Regeln behalten sich die Administratoren das Recht vor, geeignete Maßnahmen zu ergreifen, einschließlich des Entzugs von Chat- oder Serverrechten.\nIn der Regel zu Auto-Rollen setzen wir die Wahrheit strikt durch. Wer mehr Rollen zugewiesen bekommt als erlaubt oder die Anforderungen nicht erfüllt, wird entsprechend bestraft.",
@@ -68,123 +184,121 @@
       buttonLabel: "Regeln akzeptieren",
       acceptReply: "Regeln akzeptiert. Die Rolle ist drauf."
     };
-    const fields = ["serverName", "rulesIntro", "rules", "stepsTitle", "steps", "buttonLabel", "acceptReply"];
-    function read() {
-      const data = {};
-      for (const id of fields) data[id] = document.getElementById(id).value;
+    const copy = ["workerUrl", "adminKey", "channelId", "serverName", "rulesIntro", "stepsTitle", "buttonLabel", "acceptReply"];
+    let rules = [];
+    let steps = [];
+    const lines = (text) => String(text || "").split(/\n/).map((line) => line.trim()).filter(Boolean);
+
+    function load() {
+      const saved = JSON.parse(localStorage.getItem(KEY) || "null") || {};
+      const data = { ...base, ...saved };
+      copy.forEach((id) => { document.getElementById(id).value = data[id] || ""; });
+      rules = lines(data.rules);
+      steps = lines(data.steps);
+      if (!rules.length) rules = [""];
+      if (!steps.length) steps = [""];
+    }
+    function pack() {
+      const data = Object.fromEntries(copy.map((id) => [id, document.getElementById(id).value]));
+      data.rules = rules.map((rule) => rule.trim()).filter(Boolean).join("\n");
+      data.steps = steps.map((step) => step.trim()).filter(Boolean).join("\n");
       return data;
     }
-    function write(data) {
-      for (const id of fields) document.getElementById(id).value = data[id] || "";
-    }
-    function lines(text) { return text.split(/\n/).map((x) => x.trim()).filter(Boolean); }
-    function worker(data) {
-      const config = {
-        serverName: data.serverName,
-        rulesIntro: data.rulesIntro,
-        links: ["https://discord.com/terms", "https://discord.com/guidelines"],
-        rules: lines(data.rules),
-        stepsTitle: data.stepsTitle,
-        steps: lines(data.steps),
-        buttonLabel: data.buttonLabel || "Regeln akzeptieren",
-        acceptReply: data.acceptReply || "Regeln akzeptiert. Die Rolle ist drauf."
-      };
-      return `const CONFIG = ${JSON.stringify(config, null, 2)};
-
-function hexToBytes(hex) {
-  const clean = String(hex || "").trim();
-  if (clean.length % 2 !== 0) return new Uint8Array();
-  const out = new Uint8Array(clean.length / 2);
-  for (let i = 0; i < out.length; i++) out[i] = parseInt(clean.slice(i * 2, i * 2 + 2), 16);
-  return out;
-}
-async function verifyRequest(request, raw, env) {
-  const signature = request.headers.get("x-signature-ed25519");
-  const timestamp = request.headers.get("x-signature-timestamp");
-  if (!signature || !timestamp || !env.DISCORD_PUBLIC_KEY) return false;
-  try {
-    const key = await crypto.subtle.importKey("raw", hexToBytes(env.DISCORD_PUBLIC_KEY), { name: "Ed25519" }, false, ["verify"]);
-    return await crypto.subtle.verify("Ed25519", key, hexToBytes(signature), new TextEncoder().encode(timestamp + raw));
-  } catch { return false; }
-}
-function message(data, ephemeral) {
-  if (ephemeral) data.flags = 64;
-  return Response.json({ type: 4, data });
-}
-function embed(title, description) {
-  return [{ title: String(title).slice(0, 256), description: String(description || "—").slice(0, 4096), color: 0x57f287 }];
-}
-function userOf(body) {
-  const user = body.member?.user || body.user || {};
-  return { id: user.id || "unknown", name: user.global_name || user.username || "Mitglied" };
-}
-async function turso(env, sql, args) {
-  if (!env.TURSO_URL || !env.TURSO_TOKEN) return { skipped: true };
-  const url = String(env.TURSO_URL).trim().replace(/\\/$/, "").replace(/^libsql:\\/\\//, "https://").replace(/^turso:\\/\\//, "https://");
-  const res = await fetch(url + "/v2/pipeline", {
-    method: "POST",
-    headers: { authorization: "Bearer " + env.TURSO_TOKEN, "content-type": "application/json" },
-    body: JSON.stringify({ requests: [{ type: "execute", stmt: { sql, args: (args || []).map((value) => ({ type: "text", value: String(value) })) } }, { type: "close" }] }),
-    signal: AbortSignal.timeout(2500)
-  });
-  if (!res.ok) return { error: true };
-  return await res.json();
-}
-async function acceptRules(env, body) {
-  const user = userOf(body);
-  await turso(env, "INSERT INTO verifications (user_id, username, verified_at) VALUES (?, ?, datetime('now')) ON CONFLICT(user_id) DO UPDATE SET username = excluded.username, verified_at = excluded.verified_at", [user.id, user.name]);
-  if (!env.DISCORD_TOKEN || !body.guild_id || !env.VERIFIED_ROLE_ID) return CONFIG.acceptReply + " Rolle noch nicht gesetzt: Token oder Rollen-ID fehlt.";
-  const res = await fetch("https://discord.com/api/v10/guilds/" + body.guild_id + "/members/" + user.id + "/roles/" + env.VERIFIED_ROLE_ID, { method: "PUT", headers: { authorization: "Bot " + env.DISCORD_TOKEN } });
-  return res.ok || res.status === 204 ? CONFIG.acceptReply : "Gespeichert, Discord hat die Rolle nicht gesetzt. Die Rolle muss unter der Bot-Rolle stehen.";
-}
-function rulesPayload() {
-  const text = [CONFIG.rulesIntro, "", ...CONFIG.links, "", ...CONFIG.rules.map((rule, i) => (i + 1) + ". " + rule)].join("\\n");
-  return { embeds: embed("Regeln", text), components: [{ type: 1, components: [{ type: 2, style: 3, label: CONFIG.buttonLabel, custom_id: "rules:accept" }] }] };
-}
-export default {
-  async fetch(request, env) {
-    if (request.method === "GET") return new Response(CONFIG.serverName + " Bot ist erreichbar.", { status: 200 });
-    if (request.method !== "POST") return new Response("method", { status: 405 });
-    const raw = await request.text();
-    if (!(await verifyRequest(request, raw, env))) return new Response("invalid request signature", { status: 401 });
-    let body; try { body = JSON.parse(raw); } catch { return new Response("bad json", { status: 400 }); }
-    if (body.type === 1) return Response.json({ type: 1 });
-    if (body.type === 3 && body.data?.custom_id === "rules:accept") return message({ content: await acceptRules(env, body) }, true);
-    if (body.type !== 2) return Response.json({ type: 1 });
-    const name = body.data?.name;
-    if (name === "regeln") return message(rulesPayload(), false);
-    if (name === "schreiben") return message({ embeds: embed(CONFIG.stepsTitle, CONFIG.steps.map((step, i) => (i + 1) + ". " + step).join("\\n")) }, false);
-    if (name === "verify") return message({ content: await acceptRules(env, body) }, true);
-    if (name === "hilfe") return message({ content: "/regeln  /schreiben  /verify" }, true);
-    return message({ content: "Unbekannter Befehl." }, true);
-  }
-};
-`;
+    function list(target, items, onInput, onRemove) {
+      const root = document.getElementById(target);
+      root.innerHTML = "";
+      items.forEach((value, index) => {
+        const row = document.createElement("div");
+        row.className = "rule";
+        const num = document.createElement("div");
+        num.className = "num";
+        num.textContent = String(index + 1);
+        const area = document.createElement("textarea");
+        area.value = value;
+        area.addEventListener("input", () => onInput(index, area.value));
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "icon";
+        remove.textContent = "×";
+        remove.setAttribute("aria-label", "Entfernen");
+        remove.addEventListener("click", () => onRemove(index));
+        row.append(num, area, remove);
+        root.append(row);
+      });
     }
     function render() {
-      const data = read();
-      const rules = lines(data.rules).map((rule, i) => (i + 1) + ". " + rule).join("\n\n");
-      document.getElementById("preview").textContent = data.rulesIntro + "\n\nhttps://discord.com/terms\nhttps://discord.com/guidelines\n\n" + rules + "\n\n[ " + (data.buttonLabel || "Regeln akzeptieren") + " ]";
-      document.getElementById("script").textContent = worker(data);
+      list("ruleList", rules, (index, value) => { rules[index] = value; preview(); }, (index) => { rules.splice(index, 1); if (!rules.length) rules.push(""); render(); });
+      list("stepList", steps, (index, value) => { steps[index] = value; }, (index) => { steps.splice(index, 1); if (!steps.length) steps.push(""); render(); });
+      preview();
     }
-    write(JSON.parse(localStorage.getItem(KEY) || "null") || base);
-    render();
-    document.querySelector("main").addEventListener("input", render);
+    function preview() {
+      document.getElementById("prevIntro").textContent = document.getElementById("rulesIntro").value;
+      const root = document.getElementById("prevRules");
+      root.innerHTML = "";
+      rules.map((rule) => rule.trim()).filter(Boolean).forEach((rule) => {
+        const item = document.createElement("li");
+        item.textContent = rule;
+        root.append(item);
+      });
+      document.getElementById("prevButton").textContent = document.getElementById("buttonLabel").value || "Regeln akzeptieren";
+    }
+    function setStatus(text, kind) {
+      const el = document.getElementById("status");
+      el.textContent = text;
+      el.className = "status" + (kind ? " " + kind : "");
+    }
+    const pages = {
+      regeln: ["Regeln", "Der Text, den der Haken unter #server-regeln zeigt."],
+      schritte: ["Schritte", "Die zweite Nachricht und was nach dem Haken passiert."],
+      link: ["Verbindung", "Worker, Schlüssel und der Kanal, in den geschrieben wird."]
+    };
+    document.querySelectorAll("nav button").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll("nav button").forEach((item) => item.removeAttribute("aria-current"));
+        button.setAttribute("aria-current", "page");
+        document.querySelectorAll(".view").forEach((view) => view.classList.remove("on"));
+        document.getElementById("view-" + button.dataset.view).classList.add("on");
+        document.getElementById("title").textContent = pages[button.dataset.view][0];
+        document.getElementById("lede").textContent = pages[button.dataset.view][1];
+      });
+    });
+    document.getElementById("addRule").onclick = () => { rules.push(""); render(); };
+    document.getElementById("addStep").onclick = () => { steps.push(""); render(); };
+    document.querySelector(".stage").addEventListener("input", (event) => {
+      if (event.target.closest("#ruleList, #stepList")) return;
+      preview();
+    });
     document.getElementById("save").onclick = () => {
-      localStorage.setItem(KEY, JSON.stringify(read()));
-      document.getElementById("status").textContent = "Gespeichert in diesem Browser.";
+      localStorage.setItem(KEY, JSON.stringify(pack()));
+      setStatus("Lokal gespeichert.", "ok");
     };
-    document.getElementById("copy").onclick = async () => {
-      await navigator.clipboard.writeText(worker(read()));
-      document.getElementById("status").textContent = "Skript kopiert. In Cloudflare als Worker einfügen.";
+    document.getElementById("push").onclick = async () => {
+      const data = pack();
+      localStorage.setItem(KEY, JSON.stringify(data));
+      setStatus("Schreibe an Cloudflare…");
+      try {
+        const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/sync", {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-admin-key": data.adminKey },
+          body: JSON.stringify({
+            serverName: data.serverName,
+            rulesIntro: data.rulesIntro,
+            rules: lines(data.rules),
+            stepsTitle: data.stepsTitle,
+            steps: lines(data.steps),
+            buttonLabel: data.buttonLabel,
+            acceptReply: data.acceptReply,
+            channelId: data.channelId.trim()
+          })
+        });
+        const body = await res.json();
+        setStatus(body.ok ? "Discord-Nachricht " + body.mode + "." : (body.error || "Klappt nicht."), body.ok ? "ok" : "bad");
+      } catch {
+        setStatus("Worker nicht erreichbar. Das neue Skript muss einmal in Cloudflare liegen.", "bad");
+      }
     };
-    document.getElementById("down").onclick = () => {
-      const blob = new Blob([worker(read())], { type: "text/javascript" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "cloudflare-worker.js";
-      a.click();
-    };
+    load();
+    render();
   </script>
 </body>
 </html>
