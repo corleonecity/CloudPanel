@@ -67,6 +67,7 @@
     .preview-col { border-left: 1px solid var(--line); padding: 22px 18px; background: #10141a; }
     .preview-col h2 { margin: 0 0 14px; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
     .msg { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; }
+    .msg[hidden] { display: none; }
     .avatar { width: 40px; height: 40px; border-radius: 50%; background: #1f6feb; display: grid; place-items: center; font-weight: 700; }
     .who { display: flex; gap: 8px; align-items: baseline; }
     .who strong { font-size: 15px; }
@@ -99,6 +100,7 @@
       </div>
       <nav>
         <button type="button" data-view="regeln" aria-current="page">#server-regeln</button>
+        <button type="button" data-view="news">#server-ankündigungen</button>
         <button type="button" data-view="link">Verbindung</button>
       </nav>
       <p class="side-note">Änderungen bleiben in diesem Browser, bis du sie an Discord schickst. Der Bot schreibt die vorhandene Nachricht um.</p>
@@ -119,6 +121,15 @@
       </div>
 
       <div class="view on" id="view-regeln">
+        <div class="card">
+          <div class="hint">Volle Kanalnamen, ohne #. In Texten {regeln} {verify} {spiele} {news} schreiben. Der Name wird überall ersetzt, auch in Discord.</div>
+          <div class="pair">
+            <label><span>Regeln-Kanal</span><input id="nameRegeln" placeholder="server-regeln"></label>
+            <label><span>Verify-Kanal</span><input id="nameVerify" placeholder="verifizieren-hub"></label>
+            <label><span>Spiele-Kanal</span><input id="nameSpiele" placeholder="wähle-deine-spiele"></label>
+            <label><span>Ankündigungen-Kanal</span><input id="nameNews" placeholder="server-ankündigungen"></label>
+          </div>
+        </div>
         <div class="card">
           <label><span>Servername</span><input id="serverName"></label>
         </div>
@@ -154,7 +165,7 @@
           <label><span>Titel der zweiten Nachricht</span><input id="stepsTitle"></label>
         </div>
         <div class="card">
-          <div class="hint">Schritte, direkt unter den Regeln im selben Kanal</div>
+          <div class="hint">Schritte. Kanalnamen als {regeln}, {verify} oder {spiele} schreiben.</div>
           <div id="stepList"></div>
           <button type="button" class="add" id="addStep">Schritt hinzufügen</button>
         </div>
@@ -162,6 +173,22 @@
           <label><span>Kanal-ID von #server-regeln</span><input id="channelId" placeholder="Rechtsklick auf den Kanal, ID kopieren"></label>
           <label><span>Rollen-ID, die der Haken vergibt</span><input id="roleId" placeholder="Rechtsklick auf die Rolle, ID kopieren"></label>
           <label><span>Antwort, wenn die Rolle gesetzt wurde</span><input id="acceptReply"></label>
+        </div>
+      </div>
+
+      <div class="view" id="view-news">
+        <div class="card grid">
+          <label><span>Kanal-ID von #server-ankündigungen</span><input id="newsChannelId" placeholder="Rechtsklick auf den Kanal, ID kopieren"></label>
+        </div>
+        <div class="card">
+          <div class="hint">Die feste Info-Nachricht in dem Kanal. Kein Chat, nur Neuigkeiten vom Team.</div>
+          <div class="pair">
+            <label><span>Titel</span><input id="newsTitle"></label>
+            <label><span>Farbe der Leiste</span><input id="newsColor" type="color"></label>
+          </div>
+          <label><span>Einleitung</span><textarea id="newsIntro"></textarea></label>
+          <label><span>Punkte, eine Zeile pro Punkt</span><textarea id="newsPoints" style="min-height:140px"></textarea></label>
+          <label><span>Fußzeile</span><input id="newsFooter"></label>
         </div>
       </div>
 
@@ -174,7 +201,7 @@
     </section>
     <aside class="preview-col">
       <h2>Vorschau im Kanal</h2>
-      <article class="msg">
+      <article class="msg" id="previewRules">
         <div class="avatar">L</div>
         <div>
           <div class="who"><strong>Leitstand</strong><em>APP</em><time>jetzt</time></div>
@@ -192,6 +219,18 @@
           </div>
         </div>
       </article>
+      <article class="msg" id="previewNews" hidden>
+        <div class="avatar">L</div>
+        <div>
+          <div class="who"><strong>Leitstand</strong><em>APP</em><time>jetzt</time></div>
+          <div class="embed" id="newsEmbed">
+            <h3 id="prevNewsTitle">Ankündigungen</h3>
+            <p id="prevNewsIntro"></p>
+            <ol id="prevNewsPoints"></ol>
+            <p id="prevNewsFooter"></p>
+          </div>
+        </div>
+      </article>
     </aside>
   </div>
   <script>
@@ -201,11 +240,15 @@
       adminKey: "leitstand-colin",
       channelId: "",
       roleId: "",
+      nameRegeln: "server-regeln",
+      nameVerify: "verifizieren-hub",
+      nameSpiele: "wähle-deine-spiele",
+      nameNews: "server-ankündigungen",
       serverName: "Colin's Community",
       rulesIntro: "Wir werden stets die Nutzungsbedingungen (ToS) und die Community-Richtlinien von Discord durchsetzen.",
       rules: "Die Einhaltung der allgemeinen Netiquette ist unerlässlich. Behandle andere Mitglieder des Servers mit Respekt und Freundlichkeit.\nBelästigung, Mobbing, Diskriminierung oder Drohungen werden nicht toleriert. Jeder Nutzer sollte sich sicher und wohl fühlen.\nSpamming ist verboten. Sende keine wiederholten, unnötigen oder unerwünschten Nachrichten.\nWerbung für andere Discord-Server oder externe Plattformen ist nur mit Erlaubnis eines Administrators gestattet.\nAnstößige, rassistische, sexistische oder pornografische Inhalte sind streng verboten.\nDas Teilen persönlicher Informationen anderer Nutzer ohne deren Zustimmung ist nicht erlaubt.\nDas Verbreiten von Viren, schadhafter Software oder betrügerischen Inhalten ist streng verboten. Dies schließt das Senden von Phishing-Links ein.\nDas Erstellen mehrerer Konten, um Strafen zu umgehen oder den Server zu stören, ist nicht gestattet.\nDiskussionen über politische oder religiöse Themen sollten respektvoll geführt werden. Jeder Nutzer hat das Recht auf seine eigene Meinung.\nBei Verstößen gegen diese Regeln behalten sich die Administratoren das Recht vor, geeignete Maßnahmen zu ergreifen, einschließlich des Entzugs von Chat- oder Serverrechten.\nIn der Regel zu Auto-Rollen setzen wir die Wahrheit strikt durch. Wer mehr Rollen zugewiesen bekommt als erlaubt oder die Anforderungen nicht erfüllt, wird entsprechend bestraft.",
       stepsTitle: "wie kann ich schreiben?",
-      steps: "Akzeptiere die Regeln unter #server-regeln und drücke den Button.\nGehe zu #verifizieren-hub, der hinzugefügt wird, nachdem du die Regeln akzeptiert hast.\nVerifiziere dich: drücke einfach den Button.\nGehe zum Kanal #wähle-deine-spiele und wähle dein Spiel aus. Danach siehst du den Kanal für dein Spiel.",
+      steps: "Akzeptiere die Regeln unter {regeln} und drücke den Button.\nGehe zu {verify}, der hinzugefügt wird, nachdem du die Regeln akzeptiert hast.\nVerifiziere dich: drücke einfach den Button.\nGehe zum Kanal {spiele} und wähle dein Spiel aus. Danach siehst du den Kanal für dein Spiel.",
       embedTitle: "Regeln",
       embedColor: "#57f287",
       stepsColor: "#5865f2",
@@ -214,9 +257,15 @@
       buttonEmoji: "✅",
       buttonStyle: "3",
       footer: "",
-      acceptReply: "Regeln akzeptiert. Die Rolle ist drauf."
+      acceptReply: "Regeln akzeptiert. Die Rolle ist drauf.",
+      newsChannelId: "",
+      newsTitle: "Ankündigungen",
+      newsColor: "#f0b429",
+      newsIntro: "Hier stehen die Neuigkeiten von {news}. In diesem Kanal wird nicht geschrieben, nur das Team postet.",
+      newsPoints: "Server-Updates und Änderungen an Kanälen oder Rollen\nEvents, Turniere und Zeiten\nNeue Regeln, die in {regeln} gelten\nWichtige Hinweise, die jeder lesen soll",
+      newsFooter: "Colin's Community"
     };
-    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply"];
+    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsIntro", "newsPoints", "newsFooter"];
     let rules = [];
     let steps = [];
     const lines = (text) => String(text || "").split(/\n/).map((line) => line.trim()).filter(Boolean);
@@ -226,6 +275,11 @@
       const data = { ...base, ...saved };
       if (!data.adminKey) data.adminKey = base.adminKey;
       if (!data.buttonLabel || data.buttonLabel === "Regeln akzeptieren") data.buttonLabel = "✓";
+      data.steps = String(data.steps || "")
+        .replaceAll("#server-regeln", "{regeln}")
+        .replaceAll("#verifizieren-hub", "{verify}")
+        .replaceAll("#wähle-deine-spiele", "{spiele}")
+        .replaceAll("#server-ankündigungen", "{news}");
       copy.forEach((id) => { document.getElementById(id).value = data[id] || ""; });
       rules = lines(data.rules);
       steps = lines(data.steps);
@@ -265,13 +319,24 @@
       list("stepList", steps, (index, value) => { steps[index] = value; preview(); }, (index) => { steps.splice(index, 1); if (!steps.length) steps.push(""); render(); });
       preview();
     }
+    function channelTag(id) {
+      const clean = String(document.getElementById(id).value || "").replace(/^#/, "").trim();
+      return clean ? "#" + clean : "";
+    }
+    function fill(text) {
+      return String(text || "")
+        .replaceAll("{regeln}", channelTag("nameRegeln"))
+        .replaceAll("{verify}", channelTag("nameVerify"))
+        .replaceAll("{spiele}", channelTag("nameSpiele"))
+        .replaceAll("{news}", channelTag("nameNews"));
+    }
     function preview() {
       const color = document.getElementById("embedColor").value || "#57f287";
       const stepsColor = document.getElementById("stepsColor").value || "#5865f2";
       document.getElementById("rulesEmbed").style.borderLeftColor = color;
       document.getElementById("stepsEmbed").style.borderLeftColor = stepsColor;
       document.getElementById("prevTitle").textContent = document.getElementById("embedTitle").value || "Regeln";
-      document.getElementById("prevIntro").textContent = document.getElementById("rulesIntro").value;
+      document.getElementById("prevIntro").textContent = fill(document.getElementById("rulesIntro").value);
       const linkRoot = document.getElementById("prevLinks");
       linkRoot.innerHTML = "";
       lines(document.getElementById("links").value).forEach((link) => {
@@ -284,7 +349,7 @@
       root.innerHTML = "";
       rules.map((rule) => rule.trim()).filter(Boolean).forEach((rule) => {
         const item = document.createElement("li");
-        item.textContent = rule;
+        item.textContent = fill(rule);
         root.append(item);
       });
       const footer = document.getElementById("footer").value.trim();
@@ -295,14 +360,29 @@
       const button = document.getElementById("prevButton");
       button.style.background = styles[document.getElementById("buttonStyle").value] || styles["3"];
       button.textContent = (document.getElementById("buttonEmoji").value.trim() + " " + (document.getElementById("buttonLabel").value || "Akzeptieren")).trim();
-      document.getElementById("prevStepsTitle").textContent = document.getElementById("stepsTitle").value || "wie kann ich schreiben?";
+      document.getElementById("prevStepsTitle").textContent = fill(document.getElementById("stepsTitle").value || "wie kann ich schreiben?");
       const stepsRoot = document.getElementById("prevSteps");
       stepsRoot.innerHTML = "";
       steps.map((step) => step.trim()).filter(Boolean).forEach((step) => {
         const item = document.createElement("li");
-        item.textContent = step;
+        item.textContent = fill(step);
         stepsRoot.append(item);
       });
+      const newsColor = document.getElementById("newsColor").value || "#f0b429";
+      document.getElementById("newsEmbed").style.borderLeftColor = newsColor;
+      document.getElementById("prevNewsTitle").textContent = fill(document.getElementById("newsTitle").value || "Ankündigungen");
+      document.getElementById("prevNewsIntro").textContent = fill(document.getElementById("newsIntro").value);
+      const newsRoot = document.getElementById("prevNewsPoints");
+      newsRoot.innerHTML = "";
+      lines(document.getElementById("newsPoints").value).forEach((point) => {
+        const item = document.createElement("li");
+        item.textContent = fill(point);
+        newsRoot.append(item);
+      });
+      const newsFooter = fill(document.getElementById("newsFooter").value.trim());
+      const newsFooterEl = document.getElementById("prevNewsFooter");
+      newsFooterEl.textContent = newsFooter;
+      newsFooterEl.style.display = newsFooter ? "block" : "none";
     }
     function setStatus(text, kind) {
       const el = document.getElementById("status");
@@ -310,8 +390,9 @@
       el.className = "status" + (kind ? " " + kind : "");
     }
     const pages = {
-      regeln: ["#server-regeln", "Regeln und Schritte stehen hier zusammen. Der Bot schreibt beides in denselben Kanal."],
-      link: ["Verbindung", "Worker, Schlüssel, Kanal und die Rolle, die der Haken gibt."]
+      regeln: ["#server-regeln", "Regeln, Schritte und die vollen Kanalnamen. {regeln} wird zum Namen, den du oben einträgst."],
+      news: ["#server-ankündigungen", "Die feste Info in dem Kanal: was angekündigt wird und dass dort nicht gechattet wird."],
+      link: ["Verbindung", "Worker und Admin-Schlüssel."]
     };
     document.querySelectorAll("nav button").forEach((button) => {
       button.addEventListener("click", () => {
@@ -319,8 +400,13 @@
         button.setAttribute("aria-current", "page");
         document.querySelectorAll(".view").forEach((view) => view.classList.remove("on"));
         document.getElementById("view-" + button.dataset.view).classList.add("on");
-        document.getElementById("title").textContent = pages[button.dataset.view][0];
-        document.getElementById("lede").textContent = pages[button.dataset.view][1];
+        const view = button.dataset.view;
+        document.getElementById("title").textContent = pages[view][0];
+        document.getElementById("lede").textContent = pages[view][1];
+        document.getElementById("previewRules").hidden = view !== "regeln";
+        document.getElementById("previewNews").hidden = view !== "news";
+        document.querySelector(".preview-col h2").textContent = view === "news" ? "Vorschau Ankündigungen" : "Vorschau Regeln";
+        preview();
       });
     });
     document.getElementById("addRule").onclick = () => { rules.push(""); render(); };
@@ -357,7 +443,17 @@
             links: lines(data.links),
             acceptReply: data.acceptReply,
             channelId: data.channelId.trim(),
-            roleId: data.roleId.trim()
+            roleId: data.roleId.trim(),
+            nameRegeln: data.nameRegeln.trim(),
+            nameVerify: data.nameVerify.trim(),
+            nameSpiele: data.nameSpiele.trim(),
+            nameNews: data.nameNews.trim(),
+            newsChannelId: data.newsChannelId.trim(),
+            newsTitle: data.newsTitle,
+            newsColor: data.newsColor,
+            newsIntro: data.newsIntro,
+            newsPoints: lines(data.newsPoints),
+            newsFooter: data.newsFooter
           })
         });
         const body = await res.json();
