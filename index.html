@@ -53,7 +53,10 @@
     label { display: block; }
     label span, .hint { display: block; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
     input, textarea { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 12px; }
-    textarea { min-height: 88px; resize: vertical; }
+    select { width: 100%; min-height: 44px; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 0 12px; }
+    input[type="color"] { width: 52px; height: 44px; padding: 4px; }
+    .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 700px) { .pair { grid-template-columns: 1fr; } }
     .rule { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 10px 0; border-top: 1px solid var(--line); }
     .rule:first-child { border-top: 0; }
     .num { height: 36px; display: grid; place-items: center; color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -120,6 +123,26 @@
           <label><span>Servername</span><input id="serverName"></label>
         </div>
         <div class="card">
+          <div class="hint">Aussehen, wie bei einem Webhook</div>
+          <div class="pair">
+            <label><span>Titel</span><input id="embedTitle"></label>
+            <label><span>Farbe der Leiste</span><input id="embedColor" type="color"></label>
+            <label><span>Text auf dem Button</span><input id="buttonLabel"></label>
+            <label><span>Emoji auf dem Button</span><input id="buttonEmoji" maxlength="8" placeholder="✅"></label>
+            <label><span>Farbe des Buttons</span>
+              <select id="buttonStyle">
+                <option value="3">Grün</option>
+                <option value="2">Grau</option>
+                <option value="1">Blau</option>
+                <option value="4">Rot</option>
+              </select>
+            </label>
+            <label><span>Leiste der zweiten Nachricht</span><input id="stepsColor" type="color"></label>
+          </div>
+          <label><span>Links, eine pro Zeile</span><textarea id="links"></textarea></label>
+          <label><span>Fußzeile</span><input id="footer" placeholder="Leer lassen, wenn keine"></label>
+        </div>
+        <div class="card">
           <label><span>Einleitung</span><textarea id="rulesIntro"></textarea></label>
         </div>
         <div class="card">
@@ -136,7 +159,7 @@
           <button type="button" class="add" id="addStep">Schritt hinzufügen</button>
         </div>
         <div class="card grid">
-          <label><span>Text auf dem Haken</span><input id="buttonLabel"></label>
+          <label><span>Rollen-ID, die der Haken vergibt</span><input id="roleId" placeholder="Rechtsklick auf die Rolle, ID kopieren"></label>
           <label><span>Antwort, wenn die Rolle gesetzt wurde</span><input id="acceptReply"></label>
         </div>
       </div>
@@ -146,7 +169,6 @@
           <label><span>Worker</span><input id="workerUrl"></label>
           <label><span>Admin-Schlüssel</span><input id="adminKey" autocomplete="off"></label>
           <label><span>Kanal-ID von #server-regeln</span><input id="channelId" placeholder="Rechtsklick auf den Kanal, ID kopieren"></label>
-          <label><span>Rollen-ID, die der Haken vergibt</span><input id="roleId" placeholder="Rechtsklick auf die Rolle, ID kopieren"></label>
         </div>
       </div>
     </section>
@@ -156,12 +178,12 @@
         <div class="avatar">L</div>
         <div>
           <div class="who"><strong>Leitstand</strong><em>APP</em><time>jetzt</time></div>
-          <div class="embed">
-            <h3>Regeln</h3>
+          <div class="embed" id="rulesEmbed">
+            <h3 id="prevTitle">Regeln</h3>
             <p id="prevIntro"></p>
-            <a href="https://discord.com/terms">https://discord.com/terms</a>
-            <a href="https://discord.com/guidelines">https://discord.com/guidelines</a>
+            <div id="prevLinks"></div>
             <ol id="prevRules"></ol>
+            <p id="prevFooter"></p>
           </div>
           <button type="button" class="check" id="prevButton">✓</button>
           <div class="embed" id="stepsEmbed">
@@ -184,10 +206,17 @@
       rules: "Die Einhaltung der allgemeinen Netiquette ist unerlässlich. Behandle andere Mitglieder des Servers mit Respekt und Freundlichkeit.\nBelästigung, Mobbing, Diskriminierung oder Drohungen werden nicht toleriert. Jeder Nutzer sollte sich sicher und wohl fühlen.\nSpamming ist verboten. Sende keine wiederholten, unnötigen oder unerwünschten Nachrichten.\nWerbung für andere Discord-Server oder externe Plattformen ist nur mit Erlaubnis eines Administrators gestattet.\nAnstößige, rassistische, sexistische oder pornografische Inhalte sind streng verboten.\nDas Teilen persönlicher Informationen anderer Nutzer ohne deren Zustimmung ist nicht erlaubt.\nDas Verbreiten von Viren, schadhafter Software oder betrügerischen Inhalten ist streng verboten. Dies schließt das Senden von Phishing-Links ein.\nDas Erstellen mehrerer Konten, um Strafen zu umgehen oder den Server zu stören, ist nicht gestattet.\nDiskussionen über politische oder religiöse Themen sollten respektvoll geführt werden. Jeder Nutzer hat das Recht auf seine eigene Meinung.\nBei Verstößen gegen diese Regeln behalten sich die Administratoren das Recht vor, geeignete Maßnahmen zu ergreifen, einschließlich des Entzugs von Chat- oder Serverrechten.\nIn der Regel zu Auto-Rollen setzen wir die Wahrheit strikt durch. Wer mehr Rollen zugewiesen bekommt als erlaubt oder die Anforderungen nicht erfüllt, wird entsprechend bestraft.",
       stepsTitle: "wie kann ich schreiben?",
       steps: "Akzeptiere die Regeln unter #server-regeln und drücke den Button.\nGehe zu #verifizieren-hub, der hinzugefügt wird, nachdem du die Regeln akzeptiert hast.\nVerifiziere dich: drücke einfach den Button.\nGehe zum Kanal #wähle-deine-spiele und wähle dein Spiel aus. Danach siehst du den Kanal für dein Spiel.",
-      buttonLabel: "✓",
+      embedTitle: "Regeln",
+      embedColor: "#57f287",
+      stepsColor: "#5865f2",
+      links: "https://discord.com/terms\nhttps://discord.com/guidelines",
+      buttonLabel: "Akzeptieren",
+      buttonEmoji: "✅",
+      buttonStyle: "3",
+      footer: "",
       acceptReply: "Regeln akzeptiert. Die Rolle ist drauf."
     };
-    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "serverName", "rulesIntro", "stepsTitle", "buttonLabel", "acceptReply"];
+    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply"];
     let rules = [];
     let steps = [];
     const lines = (text) => String(text || "").split(/\n/).map((line) => line.trim()).filter(Boolean);
@@ -233,11 +262,24 @@
     }
     function render() {
       list("ruleList", rules, (index, value) => { rules[index] = value; preview(); }, (index) => { rules.splice(index, 1); if (!rules.length) rules.push(""); render(); });
-      list("stepList", steps, (index, value) => { steps[index] = value; }, (index) => { steps.splice(index, 1); if (!steps.length) steps.push(""); render(); });
+      list("stepList", steps, (index, value) => { steps[index] = value; preview(); }, (index) => { steps.splice(index, 1); if (!steps.length) steps.push(""); render(); });
       preview();
     }
     function preview() {
+      const color = document.getElementById("embedColor").value || "#57f287";
+      const stepsColor = document.getElementById("stepsColor").value || "#5865f2";
+      document.getElementById("rulesEmbed").style.borderLeftColor = color;
+      document.getElementById("stepsEmbed").style.borderLeftColor = stepsColor;
+      document.getElementById("prevTitle").textContent = document.getElementById("embedTitle").value || "Regeln";
       document.getElementById("prevIntro").textContent = document.getElementById("rulesIntro").value;
+      const linkRoot = document.getElementById("prevLinks");
+      linkRoot.innerHTML = "";
+      lines(document.getElementById("links").value).forEach((link) => {
+        const a = document.createElement("a");
+        a.href = link;
+        a.textContent = "→ " + link;
+        linkRoot.append(a);
+      });
       const root = document.getElementById("prevRules");
       root.innerHTML = "";
       rules.map((rule) => rule.trim()).filter(Boolean).forEach((rule) => {
@@ -245,7 +287,14 @@
         item.textContent = rule;
         root.append(item);
       });
-      document.getElementById("prevButton").textContent = document.getElementById("buttonLabel").value || "✓";
+      const footer = document.getElementById("footer").value.trim();
+      const footerEl = document.getElementById("prevFooter");
+      footerEl.textContent = footer;
+      footerEl.style.display = footer ? "block" : "none";
+      const styles = { "1": "#5865f2", "2": "#4e5058", "3": "#248046", "4": "#da373c" };
+      const button = document.getElementById("prevButton");
+      button.style.background = styles[document.getElementById("buttonStyle").value] || styles["3"];
+      button.textContent = (document.getElementById("buttonEmoji").value.trim() + " " + (document.getElementById("buttonLabel").value || "Akzeptieren")).trim();
       document.getElementById("prevStepsTitle").textContent = document.getElementById("stepsTitle").value || "wie kann ich schreiben?";
       const stepsRoot = document.getElementById("prevSteps");
       stepsRoot.innerHTML = "";
@@ -299,6 +348,13 @@
             stepsTitle: data.stepsTitle,
             steps: lines(data.steps),
             buttonLabel: data.buttonLabel,
+            buttonEmoji: data.buttonEmoji,
+            buttonStyle: data.buttonStyle,
+            embedTitle: data.embedTitle,
+            embedColor: data.embedColor,
+            stepsColor: data.stepsColor,
+            footer: data.footer,
+            links: lines(data.links),
             acceptReply: data.acceptReply,
             channelId: data.channelId.trim(),
             roleId: data.roleId.trim()
