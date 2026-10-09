@@ -373,8 +373,7 @@
         </div>
         <div id="mod-voice" hidden>
           <div class="card">
-            <div class="hint">Jede Sekunde, solange dieser Tab offen ist. Rein gehen erstellt den Kanal, leer löscht ihn.</div>
-            <p class="hint" id="roomCooldown">Nächste Prüfung in 1s</p>
+            <div class="hint">Der Cloudflare-Trigger prüft das einmal pro Minute. Rein gehen erstellt den Kanal, leer löscht ihn.</div>
             <label><span>Start-Kanal-ID</span><input id="voiceHubId" placeholder="Rechtsklick auf den Sprachkanal, ID kopieren"></label>
             <label><span>Kategorie-ID, leer = gleiche Kategorie wie der Start-Kanal</span><input id="voiceCategoryId" placeholder="Rechtsklick auf die Kategorie, ID kopieren"></label>
             <div class="pair">
@@ -1193,36 +1192,6 @@
     document.getElementById("levelSearch").addEventListener("input", showLevelUsers);
     loadLevels();
     setInterval(loadLevels, 60000);
-    const roomWait = 1;
-    let roomNext = Date.now() + roomWait * 1000;
-    let roomBusy = false;
-    let roomNote = "";
-    function roomTick() {
-      const left = Math.max(0, Math.ceil((roomNext - Date.now()) / 1000));
-      const el = document.getElementById("roomCooldown");
-      if (el) el.textContent = (left ? "Nächste Prüfung in " + left + "s" : "Wird geprüft…") + (roomNote ? " · " + roomNote : "");
-    }
-    async function checkRooms() {
-      if (roomBusy) return;
-      const data = pack();
-      if (!data.workerUrl || !data.adminKey) return;
-      roomBusy = true;
-      roomTick();
-      try {
-        const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/rooms", { method: "POST", headers: { "x-admin-key": data.adminKey } });
-        const body = await res.json();
-        roomNote = body.ok ? (body.note || "") : (body.error || "nicht geprüft");
-      } catch {
-        roomNote = "nicht geprüft";
-      }
-      roomNext = Date.now() + roomWait * 1000;
-      roomBusy = false;
-      roomTick();
-    }
-    roomTick();
-    setInterval(roomTick, 250);
-    checkRooms();
-    setInterval(checkRooms, roomWait * 1000);
     window.scrollTo(0, 0);
     const wait = 60;
     let nextAt = Date.now() + 8 * 1000;
