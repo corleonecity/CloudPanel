@@ -181,13 +181,12 @@
           <label><span>Kanal-ID von #server-ankündigungen</span><input id="newsChannelId" placeholder="Rechtsklick auf den Kanal, ID kopieren"></label>
         </div>
         <div class="card">
-          <div class="hint">Die feste Info-Nachricht in dem Kanal. Kein Chat, nur Neuigkeiten vom Team.</div>
+          <div class="hint">Neue Ankündigung. Nach dem Senden bleiben Titel und Fußzeile, der Text wird leer.</div>
           <div class="pair">
             <label><span>Titel</span><input id="newsTitle"></label>
             <label><span>Farbe der Leiste</span><input id="newsColor" type="color"></label>
           </div>
-          <label><span>Einleitung</span><textarea id="newsIntro"></textarea></label>
-          <label><span>Punkte, eine Zeile pro Punkt</span><textarea id="newsPoints" style="min-height:140px"></textarea></label>
+          <label><span>Text</span><textarea id="newsIntro"></textarea></label>
           <label><span>Fußzeile</span><input id="newsFooter"></label>
         </div>
       </div>
@@ -226,7 +225,6 @@
           <div class="embed" id="newsEmbed">
             <h3 id="prevNewsTitle">Ankündigungen</h3>
             <p id="prevNewsIntro"></p>
-            <ol id="prevNewsPoints"></ol>
             <p id="prevNewsFooter"></p>
           </div>
         </div>
@@ -261,11 +259,10 @@
       newsChannelId: "",
       newsTitle: "Ankündigungen",
       newsColor: "#f0b429",
-      newsIntro: "Hier stehen die Neuigkeiten von {news}. In diesem Kanal wird nicht geschrieben, nur das Team postet.",
-      newsPoints: "Server-Updates und Änderungen an Kanälen oder Rollen\nEvents, Turniere und Zeiten\nNeue Regeln, die in {regeln} gelten\nWichtige Hinweise, die jeder lesen soll",
+      newsIntro: "",
       newsFooter: "Colin's Community"
     };
-    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsIntro", "newsPoints", "newsFooter"];
+    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsIntro", "newsFooter"];
     let rules = [];
     let steps = [];
     const lines = (text) => String(text || "").split(/\n/).map((line) => line.trim()).filter(Boolean);
@@ -372,13 +369,6 @@
       document.getElementById("newsEmbed").style.borderLeftColor = newsColor;
       document.getElementById("prevNewsTitle").textContent = fill(document.getElementById("newsTitle").value || "Ankündigungen");
       document.getElementById("prevNewsIntro").textContent = fill(document.getElementById("newsIntro").value);
-      const newsRoot = document.getElementById("prevNewsPoints");
-      newsRoot.innerHTML = "";
-      lines(document.getElementById("newsPoints").value).forEach((point) => {
-        const item = document.createElement("li");
-        item.textContent = fill(point);
-        newsRoot.append(item);
-      });
       const newsFooter = fill(document.getElementById("newsFooter").value.trim());
       const newsFooterEl = document.getElementById("prevNewsFooter");
       newsFooterEl.textContent = newsFooter;
@@ -420,6 +410,7 @@
       setStatus("Lokal gespeichert.", "ok");
     };
     document.getElementById("push").onclick = async () => {
+      const view = document.querySelector("nav button[aria-current]")?.dataset.view || "regeln";
       const data = pack();
       localStorage.setItem(KEY, JSON.stringify(data));
       setStatus("Schreibe an Cloudflare…");
@@ -452,12 +443,19 @@
             newsTitle: data.newsTitle,
             newsColor: data.newsColor,
             newsIntro: data.newsIntro,
-            newsPoints: lines(data.newsPoints),
-            newsFooter: data.newsFooter
+            newsFooter: data.newsFooter,
+            target: view === "news" ? "news" : "regeln"
           })
         });
         const body = await res.json();
-        setStatus(body.ok ? "Discord-Nachricht " + body.mode + "." : (body.error || "Klappt nicht."), body.ok ? "ok" : "bad");
+        if (body.ok && view === "news") {
+          document.getElementById("newsIntro").value = "";
+          localStorage.setItem(KEY, JSON.stringify(pack()));
+          preview();
+          setStatus("Ankündigung gesendet. Text ist wieder leer.", "ok");
+        } else {
+          setStatus(body.ok ? "Discord-Nachricht " + body.mode + "." : (body.error || "Klappt nicht."), body.ok ? "ok" : "bad");
+        }
       } catch {
         setStatus("Worker nicht erreichbar. Das neue Skript muss einmal in Cloudflare liegen.", "bad");
       }
