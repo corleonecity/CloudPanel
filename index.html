@@ -68,6 +68,7 @@
     .preview-col h2 { margin: 0 0 14px; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
     .msg { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; }
     .msg[hidden] { display: none; }
+    .drop { margin-top: 8px; background: #111214; border: 1px solid #2b2d31; border-radius: 4px; padding: 8px 10px; color: #b5bac1; }
     .avatar { width: 40px; height: 40px; border-radius: 50%; background: #1f6feb; display: grid; place-items: center; font-weight: 700; }
     .who { display: flex; gap: 8px; align-items: baseline; }
     .who strong { font-size: 15px; }
@@ -102,6 +103,7 @@
         <button type="button" data-view="regeln" aria-current="page">#server-regeln</button>
         <button type="button" data-view="news">#server-ankündigungen</button>
         <button type="button" data-view="verify">#verifizieren-hub</button>
+        <button type="button" data-view="spiele">#wähle-deine-spiele</button>
         <button type="button" data-view="link">Verbindung</button>
       </nav>
       <p class="side-note">Änderungen bleiben in diesem Browser, bis du sie an Discord schickst. Der Bot schreibt die vorhandene Nachricht um.</p>
@@ -218,6 +220,24 @@
         </div>
       </div>
 
+      <div class="view" id="view-spiele">
+        <div class="card grid">
+          <label><span>Kanal-ID von #wähle-deine-spiele</span><input id="gamesChannelId" placeholder="Rechtsklick auf den Kanal, ID kopieren"></label>
+          <label><span>Text im Dropdown</span><input id="gamesPlaceholder" placeholder="Triff eine Auswahl"></label>
+        </div>
+        <div class="card">
+          <div class="pair">
+            <label><span>Text über dem Dropdown</span><textarea id="gamesText"></textarea></label>
+            <label><span>Farbe der Leiste</span><input id="gamesColor" type="color"></label>
+          </div>
+        </div>
+        <div class="card">
+          <div class="hint">Ein Spiel pro Zeile. Der Name steht im Dropdown, die Rollen-ID ist die Rolle, die man dafür bekommt.</div>
+          <div id="gameList"></div>
+          <button type="button" class="add" id="addGame">Spiel hinzufügen</button>
+        </div>
+      </div>
+
       <div class="view" id="view-link">
         <div class="card grid">
           <label><span>Worker</span><input id="workerUrl"></label>
@@ -267,6 +287,16 @@
           <button type="button" class="check" id="prevVerifyButton">✅</button>
         </div>
       </article>
+      <article class="msg" id="previewGames" hidden>
+        <div class="avatar">L</div>
+        <div>
+          <div class="who"><strong>Leitstand</strong><em>APP</em><time>jetzt</time></div>
+          <div class="embed" id="gamesEmbed">
+            <p id="prevGamesText"></p>
+          </div>
+          <div class="drop" id="prevGamesDrop">Triff eine Auswahl</div>
+        </div>
+      </article>
     </aside>
   </div>
   <script>
@@ -307,11 +337,23 @@
       verifyLabel: "",
       verifyStyle: "1",
       verifyText: "Um dich zu verifizieren, klicke unten auf den Button.",
-      verifyReply: "Verifiziert. Die Rolle ist drauf."
+      verifyReply: "Verifiziert. Die Rolle ist drauf.",
+      gamesChannelId: "",
+      gamesPlaceholder: "Triff eine Auswahl",
+      gamesText: "Wenn du Spiele hinzufügst, siehst du deren Spielkanäle",
+      gamesColor: "#57f287"
     };
-    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply"];
+    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor"];
+    const baseGames = [
+      { text: "Phasmophobia", roleId: "" },
+      { text: "Terraria", roleId: "" },
+      { text: "Roblox", roleId: "" },
+      { text: "Fortnite", roleId: "" },
+      { text: "Call of Duty", roleId: "" }
+    ];
     let rules = [];
     let steps = [];
+    let games = [];
     const lines = (text) => String(text || "").split(/\n/).map((line) => line.trim()).filter(Boolean);
 
     function load() {
@@ -329,11 +371,13 @@
       steps = lines(data.steps);
       if (!rules.length) rules = [""];
       if (!steps.length) steps = [""];
+      games = Array.isArray(data.games) && data.games.length ? data.games.map((game) => ({ text: String(game.text || ""), roleId: String(game.roleId || "") })) : baseGames.map((game) => ({ ...game }));
     }
     function pack() {
       const data = Object.fromEntries(copy.map((id) => [id, document.getElementById(id).value]));
       data.rules = rules.map((rule) => rule.trim()).filter(Boolean).join("\n");
       data.steps = steps.map((step) => step.trim()).filter(Boolean).join("\n");
+      data.games = games.map((game) => ({ text: game.text.trim(), roleId: game.roleId.trim() }));
       return data;
     }
     function list(target, items, onInput, onRemove) {
@@ -361,6 +405,31 @@
     function render() {
       list("ruleList", rules, (index, value) => { rules[index] = value; preview(); }, (index) => { rules.splice(index, 1); if (!rules.length) rules.push(""); render(); });
       list("stepList", steps, (index, value) => { steps[index] = value; preview(); }, (index) => { steps.splice(index, 1); if (!steps.length) steps.push(""); render(); });
+      const gameRoot = document.getElementById("gameList");
+      gameRoot.innerHTML = "";
+      games.forEach((game, index) => {
+        const row = document.createElement("div");
+        row.className = "rule";
+        const num = document.createElement("div");
+        num.className = "num";
+        num.textContent = String(index + 1);
+        const name = document.createElement("input");
+        name.value = game.text;
+        name.placeholder = "Name im Dropdown";
+        name.addEventListener("input", () => { games[index].text = name.value; preview(); });
+        const role = document.createElement("input");
+        role.value = game.roleId;
+        role.placeholder = "Rollen-ID";
+        role.addEventListener("input", () => { games[index].roleId = role.value; });
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "icon";
+        remove.textContent = "×";
+        remove.setAttribute("aria-label", "Entfernen");
+        remove.addEventListener("click", () => { games.splice(index, 1); if (!games.length) games.push({ text: "", roleId: "" }); render(); });
+        row.append(num, name, role, remove);
+        gameRoot.append(row);
+      });
       preview();
     }
     function channelTag(id) {
@@ -427,6 +496,10 @@
       const verifyButton = document.getElementById("prevVerifyButton");
       verifyButton.style.background = verifyStyles[document.getElementById("verifyStyle").value] || verifyStyles["1"];
       verifyButton.textContent = (document.getElementById("verifyEmoji").value.trim() + " " + document.getElementById("verifyLabel").value.trim()).trim() || "✅";
+      document.getElementById("gamesEmbed").style.borderLeftColor = document.getElementById("gamesColor").value || "#57f287";
+      document.getElementById("prevGamesText").textContent = document.getElementById("gamesText").value;
+      const names = games.map((game) => game.text.trim()).filter(Boolean);
+      document.getElementById("prevGamesDrop").textContent = (document.getElementById("gamesPlaceholder").value.trim() || "Triff eine Auswahl") + (names.length ? "  ·  " + names.join(", ") : "");
     }
     function setStatus(text, kind) {
       const el = document.getElementById("status");
@@ -437,6 +510,7 @@
       regeln: ["#server-regeln", "Regeln, Schritte und die vollen Kanalnamen. {regeln} wird zum Namen, den du oben einträgst."],
       news: ["#server-ankündigungen", "Jede Ankündigung ist eine neue Nachricht. Der Ping steht über dem Text."],
       verify: ["#verifizieren-hub", "Eine Nachricht mit Haken. Der Haken gibt die Rolle, die du hier einträgst."],
+      spiele: ["#wähle-deine-spiele", "Dropdown. Jede Zeile ist ein Spiel und eine Rolle."],
       link: ["Verbindung", "Worker und Admin-Schlüssel."]
     };
     document.querySelectorAll("nav button").forEach((button) => {
@@ -451,14 +525,17 @@
         document.getElementById("previewRules").hidden = view !== "regeln";
         document.getElementById("previewNews").hidden = view !== "news";
         document.getElementById("previewVerify").hidden = view !== "verify";
-        document.querySelector(".preview-col h2").textContent = view === "news" ? "Vorschau Ankündigungen" : view === "verify" ? "Vorschau Verifizierung" : "Vorschau Regeln";
+        document.getElementById("previewGames").hidden = view !== "spiele";
+        const titles = { news: "Vorschau Ankündigungen", verify: "Vorschau Verifizierung", spiele: "Vorschau Spiele" };
+        document.querySelector(".preview-col h2").textContent = titles[view] || "Vorschau Regeln";
         preview();
       });
     });
     document.getElementById("addRule").onclick = () => { rules.push(""); render(); };
     document.getElementById("addStep").onclick = () => { steps.push(""); render(); };
+    document.getElementById("addGame").onclick = () => { games.push({ text: "", roleId: "" }); render(); };
     document.querySelector(".stage").addEventListener("input", (event) => {
-      if (event.target.closest("#ruleList, #stepList")) return;
+      if (event.target.closest("#ruleList, #stepList, #gameList")) return;
       preview();
     });
     document.getElementById("save").onclick = () => {
@@ -509,7 +586,12 @@
             verifyStyle: data.verifyStyle,
             verifyText: data.verifyText,
             verifyReply: data.verifyReply,
-            target: view === "news" ? "news" : view === "verify" ? "verify" : "regeln"
+            gamesChannelId: data.gamesChannelId.trim(),
+            gamesPlaceholder: data.gamesPlaceholder,
+            gamesText: data.gamesText,
+            gamesColor: data.gamesColor,
+            games: data.games,
+            target: view === "news" ? "news" : view === "verify" ? "verify" : view === "spiele" ? "spiele" : "regeln"
           })
         });
         const body = await res.json();
