@@ -53,8 +53,10 @@
     .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
     label { display: block; }
     label span, .hint { display: block; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
-    .people { margin: 8px 0 0; padding: 0; list-style: none; }
-    .people li { padding: 7px 0; border-top: 1px solid var(--line); }
+    .user-row { display: flex; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); }
+    .user-row img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: #1e1f22; }
+    .user-row strong, .user-row span { display: block; }
+    .user-row span { color: var(--muted); font-size: 12px; }
     .grow { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); }
     .grow p { flex: 1; margin: 0; }
     .emoji-btn { width: 44px; height: 44px; flex: none; border-radius: 12px; border: 1px solid var(--line); background: var(--panel-2); font-size: 20px; }
@@ -137,12 +139,12 @@
 
       <div class="view on" id="view-regeln">
         <div class="card">
-          <div class="hint">Volle Kanalnamen, ohne #. In Texten {regeln} {verify} {spiele} {news} schreiben. Der Name wird überall ersetzt, auch in Discord.</div>
+          <div class="hint">Die Namen kommen aus den Kanal-IDs. Wenn du den Kanal in Discord umbenennst, ändern sich die Tabs und die Links {regeln} {verify} {spiele} {news} von selbst.</div>
           <div class="pair">
-            <label><span>Regeln-Kanal</span><input id="nameRegeln" placeholder="server-regeln"></label>
-            <label><span>Verify-Kanal</span><input id="nameVerify" placeholder="verifizieren-hub"></label>
-            <label><span>Spiele-Kanal</span><input id="nameSpiele" placeholder="wähle-deine-spiele"></label>
-            <label><span>Ankündigungen-Kanal</span><input id="nameNews" placeholder="server-ankündigungen"></label>
+            <label><span>Regeln-Kanal</span><input id="nameRegeln" readonly></label>
+            <label><span>Verify-Kanal</span><input id="nameVerify" readonly></label>
+            <label><span>Spiele-Kanal</span><input id="nameSpiele" readonly></label>
+            <label><span>Ankündigungen-Kanal</span><input id="nameNews" readonly></label>
           </div>
         </div>
         <div class="card">
@@ -281,6 +283,7 @@
             <label><span>Rolle, die /giveaway start darf</span><input id="giveawayRoleStart" placeholder="Rollen-ID"></label>
             <label><span>Rolle, die ziehen darf</span><input id="giveawayRoleEnd" placeholder="Rollen-ID"></label>
             <label><span>Rolle, die neu verlosen darf</span><input id="giveawayRoleReroll" placeholder="Rollen-ID"></label>
+            <label><span>Booster-Rolle, 10 % höhere Gewinnchance</span><input id="giveawayBoosterRole" placeholder="Rollen-ID"></label>
           </div>
         </div>
         <div class="card">
@@ -459,7 +462,7 @@
       giveawayRoleEnd: "",
       giveawayRoleReroll: ""
     };
-    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll"];
+    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole"];
     const baseGames = [
       { text: "Phasmophobia", roleId: "" },
       { text: "Terraria", roleId: "" },
@@ -556,6 +559,7 @@
         giveawayRoleStart: data.giveawayRoleStart.trim(),
         giveawayRoleEnd: data.giveawayRoleEnd.trim(),
         giveawayRoleReroll: data.giveawayRoleReroll.trim(),
+        giveawayBoosterRole: data.giveawayBoosterRole.trim(),
         target
       };
     }
@@ -801,6 +805,40 @@
       line.append(text, button);
       return line;
     }
+    function avatarUrl(user) {
+      if (user.avatar) {
+        const ext = String(user.avatar).startsWith("a_") ? "gif" : "png";
+        return "https://cdn.discordapp.com/avatars/" + user.id + "/" + user.avatar + "." + ext + "?size=64";
+      }
+      try {
+        return "https://cdn.discordapp.com/embed/avatars/" + Number((BigInt(user.id || "0") >> 22n) % 6n) + ".png";
+      } catch {
+        return "https://cdn.discordapp.com/embed/avatars/0.png";
+      }
+    }
+    function fillUsers(root, item) {
+      root.innerHTML = "";
+      const winners = new Set((item.winners || []).map((winner) => winner.id));
+      const people = [...(item.entrants || [])].sort((a, b) => Number(winners.has(b.id)) - Number(winners.has(a.id)));
+      people.forEach((entrant) => {
+        const li = document.createElement("li");
+        li.className = "user-row";
+        const img = document.createElement("img");
+        img.src = avatarUrl(entrant);
+        img.alt = "";
+        const text = document.createElement("div");
+        const strong = document.createElement("strong");
+        strong.textContent = (winners.has(entrant.id) ? "👑 " : "") + (entrant.name || entrant.username || "Unbekannt");
+        const user = document.createElement("span");
+        user.textContent = entrant.username ? "@" + entrant.username : "";
+        const id = document.createElement("span");
+        id.textContent = entrant.id || "";
+        text.append(strong, user, id);
+        li.append(img, text);
+        root.append(li);
+      });
+      if (!people.length) root.textContent = "Noch niemand.";
+    }
     async function openGiveawayEdit(item) {
       editingId = item.messageId || "";
       document.getElementById("editPrize").value = item.prize || "";
@@ -811,27 +849,14 @@
       document.getElementById("editButton").value = item.buttonLabel || "Teilnehmen";
       document.getElementById("editImage").value = item.image || "";
       const people = document.getElementById("editPeople");
-      people.innerHTML = "";
-      (item.entrants || []).forEach((entrant) => {
-        const li = document.createElement("li");
-        li.textContent = (entrant.name || "Unbekannt") + " · " + entrant.id;
-        people.append(li);
-      });
-      if (!(item.entrants || []).length) people.textContent = "Noch niemand.";
+      fillUsers(people, item);
       document.getElementById("giveawayEdit").showModal();
       try {
         const data = pack();
         const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/giveaway", { headers: { "x-admin-key": data.adminKey } });
         const body = await res.json();
         const fresh = [body.active, ...(body.history || [])].find((entry) => entry && entry.messageId === item.messageId);
-        if (!fresh) return;
-        people.innerHTML = "";
-        (fresh.entrants || []).forEach((entrant) => {
-          const li = document.createElement("li");
-          li.textContent = (entrant.name || "Unbekannt") + " · " + entrant.id;
-          people.append(li);
-        });
-        if (!(fresh.entrants || []).length) people.textContent = "Noch niemand.";
+        if (fresh) fillUsers(people, fresh);
       } catch {}
     }
     document.getElementById("editClose").onclick = () => document.getElementById("giveawayEdit").close();
@@ -967,6 +992,29 @@
     }
     loadServer();
     setInterval(loadServer, 60000);
+    async function loadChannels() {
+      const data = pack();
+      if (!data.workerUrl || !data.adminKey) return;
+      try {
+        const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/channels", { headers: { "x-admin-key": data.adminKey } });
+        const body = await res.json();
+        if (!body.ok) return;
+        const fields = { regeln: "nameRegeln", verify: "nameVerify", spiele: "nameSpiele", news: "nameNews" };
+        Object.entries(fields).forEach(([key, id]) => {
+          if (body[key]) document.getElementById(id).value = body[key];
+        });
+        const views = { regeln: body.regeln, news: body.news, verify: body.verify, spiele: body.spiele, creators: body.creators, giveaway: body.giveaway };
+        Object.entries(views).forEach(([view, name]) => {
+          const button = document.querySelector('nav button[data-view="' + view + '"]');
+          if (button && name) button.textContent = "#" + String(name).replace(/^#/, "");
+        });
+        const current = document.querySelector("nav button[aria-current]")?.dataset.view;
+        if (current && views[current]) document.getElementById("title").textContent = "#" + String(views[current]).replace(/^#/, "");
+        preview();
+      } catch {}
+    }
+    loadChannels();
+    setInterval(loadChannels, 60000);
     const wait = 60;
     let nextAt = Date.now() + 8 * 1000;
     let checking = false;
