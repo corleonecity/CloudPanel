@@ -53,8 +53,20 @@
     .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
     label { display: block; }
     label span, .hint { display: block; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+    .mods { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    @media (max-width: 700px) { .mods { grid-template-columns: 1fr; } }
+    .mod { text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; min-height: 132px; }
+    .mod.on { border-color: var(--accent); }
+    .mod strong { display: block; font-size: 18px; }
+    .mod span { display: block; color: var(--muted); min-height: 44px; margin: 8px 0 12px; }
+    .mod em { font-style: normal; color: var(--accent); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+    .rank { display: flex; gap: 14px; align-items: center; margin-top: 12px; padding: 14px; border-radius: 16px; background: linear-gradient(90deg, #1a2028 0 78%, #1f6f78 78% 100%); }
+    .rank img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; background: #111; }
+    .rank strong, .rank span { display: block; }
+    .rank span { color: var(--muted); }
+    .bar { height: 8px; margin-top: 8px; border-radius: 99px; background: #fff; overflow: hidden; }
+    .bar i { display: block; height: 100%; background: #5ee0a0; }
     .user-row { display: flex; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); }
-    .user-row img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: #1e1f22; }
     .user-row strong, .user-row span { display: block; }
     .user-row span { color: var(--muted); font-size: 12px; }
     .grow { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); }
@@ -306,38 +318,52 @@
       </div>
 
       <div class="view" id="view-link">
-        <div class="card grid">
-          <label><span>Worker</span><input id="workerUrl"></label>
-          <label><span>Admin-Schlüssel</span><input id="adminKey" autocomplete="off"></label>
+        <div class="mods">
+          <button type="button" class="mod on" data-mod="level"><strong>Level</strong><span>XP, Rollen, Suche und Rangliste.</span><em>Einstellungen</em></button>
+          <button type="button" class="mod" data-mod="link"><strong>Verbindung</strong><span>Worker und Admin-Schlüssel.</span><em>Einstellungen</em></button>
         </div>
-        <div class="card">
-          <div class="hint">XP pro Aktion. Text braucht mindestens ein paar Buchstaben. Dieselbe Nachricht und schnelles Spam geben nichts. Sprachchat zählt pro Minute, dafür muss das Server-Widget an sein.</div>
-          <div class="pair">
-            <label><span>XP für Text</span><input id="levelXpText" inputmode="numeric"></label>
-            <label><span>XP für Sprachnachricht</span><input id="levelXpVoiceMsg" inputmode="numeric"></label>
-            <label><span>XP für Foto</span><input id="levelXpImage" inputmode="numeric"></label>
-            <label><span>XP für Datei</span><input id="levelXpFile" inputmode="numeric"></label>
-            <label><span>XP pro Minute im Sprachchat</span><input id="levelXpVoice" inputmode="numeric"></label>
-            <label><span>Pause zwischen Nachrichten, Sekunden</span><input id="levelCooldown" inputmode="numeric"></label>
-            <label><span>Mindestlänge für Text</span><input id="levelMinLen" inputmode="numeric"></label>
-            <label><span>XP-Deckel pro Stunde</span><input id="levelHourCap" inputmode="numeric"></label>
+        <div id="mod-level">
+          <div class="card">
+            <div class="hint">XP pro Aktion. Text braucht ein paar Buchstaben. Dieselbe Nachricht und Spam geben nichts.</div>
+            <div class="pair">
+              <label><span>XP für Text</span><input id="levelXpText" inputmode="numeric"></label>
+              <label><span>XP für Sprachnachricht</span><input id="levelXpVoiceMsg" inputmode="numeric"></label>
+              <label><span>XP für Foto</span><input id="levelXpImage" inputmode="numeric"></label>
+              <label><span>XP für Datei</span><input id="levelXpFile" inputmode="numeric"></label>
+              <label><span>XP pro Minute im Sprachchat</span><input id="levelXpVoice" inputmode="numeric"></label>
+              <label><span>Pause zwischen Nachrichten, Sekunden</span><input id="levelCooldown" inputmode="numeric"></label>
+              <label><span>Mindestlänge für Text</span><input id="levelMinLen" inputmode="numeric"></label>
+              <label><span>XP-Deckel pro Stunde</span><input id="levelHourCap" inputmode="numeric"></label>
+            </div>
+          </div>
+          <div class="card">
+            <label><span>Kanal-IDs, die XP geben. Leer = alle Textkanäle. Eine ID pro Zeile.</span><textarea id="levelChannels" placeholder="Rechtsklick auf den Kanal, ID kopieren"></textarea></label>
+            <label><span>Level-Rollen. Eine Zeile: Level und Rollen-ID. Die höchste passende Rolle bleibt, die alte wird entfernt.</span><textarea id="levelRolesText" placeholder="5 123456789012345678"></textarea></label>
+          </div>
+          <div class="card">
+            <div class="hint">User suchen. Dann eine Zahl XP hinzufügen oder abziehen, nicht alles auf einmal.</div>
+            <label><span>Suche nach Name oder ID</span><input id="levelSearch" placeholder="Name oder User-ID"></label>
+            <div id="levelCard"></div>
+            <div class="pair">
+              <label><span>User-ID</span><input id="levelWipeId" placeholder="wird beim Anklicken gefüllt"></label>
+              <label><span>Anzahl XP</span><input id="levelAmount" inputmode="numeric" placeholder="15"></label>
+            </div>
+            <div class="actions">
+              <button type="button" id="levelAdd">XP hinzufügen</button>
+              <button type="button" id="levelSub">XP entfernen</button>
+              <button type="button" id="levelReset">Alles zurücksetzen</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="hint">Beste User. In Discord: /leaderboard und /level.</div>
+            <div id="levelBoard">Wird geladen…</div>
           </div>
         </div>
-        <div class="card">
-          <label><span>Kanal-IDs, die XP geben. Leer = alle Textkanäle. Eine ID pro Zeile.</span><textarea id="levelChannels" placeholder="Rechtsklick auf den Kanal, ID kopieren"></textarea></label>
-          <label><span>Level-Rollen. Eine Zeile: Level und Rollen-ID. Beispiel 5 und dann die ID. Die höchste passende Rolle bleibt, die alte wird entfernt.</span><textarea id="levelRolesText" placeholder="5 123456789012345678"></textarea></label>
-        </div>
-        <div class="card">
-          <div class="hint">XP löschen nimmt auch die Level-Rolle ab. Zurücksetzen leert die ganze Liste.</div>
-          <label><span>User-ID, deren XP weg soll</span><input id="levelWipeId" placeholder="User-ID"></label>
-          <div class="actions">
-            <button type="button" id="levelWipe">XP löschen</button>
-            <button type="button" id="levelReset">Alles zurücksetzen</button>
+        <div id="mod-link" hidden>
+          <div class="card grid">
+            <label><span>Worker</span><input id="workerUrl"></label>
+            <label><span>Admin-Schlüssel</span><input id="adminKey" autocomplete="off"></label>
           </div>
-        </div>
-        <div class="card">
-          <div class="hint">Beste User. In Discord sieht das jeder mit /leaderboard.</div>
-          <div id="levelBoard">Wird geladen…</div>
         </div>
       </div>
     </section>
@@ -502,9 +528,10 @@
       levelHourCap: "400",
       levelChannels: "",
       levelRolesText: "",
-      levelWipeId: ""
+      levelWipeId: "",
+      levelAmount: "15"
     };
-    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole", "levelXpText", "levelXpVoiceMsg", "levelXpImage", "levelXpFile", "levelXpVoice", "levelCooldown", "levelMinLen", "levelHourCap", "levelChannels", "levelRolesText", "levelWipeId"];
+    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole", "levelXpText", "levelXpVoiceMsg", "levelXpImage", "levelXpFile", "levelXpVoice", "levelCooldown", "levelMinLen", "levelHourCap", "levelChannels", "levelRolesText", "levelWipeId", "levelAmount"];
     const baseGames = [
       { text: "Phasmophobia", roleId: "" },
       { text: "Terraria", roleId: "" },
@@ -616,6 +643,7 @@
           return { level: Number(parts[0]) || 0, roleId: String(parts[1] || "").replace(/\D/g, "") };
         }).filter((tier) => tier.level > 0 && tier.roleId),
         levelWipeId: data.levelWipeId.trim(),
+        levelAmount: data.levelAmount,
         target
       };
     }
@@ -840,8 +868,74 @@
     document.getElementById("giveawayReroll").onclick = () => giveawayAction("giveaway-reroll");
     document.getElementById("giveawayCommands").onclick = () => giveawayAction("giveaway-commands");
     document.getElementById("giveawayRefresh").onclick = () => loadGiveaways();
-    document.getElementById("levelWipe").onclick = () => giveawayAction("level-wipe");
+    document.getElementById("levelAdd").onclick = () => giveawayAction("level-add");
+    document.getElementById("levelSub").onclick = () => giveawayAction("level-sub");
     document.getElementById("levelReset").onclick = () => giveawayAction("level-reset");
+    document.querySelectorAll(".mod").forEach((button) => {
+      button.onclick = () => {
+        document.querySelectorAll(".mod").forEach((item) => item.classList.toggle("on", item === button));
+        document.getElementById("mod-level").hidden = button.dataset.mod !== "level";
+        document.getElementById("mod-link").hidden = button.dataset.mod !== "link";
+      };
+    });
+    let levelUsers = [];
+    function rankCard(row) {
+      const card = document.createElement("div");
+      card.className = "rank";
+      const img = document.createElement("img");
+      img.alt = "";
+      img.src = avatarUrl(row);
+      const text = document.createElement("div");
+      const strong = document.createElement("strong");
+      strong.textContent = "@" + (row.username || row.name || "user");
+      const sub = document.createElement("span");
+      const into = row.into ?? 0;
+      const need = row.need || 100;
+      sub.textContent = "Level " + row.level + "   XP " + into + " / " + need + "   Rang " + row.rank;
+      const bar = document.createElement("div");
+      bar.className = "bar";
+      const fill = document.createElement("i");
+      fill.style.width = Math.max(0, Math.min(100, Math.round((into / need) * 100))) + "%";
+      bar.append(fill);
+      text.append(strong, sub, bar);
+      card.append(img, text);
+      return card;
+    }
+    function showLevelUsers() {
+      const query = (document.getElementById("levelSearch").value || "").trim().toLowerCase();
+      const board = document.getElementById("levelBoard");
+      const card = document.getElementById("levelCard");
+      board.innerHTML = "";
+      card.innerHTML = "";
+      const list = levelUsers.filter((row) => !query || String(row.name || "").toLowerCase().includes(query) || String(row.username || "").toLowerCase().includes(query) || String(row.id).includes(query));
+      if (list[0]) card.append(rankCard(list[0]));
+      list.forEach((row) => {
+        const line = document.createElement("button");
+        line.type = "button";
+        line.className = "user-row";
+        line.style.width = "100%";
+        line.style.background = "transparent";
+        line.style.border = "0";
+        line.style.borderTop = "1px solid var(--line)";
+        const img = document.createElement("img");
+        img.alt = "";
+        img.src = avatarUrl(row);
+        const text = document.createElement("div");
+        const strong = document.createElement("strong");
+        strong.textContent = row.rank + ". " + (row.name || row.username || "User");
+        const sub = document.createElement("span");
+        sub.textContent = "Level " + row.level + " · " + row.xp + " XP · " + row.id;
+        text.append(strong, sub);
+        line.append(img, text);
+        line.onclick = () => {
+          document.getElementById("levelWipeId").value = row.id;
+          card.innerHTML = "";
+          card.append(rankCard(row));
+        };
+        board.append(line);
+      });
+      if (!list.length) board.textContent = query ? "Niemand gefunden." : "Noch niemand hat XP.";
+    }
     let editingId = "";
     function localStamp(ms) {
       if (!ms) return "";
@@ -1083,27 +1177,13 @@
       try {
         const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/levels", { headers: { "x-admin-key": data.adminKey } });
         const body = await res.json();
-        board.innerHTML = "";
-        (body.top || []).forEach((row, index) => {
-          const line = document.createElement("div");
-          line.className = "user-row";
-          const img = document.createElement("img");
-          img.alt = "";
-          img.src = avatarUrl(row);
-          const text = document.createElement("div");
-          const strong = document.createElement("strong");
-          strong.textContent = (index + 1) + ". " + (row.name || row.username || "User");
-          const sub = document.createElement("span");
-          sub.textContent = "Level " + row.level + " · " + row.xp + " XP · " + row.id;
-          text.append(strong, sub);
-          line.append(img, text);
-          board.append(line);
-        });
-        if (!(body.top || []).length) board.textContent = "Noch niemand hat XP.";
+        levelUsers = body.users || body.top || [];
+        showLevelUsers();
       } catch {
         board.textContent = "Liste nicht geladen.";
       }
     }
+    document.getElementById("levelSearch").addEventListener("input", showLevelUsers);
     loadLevels();
     setInterval(loadLevels, 60000);
     window.scrollTo(0, 0);
