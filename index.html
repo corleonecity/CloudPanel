@@ -181,13 +181,13 @@
           <label><span>Kanal-ID von #server-ankündigungen</span><input id="newsChannelId" placeholder="Rechtsklick auf den Kanal, ID kopieren"></label>
         </div>
         <div class="card">
-          <div class="hint">Neue Ankündigung. Nach dem Senden bleiben Titel und Fußzeile, der Text wird leer.</div>
+          <div class="hint">Neue Ankündigung. Nach dem Senden bleiben Titel und der Ping, der Text wird leer.</div>
           <div class="pair">
             <label><span>Titel</span><input id="newsTitle"></label>
             <label><span>Farbe der Leiste</span><input id="newsColor" type="color"></label>
           </div>
+          <label><span>Text darüber, für den Ping</span><input id="newsPing" placeholder="@everyone"></label>
           <label><span>Text</span><textarea id="newsIntro"></textarea></label>
-          <label><span>Fußzeile</span><input id="newsFooter"></label>
         </div>
       </div>
 
@@ -222,10 +222,10 @@
         <div class="avatar">L</div>
         <div>
           <div class="who"><strong>Leitstand</strong><em>APP</em><time>jetzt</time></div>
+          <p id="prevNewsPing"></p>
           <div class="embed" id="newsEmbed">
             <h3 id="prevNewsTitle">Ankündigungen</h3>
             <p id="prevNewsIntro"></p>
-            <p id="prevNewsFooter"></p>
           </div>
         </div>
       </article>
@@ -260,9 +260,9 @@
       newsTitle: "Ankündigungen",
       newsColor: "#f0b429",
       newsIntro: "",
-      newsFooter: "Colin's Community"
+      newsPing: "@everyone"
     };
-    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsIntro", "newsFooter"];
+    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro"];
     let rules = [];
     let steps = [];
     const lines = (text) => String(text || "").split(/\n/).map((line) => line.trim()).filter(Boolean);
@@ -367,12 +367,12 @@
       });
       const newsColor = document.getElementById("newsColor").value || "#f0b429";
       document.getElementById("newsEmbed").style.borderLeftColor = newsColor;
+      const ping = fill(document.getElementById("newsPing").value.trim());
+      const pingEl = document.getElementById("prevNewsPing");
+      pingEl.textContent = ping;
+      pingEl.style.display = ping ? "block" : "none";
       document.getElementById("prevNewsTitle").textContent = fill(document.getElementById("newsTitle").value || "Ankündigungen");
       document.getElementById("prevNewsIntro").textContent = fill(document.getElementById("newsIntro").value);
-      const newsFooter = fill(document.getElementById("newsFooter").value.trim());
-      const newsFooterEl = document.getElementById("prevNewsFooter");
-      newsFooterEl.textContent = newsFooter;
-      newsFooterEl.style.display = newsFooter ? "block" : "none";
     }
     function setStatus(text, kind) {
       const el = document.getElementById("status");
@@ -442,8 +442,8 @@
             newsChannelId: data.newsChannelId.trim(),
             newsTitle: data.newsTitle,
             newsColor: data.newsColor,
+            newsPing: data.newsPing,
             newsIntro: data.newsIntro,
-            newsFooter: data.newsFooter,
             target: view === "news" ? "news" : "regeln"
           })
         });
