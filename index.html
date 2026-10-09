@@ -660,7 +660,7 @@
         });
         const body = await res.json();
         if (body.ok && view === "creators") {
-          setStatus(body.posted ? "Jemand ist live. Die Nachricht ist im Kanal." : "Links gespeichert. Gerade ist niemand neu live.", "ok");
+          setStatus(body.posted ? "Live ist im Kanal." : ((body.lines || []).join(" · ") || "Gerade ist niemand live."), body.posted ? "ok" : "bad");
         } else if (body.ok && view === "news") {
           document.getElementById("newsIntro").value = "";
           localStorage.setItem(KEY, JSON.stringify(pack()));
