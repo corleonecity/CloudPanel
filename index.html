@@ -296,6 +296,11 @@
           <div id="ticketList"></div>
           <button type="button" class="add" id="addTicket">Art hinzufügen</button>
         </div>
+        <div class="card">
+          <div class="hint">Offene Tickets. Ist der Kanal in Discord schon weg, verschwindet er hier und man kann wieder ein neues öffnen.</div>
+          <div id="openTickets">Wird geladen…</div>
+          <button type="button" class="add" id="ticketRefresh">Liste neu laden</button>
+        </div>
       </div>
 
       <div class="view" id="view-giveaway">
@@ -1099,6 +1104,7 @@
         document.querySelector(".preview-col h2").textContent = titles[view] || "Vorschau Regeln";
         preview();
         if (view === "giveaway") loadGiveaways();
+        if (view === "ticket") loadOpenTickets();
         if (view === "link") loadLevels();
         window.scrollTo(0, 0);
       });
@@ -1312,6 +1318,42 @@
         box.textContent = "Liste nicht geladen.";
       }
     }
+    async function loadOpenTickets() {
+      const data = pack();
+      const box = document.getElementById("openTickets");
+      if (!box) return;
+      if (!data.workerUrl || !data.adminKey) {
+        box.textContent = "Erst Worker und Admin-Schlüssel speichern.";
+        return;
+      }
+      try {
+        const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/tickets", { headers: { "x-admin-key": data.adminKey } });
+        const body = await res.json();
+        const list = body.tickets || [];
+        box.innerHTML = "";
+        if (!body.ok) {
+          box.textContent = body.error || "Liste nicht geladen.";
+          return;
+        }
+        if (!list.length) {
+          box.textContent = "Keine offenen Tickets.";
+          return;
+        }
+        list.forEach((ticket) => {
+          const line = document.createElement("p");
+          line.className = "nextnum";
+          const num = String(ticket.n ?? 0).padStart(4, "0");
+          const who = ticket.ownerName || ticket.ownerId || "User";
+          const claim = ticket.claimerName ? " · Claim " + ticket.claimerName : "";
+          const reason = ticket.reason ? " · " + ticket.reason : "";
+          line.textContent = num + " · " + (ticket.name || ticket.typeName || "Ticket") + " · " + who + claim + reason;
+          box.append(line);
+        });
+      } catch {
+        box.textContent = "Liste nicht geladen.";
+      }
+    }
+    document.getElementById("ticketRefresh").onclick = () => loadOpenTickets();
     document.querySelector(".stage").addEventListener("input", (event) => {
       if (event.target.closest("#ruleList, #stepList, #gameList, #creatorList, #ticketList")) return;
       preview();
