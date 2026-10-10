@@ -883,8 +883,10 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         </div>
         <div id="mod-warns" hidden>
           <div class="card">
-            <div class="hint">/warn, /kick und /ban. /warns zeigt in Discord nur Verwarnungen. Hier siehst du alle drei, mit Bild, Name und Grund.</div>
-            <label><span>Rolle, die strafen darf</span><input id="warnRoleId" placeholder="Rolle"></label>
+            <div class="hint">Für /warn, /kick und /ban jeweils eigene Rollen. Mehrere gehen. Admins dürfen es immer. /warns zeigt nur Verwarnungen.</div>
+            <label><span>Rollen für /warn</span><textarea id="warnRoleId" placeholder="Rollen wählen"></textarea></label>
+            <label><span>Rollen für /kick</span><textarea id="kickRoleId" placeholder="Rollen wählen"></textarea></label>
+            <label><span>Rollen für /ban</span><textarea id="banRoleId" placeholder="Rollen wählen"></textarea></label>
             <label><span>Suche nach Name oder ID</span><input id="warnSearch" placeholder="Name, Grund oder User-ID"></label>
             <div class="actions" id="warnKinds">
               <button type="button" data-kind="">Alle</button>
@@ -1135,6 +1137,8 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
       logChannelId: "",
       statsChannelId: "",
       warnRoleId: "",
+      kickRoleId: "",
+      banRoleId: "",
       boostChannelId: "",
       boostText: "Danke {user} für den Boost!",
       boostRoleId: "",
@@ -1152,7 +1156,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
       ticketColor: "#5865f2",
       ticketGuildId: ""
     };
-    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole", "giveawayTicketCategory", "giveawayTicketStart", "giveawayTicketSee", "giveawayTicketClaim", "levelXpText", "levelXpVoiceMsg", "levelXpImage", "levelXpFile", "levelXpVoice", "levelCooldown", "levelMinLen", "levelHourCap", "levelChannels", "levelNoChannels", "levelUpChannelId", "levelRolesText", "levelWipeId", "levelAmount", "suggestChannelId", "suggestUp", "suggestDown", "voiceHubId", "voiceCategoryId", "voiceName", "voiceLimit", "welcomeChannelId", "welcomeRulesId", "welcomeVerifyId", "welcomeWatchId", "welcomeTitle", "welcomeText", "welcomeColor", "logChannelId", "statsChannelId", "warnRoleId", "boostChannelId", "boostText", "boostRoleId", "inactiveDays", "inactiveRoleId", "inactiveExemptText", "autoRoleId", "inviteRewardsText", "ticketChannelId", "ticketLogId", "ticketDeleteRole", "ticketTitle", "ticketText", "ticketPlaceholder", "ticketColor", "ticketGuildId"];
+    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole", "giveawayTicketCategory", "giveawayTicketStart", "giveawayTicketSee", "giveawayTicketClaim", "levelXpText", "levelXpVoiceMsg", "levelXpImage", "levelXpFile", "levelXpVoice", "levelCooldown", "levelMinLen", "levelHourCap", "levelChannels", "levelNoChannels", "levelUpChannelId", "levelRolesText", "levelWipeId", "levelAmount", "suggestChannelId", "suggestUp", "suggestDown", "voiceHubId", "voiceCategoryId", "voiceName", "voiceLimit", "welcomeChannelId", "welcomeRulesId", "welcomeVerifyId", "welcomeWatchId", "welcomeTitle", "welcomeText", "welcomeColor", "logChannelId", "statsChannelId", "warnRoleId", "kickRoleId", "banRoleId", "boostChannelId", "boostText", "boostRoleId", "inactiveDays", "inactiveRoleId", "inactiveExemptText", "autoRoleId", "inviteRewardsText", "ticketChannelId", "ticketLogId", "ticketDeleteRole", "ticketTitle", "ticketText", "ticketPlaceholder", "ticketColor", "ticketGuildId"];
     const baseGames = [
       { text: "Phasmophobia", roleId: "" },
       { text: "Terraria", roleId: "" },
@@ -1331,7 +1335,9 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         welcomeColor: data.welcomeColor,
         logChannelId: (data.logChannelId || "").trim(),
         statsChannelId: (data.statsChannelId || "").trim(),
-        warnRoleId: (data.warnRoleId || "").trim(),
+        warnRoles: String(data.warnRoleId || "").split(/[^\d]+/).filter((id) => id.length > 10),
+        kickRoles: String(data.kickRoleId || "").split(/[^\d]+/).filter((id) => id.length > 10),
+        banRoles: String(data.banRoleId || "").split(/[^\d]+/).filter((id) => id.length > 10),
         boostChannelId: (data.boostChannelId || "").trim(),
         boostText: data.boostText || "Danke {user} für den Boost!",
         boostRoleId: (data.boostRoleId || "").trim(),
@@ -2011,9 +2017,9 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
       ["statsChannelId", "voice"], ["voiceHubId", "voice"], ["voiceCategoryId", "category"], ["giveawayTicketCategory", "category"],
       ["roleId", "role"], ["verifyRoleId", "role"], ["ticketDeleteRole", "role"], ["giveawayRoleStart", "role"], ["giveawayRoleEnd", "role"],
       ["giveawayRoleReroll", "role"], ["giveawayBoosterRole", "role"], ["giveawayTicketSee", "role"], ["giveawayTicketClaim", "role"],
-      ["warnRoleId", "role"], ["boostRoleId", "role"], ["inactiveRoleId", "role"]
+      ["boostRoleId", "role"], ["inactiveRoleId", "role"]
     ];
-    const manyList = [["levelChannels", "text"], ["levelNoChannels", "any"], ["inactiveExemptText", "role"], ["autoRoleId", "role"]];
+    const manyList = [["levelChannels", "text"], ["levelNoChannels", "any"], ["inactiveExemptText", "role"], ["autoRoleId", "role"], ["warnRoleId", "role"], ["kickRoleId", "role"], ["banRoleId", "role"]];
     function pickItems(kind) {
       const text = catalog.text.map((item) => ({ id: item.id, label: "#" + item.name }));
       const voice = catalog.voice.map((item) => ({ id: item.id, label: item.name }));
@@ -2448,7 +2454,10 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
           levelNoChannels: Array.isArray(cfg.levelNoChannels) ? cfg.levelNoChannels.join("\n") : (cfg.levelNoChannels || ""),
           inviteRewardsText: Array.isArray(cfg.inviteRewards) ? cfg.inviteRewards.map((tier) => tier.count + " " + tier.roleId).join("\n") : (cfg.inviteRewardsText || ""),
           inactiveExemptText: Array.isArray(cfg.inactiveExempt) ? cfg.inactiveExempt.join("\n") : (cfg.inactiveExemptText || ""),
-          autoRoleId: Array.isArray(cfg.autoRoles) ? cfg.autoRoles.join("\n") : (cfg.autoRoleId || "")
+          autoRoleId: Array.isArray(cfg.autoRoles) ? cfg.autoRoles.join("\n") : (cfg.autoRoleId || ""),
+          warnRoleId: Array.isArray(cfg.warnRoles) ? cfg.warnRoles.join("\n") : (cfg.warnRoleId || ""),
+          kickRoleId: Array.isArray(cfg.kickRoles) ? cfg.kickRoles.join("\n") : (cfg.kickRoleId || ""),
+          banRoleId: Array.isArray(cfg.banRoles) ? cfg.banRoles.join("\n") : (cfg.banRoleId || "")
         };
         localStorage.setItem(KEY, JSON.stringify(saved));
         load();
