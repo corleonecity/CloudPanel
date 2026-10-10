@@ -912,6 +912,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
               <button type="button" data-kind="kick">Kick</button>
               <button type="button" data-kind="ban">Ban</button>
               <button type="button" data-kind="timeout">Timeout</button>
+              <button type="button" data-kind="tempban">Tempban</button>
             </div>
             <div class="scroll-list" id="warnList">Noch keine.</div>
             <button type="button" class="add" id="warnRefresh">Liste neu laden</button>
@@ -2369,9 +2370,9 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
       const box = document.getElementById("warnList");
       const q = String(document.getElementById("warnSearch")?.value || "").trim().toLowerCase();
       if (!box) return;
-      const kindLabel = { warn: "Verwarnung", kick: "Kick", ban: "Ban", timeout: "Timeout", untimeout: "Timeout weg", unban: "Unban" };
+      const kindLabel = { warn: "Verwarnung", kick: "Kick", ban: "Ban", timeout: "Timeout", untimeout: "Timeout weg", unban: "Unban", tempban: "Tempban" };
       const list = warnCache.filter((warn) => {
-        const kind = ["kick", "ban", "timeout", "untimeout", "unban"].includes(warn.kind) ? warn.kind : "warn";
+        const kind = ["kick", "ban", "timeout", "untimeout", "unban", "tempban"].includes(warn.kind) ? warn.kind : "warn";
         if (warnKind && kind !== warnKind) return false;
         const hay = [warn.userName, warn.username, warn.userId, warn.reason, warn.modName, kindLabel[kind]].join(" ").toLowerCase();
         return !q || hay.includes(q);
@@ -2382,7 +2383,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         return;
       }
       list.forEach((warn) => {
-        const kind = ["kick", "ban", "timeout", "untimeout", "unban"].includes(warn.kind) ? warn.kind : "warn";
+        const kind = ["kick", "ban", "timeout", "untimeout", "unban", "tempban"].includes(warn.kind) ? warn.kind : "warn";
         const row = document.createElement("div");
         row.className = "user-row";
         const img = document.createElement("img");
