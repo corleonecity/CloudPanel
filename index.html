@@ -16,16 +16,36 @@
       color: #f4f4f5;
       font: 16px/1.5 "Instrument Sans", system-ui, sans-serif;
     }
-    #gate .card { display: grid; justify-items: center; gap: 18px; text-align: center; padding: 24px; }
+    #gate .card {
+      display: grid;
+      justify-items: center;
+      gap: 18px;
+      text-align: center;
+      padding: 0;
+      margin: 0;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+    }
     #gate img, #gate .mark {
       width: 88px;
       height: 88px;
-      border-radius: 24px;
+      border-radius: 28px;
       object-fit: cover;
       background: #18181b;
+      box-shadow: none;
     }
     #gate .mark { display: grid; place-items: center; font-size: 36px; font-weight: 650; }
-    #gate h1 { margin: 0; font-size: 32px; font-weight: 600; letter-spacing: -0.04em; }
+    #gate h1 {
+      margin: 0;
+      font-size: 32px;
+      font-weight: 600;
+      letter-spacing: -0.04em;
+      line-height: 1.2;
+      background: transparent;
+      color: #f4f4f5;
+    }
     #gate a {
       display: inline-flex;
       align-items: center;
@@ -491,7 +511,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
 <body>
   <div id="gate">
     <div class="card">
-      <div class="mark" id="gateMark">C</div>
+      <img id="gateMark" src="https://cdn.discordapp.com/icons/1308436185210687541/d602df0221c92c6b171025ecbcac8859.png?size=256" alt="">
       <h1 id="gateTitle">Colin's Community</h1>
       <a id="gateLogin" href="https://colincommnunity.keulecolin2005.workers.dev/auth/discord">Login mit Discord</a>
     </div>
