@@ -292,6 +292,11 @@
           <label><span>Text im Dropdown</span><input id="ticketPlaceholder" placeholder="Ticket-Art wählen"></label>
         </div>
         <div class="card">
+          <div class="hint">Diese Kästchen kommen beim Öffnen. Du benennst sie selbst, zum Beispiel Alter Name. Discord erlaubt höchstens 5. Kurz ist eine Zeile, lang ein Textfeld. Mindestens eins ist Pflicht.</div>
+          <div id="fieldList"></div>
+          <button type="button" class="add" id="addField">Feld hinzufügen</button>
+        </div>
+        <div class="card">
           <div class="hint">Claim darf nur die Claim-Rolle. Danach ist der Button weg und Unclaim da. Unclaim darf nur der, der Claim gedrückt hat. Sehen-Rolle kommt in den privaten Kanal. Transcript geht automatisch in den Log und als PN an den User.</div>
           <div id="ticketList"></div>
           <button type="button" class="add" id="addTicket">Art hinzufügen</button>
@@ -359,6 +364,7 @@
           <button type="button" class="mod" data-mod="link"><strong>Verbindung</strong><span>Worker und Admin-Schlüssel.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="suggest"><strong>Vorschläge</strong><span>Der Bot setzt zwei Emojis auf neue Nachrichten.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="welcome"><strong>Willkommen</strong><span>Beitritt, Einlader und Rollen.</span><em>Einstellungen</em></button>
+          <button type="button" class="mod" data-mod="logs"><strong>Logs</strong><span>Ban, Kick, Löschen, Bearbeiten.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="voice"><strong>Sprachkanal</strong><span>Rein gehen erstellt einen Kanal. Leer heißt weg.</span><em>Einstellungen</em></button>
         </div>
         <div id="mod-level">
@@ -452,6 +458,13 @@
               <h3 id="prevWelcomeTitle">Willkommen in Colin's Community</h3>
               <p id="prevWelcomeBody"></p>
             </div>
+          </div>
+        </div>
+        <div id="mod-logs" hidden>
+          <div class="card">
+            <div class="hint">Ban, Kick, Rollen, Kanäle, gelöschte und bearbeitete Nachrichten gehen nur in diesen Discord-Kanal. In der Datenbank bleibt davon nichts. Der Bot braucht Protokoll ansehen. Was vor dem ersten Durchlauf passiert ist, kommt nicht nachträglich.</div>
+            <label><span>Log-Kanal</span><select id="logChannelPick"><option value="">Kanal wählen</option></select></label>
+            <label><span>Kanal-ID</span><input id="logChannelId" placeholder="Wird aus der Liste gefüllt oder hier reinkopiert"></label>
           </div>
         </div>
       </div>
@@ -651,6 +664,7 @@
       welcomeTitle: "Willkommen in Colin's Community",
       welcomeText: "",
       welcomeColor: "#5865f2",
+      logChannelId: "",
       inviteRewardsText: "",
       ticketChannelId: "",
       ticketLogId: "",
@@ -661,7 +675,7 @@
       ticketColor: "#5865f2",
       ticketGuildId: ""
     };
-    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole", "giveawayTicketCategory", "giveawayTicketStart", "giveawayTicketSee", "giveawayTicketClaim", "levelXpText", "levelXpVoiceMsg", "levelXpImage", "levelXpFile", "levelXpVoice", "levelCooldown", "levelMinLen", "levelHourCap", "levelChannels", "levelNoChannels", "levelUpChannelId", "levelRolesText", "levelWipeId", "levelAmount", "suggestChannelId", "suggestUp", "suggestDown", "voiceHubId", "voiceCategoryId", "voiceName", "voiceLimit", "welcomeChannelId", "welcomeRulesId", "welcomeVerifyId", "welcomeWatchId", "welcomeTitle", "welcomeText", "welcomeColor", "inviteRewardsText", "ticketChannelId", "ticketLogId", "ticketDeleteRole", "ticketTitle", "ticketText", "ticketPlaceholder", "ticketColor", "ticketGuildId"];
+    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole", "giveawayTicketCategory", "giveawayTicketStart", "giveawayTicketSee", "giveawayTicketClaim", "levelXpText", "levelXpVoiceMsg", "levelXpImage", "levelXpFile", "levelXpVoice", "levelCooldown", "levelMinLen", "levelHourCap", "levelChannels", "levelNoChannels", "levelUpChannelId", "levelRolesText", "levelWipeId", "levelAmount", "suggestChannelId", "suggestUp", "suggestDown", "voiceHubId", "voiceCategoryId", "voiceName", "voiceLimit", "welcomeChannelId", "welcomeRulesId", "welcomeVerifyId", "welcomeWatchId", "welcomeTitle", "welcomeText", "welcomeColor", "logChannelId", "inviteRewardsText", "ticketChannelId", "ticketLogId", "ticketDeleteRole", "ticketTitle", "ticketText", "ticketPlaceholder", "ticketColor", "ticketGuildId"];
     const baseGames = [
       { text: "Phasmophobia", roleId: "" },
       { text: "Terraria", roleId: "" },
@@ -674,6 +688,7 @@
     let games = [];
     let creators = [];
     let ticketTypes = [];
+    let ticketFields = [];
     let ticketSeq = {};
     const lines = (text) => String(text || "").split(/\n/).map((line) => line.trim()).filter(Boolean);
 
@@ -710,6 +725,18 @@
         claimRoleId: String(type.claimRoleId || "")
       })) : baseTickets.map((type) => ({ ...type }));
       ticketSeq = data.ticketSeq && typeof data.ticketSeq === "object" ? data.ticketSeq : {};
+      const baseFields = [
+        { id: "reason", label: "Grund", placeholder: "Warum öffnest du ein Ticket?", long: false, required: true },
+        { id: "details", label: "Details", placeholder: "Was ist passiert?", long: true, required: false },
+        { id: "extra", label: "Zusätzlich", placeholder: "", long: true, required: false }
+      ];
+      ticketFields = Array.isArray(data.ticketFields) && data.ticketFields.length ? data.ticketFields.slice(0, 5).map((field, index) => ({
+        id: String(field.id || ("f" + index)),
+        label: String(field.label || ""),
+        placeholder: String(field.placeholder || ""),
+        long: !!field.long,
+        required: !!field.required
+      })) : baseFields.map((field) => ({ ...field }));
     }
     function pack() {
       const data = Object.fromEntries(copy.map((id) => [id, document.getElementById(id).value]));
@@ -727,6 +754,13 @@
         claimRoleId: type.claimRoleId.trim()
       }));
       data.ticketSeq = ticketSeq;
+      data.ticketFields = ticketFields.slice(0, 5).map((field) => ({
+        id: field.id,
+        label: field.label.trim(),
+        placeholder: field.placeholder.trim(),
+        long: !!field.long,
+        required: !!field.required
+      })).filter((field) => field.label);
       return data;
     }
     function syncBody(data, target) {
@@ -822,6 +856,7 @@
         welcomeTitle: data.welcomeTitle,
         welcomeText: data.welcomeText,
         welcomeColor: data.welcomeColor,
+        logChannelId: (data.logChannelId || "").trim(),
         inviteRewards: String(data.inviteRewardsText || "").split(/\n/).map((line) => {
           const parts = line.trim().split(/[\s,;]+/);
           return { count: Number(parts[0]) || 0, roleId: String(parts[1] || "").replace(/\D/g, "") };
@@ -834,6 +869,7 @@
         ticketPlaceholder: data.ticketPlaceholder,
         ticketColor: data.ticketColor,
         ticketTypes: data.ticketTypes,
+        ticketFields: data.ticketFields,
         target
       };
     }
@@ -958,6 +994,64 @@
         block.append(head, grid, next);
         ticketRoot.append(block);
       });
+      const fieldRoot = document.getElementById("fieldList");
+      if (fieldRoot) {
+        fieldRoot.innerHTML = "";
+        ticketFields.forEach((field, index) => {
+          const block = document.createElement("div");
+          block.className = "type";
+          const grid = document.createElement("div");
+          grid.className = "pair";
+          const label = document.createElement("input");
+          label.value = field.label;
+          label.maxLength = 45;
+          label.placeholder = "Name, zum Beispiel Alter Name";
+          label.addEventListener("input", () => { ticketFields[index].label = label.value; });
+          const placeholder = document.createElement("input");
+          placeholder.value = field.placeholder;
+          placeholder.maxLength = 100;
+          placeholder.placeholder = "Platzhalter, kann leer bleiben";
+          placeholder.addEventListener("input", () => { ticketFields[index].placeholder = placeholder.value; });
+          const kind = document.createElement("select");
+          [["0", "Kurze Zeile"], ["1", "Langer Text"]].forEach(([value, text]) => {
+            const option = document.createElement("option");
+            option.value = value;
+            option.textContent = text;
+            if ((value === "1") === !!field.long) option.selected = true;
+            kind.append(option);
+          });
+          kind.addEventListener("change", () => { ticketFields[index].long = kind.value === "1"; });
+          const required = document.createElement("label");
+          const box = document.createElement("input");
+          box.type = "checkbox";
+          box.checked = !!field.required;
+          box.addEventListener("change", () => { ticketFields[index].required = box.checked; });
+          required.append(box, document.createTextNode(" Pflicht"));
+          const remove = document.createElement("button");
+          remove.type = "button";
+          remove.className = "icon";
+          remove.textContent = "×";
+          remove.setAttribute("aria-label", "Entfernen");
+          remove.addEventListener("click", () => { ticketFields.splice(index, 1); render(); });
+          const labelWrap = document.createElement("label");
+          const labelSpan = document.createElement("span");
+          labelSpan.textContent = "Name des Feldes";
+          labelWrap.append(labelSpan, label);
+          const placeWrap = document.createElement("label");
+          const placeSpan = document.createElement("span");
+          placeSpan.textContent = "Platzhalter";
+          placeWrap.append(placeSpan, placeholder);
+          const kindWrap = document.createElement("label");
+          const kindSpan = document.createElement("span");
+          kindSpan.textContent = "Größe";
+          kindWrap.append(kindSpan, kind);
+          grid.append(labelWrap, placeWrap, kindWrap, required, remove);
+          block.append(grid);
+          fieldRoot.append(block);
+        });
+      }
+      const addField = document.getElementById("addField");
+      if (addField) addField.disabled = ticketFields.length >= 5;
       preview();
     }
     function channelTag(id) {
@@ -1115,6 +1209,11 @@
     document.getElementById("addGame").onclick = () => { games.push({ text: "", roleId: "" }); render(); };
     document.getElementById("addCreator").onclick = () => { creators.push({ url: "" }); render(); };
     document.getElementById("addTicket").onclick = () => { ticketTypes.push({ id: "t" + Date.now().toString(36), emoji: "🎫", name: "", categoryId: "", start: "0", seeRoleId: "", claimRoleId: "" }); render(); };
+    document.getElementById("addField").onclick = () => {
+      if (ticketFields.length >= 5) return;
+      ticketFields.push({ id: "f" + Date.now().toString(36), label: "", placeholder: "", long: false, required: false });
+      render();
+    };
     document.getElementById("ticketGuildId").addEventListener("input", () => { document.getElementById("giveawayGuildId").value = document.getElementById("ticketGuildId").value; });
     document.getElementById("giveawayGuildId").addEventListener("input", () => { document.getElementById("ticketGuildId").value = document.getElementById("giveawayGuildId").value; });
     async function giveawayAction(target) {
@@ -1150,6 +1249,7 @@
         document.getElementById("mod-suggest").hidden = button.dataset.mod !== "suggest";
         document.getElementById("mod-voice").hidden = button.dataset.mod !== "voice";
         document.getElementById("mod-welcome").hidden = button.dataset.mod !== "welcome";
+        document.getElementById("mod-logs").hidden = button.dataset.mod !== "logs";
       };
     });
     let levelUsers = [];
@@ -1363,6 +1463,10 @@
       }
     }
     document.getElementById("ticketRefresh").onclick = () => loadOpenTickets();
+    document.getElementById("logChannelPick").onchange = () => {
+      const picked = document.getElementById("logChannelPick").value;
+      if (picked) document.getElementById("logChannelId").value = picked;
+    };
     document.querySelector(".stage").addEventListener("input", (event) => {
       if (event.target.closest("#ruleList, #stepList, #gameList, #creatorList, #ticketList")) return;
       preview();
@@ -1450,6 +1554,22 @@
           if (body[key]) document.getElementById(id).value = body[key];
         });
         const views = { regeln: body.regeln, news: body.news, verify: body.verify, spiele: body.spiele, creators: body.creators, giveaway: body.giveaway, ticket: body.ticket };
+        const pick = document.getElementById("logChannelPick");
+        if (pick && Array.isArray(body.choices)) {
+          const current = document.getElementById("logChannelId").value;
+          pick.innerHTML = "";
+          const empty = document.createElement("option");
+          empty.value = "";
+          empty.textContent = "Kanal wählen";
+          pick.append(empty);
+          body.choices.forEach((room) => {
+            const option = document.createElement("option");
+            option.value = room.id;
+            option.textContent = "#" + room.name;
+            if (room.id === current) option.selected = true;
+            pick.append(option);
+          });
+        }
         Object.entries(views).forEach(([view, name]) => {
           const button = document.querySelector('nav button[data-view="' + view + '"]');
           if (button && name) button.textContent = "#" + String(name).replace(/^#/, "");
