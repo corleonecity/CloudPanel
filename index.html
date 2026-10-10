@@ -360,6 +360,7 @@
           <button type="button" class="mod" data-mod="suggest"><strong>Vorschläge</strong><span>Der Bot setzt zwei Emojis auf neue Nachrichten.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="welcome"><strong>Willkommen</strong><span>Beitritt, Einlader und Rollen.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="logs"><strong>Logs</strong><span>Ban, Kick, Löschen, Bearbeiten.</span><em>Einstellungen</em></button>
+          <button type="button" class="mod" data-mod="stats"><strong>Server Stats</strong><span>Mitgliederzahl im Sprachkanal.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="voice"><strong>Sprachkanal</strong><span>Rein gehen erstellt einen Kanal. Leer heißt weg.</span><em>Einstellungen</em></button>
         </div>
         <div id="mod-level">
@@ -460,6 +461,14 @@
             <div class="hint">Ban, Kick, Rollen, Kanäle, gelöschte und bearbeitete Nachrichten gehen nur in diesen Discord-Kanal. In der Datenbank bleibt davon nichts. Der Bot braucht Protokoll ansehen. Was vor dem ersten Durchlauf passiert ist, kommt nicht nachträglich.</div>
             <label><span>Log-Kanal</span><select id="logChannelPick"><option value="">Kanal wählen</option></select></label>
             <label><span>Kanal-ID</span><input id="logChannelId" placeholder="Wird aus der Liste gefüllt oder hier reinkopiert"></label>
+          </div>
+        </div>
+        <div id="mod-stats" hidden>
+          <div class="card">
+            <div class="hint">Wähl einen extra Sprachkanal, nicht den zum Erstellen. Der Bot benennt ihn in Members: 29. Gezählt werden nur Mitglieder, keine Bots und keine Apps. Der Bot braucht Kanäle verwalten und das Intent Servermitglieder.</div>
+            <label><span>Sprachkanal</span><select id="statsChannelPick"><option value="">Kanal wählen</option></select></label>
+            <label><span>Kanal-ID</span><input id="statsChannelId" placeholder="Rechtsklick auf den Sprachkanal, ID kopieren"></label>
+            <p class="nextnum" id="statsLive">Wartet auf den nächsten Durchlauf.</p>
           </div>
         </div>
       </div>
@@ -660,6 +669,7 @@
       welcomeText: "",
       welcomeColor: "#5865f2",
       logChannelId: "",
+      statsChannelId: "",
       inviteRewardsText: "",
       ticketChannelId: "",
       ticketLogId: "",
@@ -670,7 +680,7 @@
       ticketColor: "#5865f2",
       ticketGuildId: ""
     };
-    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole", "giveawayTicketCategory", "giveawayTicketStart", "giveawayTicketSee", "giveawayTicketClaim", "levelXpText", "levelXpVoiceMsg", "levelXpImage", "levelXpFile", "levelXpVoice", "levelCooldown", "levelMinLen", "levelHourCap", "levelChannels", "levelNoChannels", "levelUpChannelId", "levelRolesText", "levelWipeId", "levelAmount", "suggestChannelId", "suggestUp", "suggestDown", "voiceHubId", "voiceCategoryId", "voiceName", "voiceLimit", "welcomeChannelId", "welcomeRulesId", "welcomeVerifyId", "welcomeWatchId", "welcomeTitle", "welcomeText", "welcomeColor", "logChannelId", "inviteRewardsText", "ticketChannelId", "ticketLogId", "ticketDeleteRole", "ticketTitle", "ticketText", "ticketPlaceholder", "ticketColor", "ticketGuildId"];
+    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole", "giveawayTicketCategory", "giveawayTicketStart", "giveawayTicketSee", "giveawayTicketClaim", "levelXpText", "levelXpVoiceMsg", "levelXpImage", "levelXpFile", "levelXpVoice", "levelCooldown", "levelMinLen", "levelHourCap", "levelChannels", "levelNoChannels", "levelUpChannelId", "levelRolesText", "levelWipeId", "levelAmount", "suggestChannelId", "suggestUp", "suggestDown", "voiceHubId", "voiceCategoryId", "voiceName", "voiceLimit", "welcomeChannelId", "welcomeRulesId", "welcomeVerifyId", "welcomeWatchId", "welcomeTitle", "welcomeText", "welcomeColor", "logChannelId", "statsChannelId", "inviteRewardsText", "ticketChannelId", "ticketLogId", "ticketDeleteRole", "ticketTitle", "ticketText", "ticketPlaceholder", "ticketColor", "ticketGuildId"];
     const baseGames = [
       { text: "Phasmophobia", roleId: "" },
       { text: "Terraria", roleId: "" },
@@ -848,6 +858,7 @@
         welcomeText: data.welcomeText,
         welcomeColor: data.welcomeColor,
         logChannelId: (data.logChannelId || "").trim(),
+        statsChannelId: (data.statsChannelId || "").trim(),
         inviteRewards: String(data.inviteRewardsText || "").split(/\n/).map((line) => {
           const parts = line.trim().split(/[\s,;]+/);
           return { count: Number(parts[0]) || 0, roleId: String(parts[1] || "").replace(/\D/g, "") };
@@ -1241,6 +1252,7 @@
         document.getElementById("mod-voice").hidden = button.dataset.mod !== "voice";
         document.getElementById("mod-welcome").hidden = button.dataset.mod !== "welcome";
         document.getElementById("mod-logs").hidden = button.dataset.mod !== "logs";
+        document.getElementById("mod-stats").hidden = button.dataset.mod !== "stats";
       };
     });
     let levelUsers = [];
@@ -1458,6 +1470,10 @@
       const picked = document.getElementById("logChannelPick").value;
       if (picked) document.getElementById("logChannelId").value = picked;
     };
+    document.getElementById("statsChannelPick").onchange = () => {
+      const picked = document.getElementById("statsChannelPick").value;
+      if (picked) document.getElementById("statsChannelId").value = picked;
+    };
     document.querySelector(".stage").addEventListener("input", (event) => {
       if (event.target.closest("#ruleList, #stepList, #gameList, #creatorList, #ticketList")) return;
       preview();
@@ -1515,6 +1531,8 @@
         const body = await res.json();
         const note = document.getElementById("welcomeLive");
         if (note && body.ok) note.textContent = body.welcomeNote || "Kein Fehler. Neue Beitritte aus #join gehen in den Willkommen-Kanal.";
+        const stats = document.getElementById("statsLive");
+        if (stats && body.ok) stats.textContent = body.statsNote || "Noch keine Zahl. Nach dem Speichern kommt sie beim nächsten Durchlauf.";
         if (!body.ok || !body.name) return;
         document.getElementById("serverTitle").textContent = body.name;
         document.title = body.name;
@@ -1559,6 +1577,22 @@
             option.textContent = "#" + room.name;
             if (room.id === current) option.selected = true;
             pick.append(option);
+          });
+        }
+        const voicePick = document.getElementById("statsChannelPick");
+        if (voicePick && Array.isArray(body.voices)) {
+          const currentVoice = document.getElementById("statsChannelId").value;
+          voicePick.innerHTML = "";
+          const blank = document.createElement("option");
+          blank.value = "";
+          blank.textContent = "Sprachkanal wählen";
+          voicePick.append(blank);
+          body.voices.forEach((room) => {
+            const option = document.createElement("option");
+            option.value = room.id;
+            option.textContent = room.name;
+            if (room.id === currentVoice) option.selected = true;
+            voicePick.append(option);
           });
         }
         Object.entries(views).forEach(([view, name]) => {
