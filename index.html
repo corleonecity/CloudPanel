@@ -436,6 +436,7 @@
               <label><span>Kanal zum Verifizieren</span><input id="welcomeVerifyId" placeholder="Kanal-ID"></label>
             </div>
             <label><span>Systemkanal, leer = der vom Server</span><input id="welcomeWatchId" placeholder="Nur ausfüllen, wenn der Systemkanal woanders ist"></label>
+            <p class="nextnum" id="welcomeLive">Der Beitritt aus #join wird in den Willkommen-Kanal geschrieben.</p>
             <label><span>Titel</span><input id="welcomeTitle" placeholder="Willkommen in Colin's Community"></label>
             <label><span>Text in der Karte. Leer = der Satz mit den beiden Kanälen.</span><textarea id="welcomeText" placeholder="Hier kannst du die Regeln akzeptieren und hier dich verifizieren"></textarea></label>
             <label><span>Farbe der Leiste</span><input id="welcomeColor" type="color"></label>
@@ -1417,6 +1418,8 @@
       try {
         const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/guild", { headers: { "x-admin-key": data.adminKey } });
         const body = await res.json();
+        const note = document.getElementById("welcomeLive");
+        if (note && body.ok) note.textContent = body.welcomeNote || "Kein Fehler. Neue Beitritte aus #join gehen in den Willkommen-Kanal.";
         if (!body.ok || !body.name) return;
         document.getElementById("serverTitle").textContent = body.name;
         document.title = body.name;
