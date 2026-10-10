@@ -4,20 +4,56 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Leitstand · Colin's Community</title>
-  <style>html{background:#070708}#gate{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;background:#070708;color:#f4f4f5;font:16px/1.5 system-ui,sans-serif}#gate h1{margin:0;font-size:28px;font-weight:600;letter-spacing:-.03em}html[data-desk="1"] #gate{display:none}</style>
+  <style>
+    html { background: #070708; }
+    #gate {
+      position: fixed;
+      inset: 0;
+      z-index: 100000;
+      display: grid;
+      place-items: center;
+      background: #070708;
+      color: #f4f4f5;
+      font: 16px/1.5 "Instrument Sans", system-ui, sans-serif;
+    }
+    #gate .card { display: grid; justify-items: center; gap: 18px; text-align: center; padding: 24px; }
+    #gate img, #gate .mark {
+      width: 88px;
+      height: 88px;
+      border-radius: 24px;
+      object-fit: cover;
+      background: #18181b;
+    }
+    #gate .mark { display: grid; place-items: center; font-size: 36px; font-weight: 650; }
+    #gate h1 { margin: 0; font-size: 32px; font-weight: 600; letter-spacing: -0.04em; }
+    #gate a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: 12px;
+      background: #f4f4f5;
+      color: #09090b;
+      text-decoration: none;
+      font-weight: 650;
+    }
+    html[data-desk="1"] #gate { display: none; }
+  </style>
   <script>
 (() => {
   const HOST = "colincommnunity.keulecolin2005.workers.dev";
+  document.addEventListener("DOMContentLoaded", () => {
+    const login = document.getElementById("gateLogin");
+    if (login && location.hostname === HOST) login.setAttribute("href", "/auth/discord");
+  });
   const lost = () => {
     document.documentElement.removeAttribute("data-desk");
     const gate = document.getElementById("gate");
-    if (gate) gate.innerHTML = "<h1>Login fehlgeschlagen</h1>";
+    if (gate) gate.innerHTML = '<div class="card"><h1>Login fehlgeschlagen</h1></div>';
     document.querySelectorAll(".app").forEach((node) => node.remove());
   };
-  if (location.hostname !== HOST) {
-    location.replace("https://" + HOST + "/");
-    return;
-  }
+  if (location.hostname !== HOST) return;
   let stopped = false;
   const check = async (first) => {
     if (stopped) return;
@@ -25,15 +61,13 @@
       const res = await fetch("/api/session", { credentials: "same-origin", cache: "no-store" });
       if (!res.ok) {
         stopped = true;
-        if (first) location.replace("/auth/discord");
-        else lost();
+        if (!first) lost();
         return;
       }
       document.documentElement.dataset.desk = "1";
     } catch {
       stopped = true;
-      if (first) location.replace("/auth/discord");
-      else lost();
+      if (!first) lost();
     }
   };
   check(true);
@@ -455,7 +489,13 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
 </style>
 </head>
 <body>
-  <div id="gate"><h1>Anmeldung mit Discord…</h1></div>
+  <div id="gate">
+    <div class="card">
+      <div class="mark" id="gateMark">C</div>
+      <h1 id="gateTitle">Colin's Community</h1>
+      <a id="gateLogin" href="https://colincommnunity.keulecolin2005.workers.dev/auth/discord">Login mit Discord</a>
+    </div>
+  </div>
   <div class="app">
     <aside>
       <div class="brand">
