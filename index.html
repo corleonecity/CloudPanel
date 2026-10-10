@@ -704,6 +704,10 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
           <button type="button" class="add" id="addTicket">Art hinzufügen</button>
         </div>
         <div class="card">
+          <div class="hint">Die Zahlen gehen nur hoch. Unclaim zieht Claim nicht wieder ab. Claim ist, wie viele Tickets jemand übernommen hat.</div>
+          <div class="scroll-list" id="ticketStats">Wird geladen…</div>
+        </div>
+        <div class="card">
           <div class="hint">Offene Tickets. Ist der Kanal in Discord schon weg, verschwindet er hier und man kann wieder ein neues öffnen.</div>
           <div id="openTickets">Wird geladen…</div>
           <button type="button" class="add" id="ticketRefresh">Liste neu laden</button>
@@ -819,6 +823,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
             <label><span>Worker</span><input id="workerUrl"></label>
             <label><span>Admin-Schlüssel</span><input id="adminKey" autocomplete="off"></label>
             <p class="hint">Muss exakt die Variable ADMIN_KEY in Cloudflare sein. Ist die Variable leer, schreib hier leitstand-colin.</p>
+            <p class="nextnum" id="commandNote">Befehle werden beim nächsten Durchlauf eingetragen.</p>
           </div>
         </div>
         <div id="mod-suggest" hidden>
@@ -1976,6 +1981,31 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/tickets", { headers: { "x-admin-key": data.adminKey } });
         const body = await res.json();
         const list = body.tickets || [];
+        const stats = document.getElementById("ticketStats");
+        if (stats) {
+          stats.innerHTML = "";
+          const people = body.stats || [];
+          if (!people.length) stats.textContent = "Noch keine Zahlen.";
+          people.forEach((person) => {
+            const row = document.createElement("div");
+            row.className = "user-row";
+            const img = document.createElement("img");
+            img.alt = "";
+            img.src = avatarUrl(person);
+            const text = document.createElement("div");
+            const strong = document.createElement("strong");
+            strong.textContent = person.name || person.username || "User";
+            const user = document.createElement("span");
+            user.textContent = person.username ? "@" + person.username : "";
+            const id = document.createElement("span");
+            id.textContent = person.id || "";
+            const nums = document.createElement("span");
+            nums.textContent = "Claim " + (person.claims || 0) + " · Geöffnet " + (person.opened || 0) + " · Geschlossen " + (person.closed || 0) + " · Gelöscht " + (person.deleted || 0);
+            text.append(strong, user, id, nums);
+            row.append(img, text);
+            stats.append(row);
+          });
+        }
         box.innerHTML = "";
         const next = Number(body.next) || 0;
         const head = document.createElement("p");
@@ -1994,14 +2024,25 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
           return;
         }
         list.forEach((ticket) => {
-          const line = document.createElement("p");
-          line.className = "nextnum";
+          const row = document.createElement("div");
+          row.className = "user-row";
+          const img = document.createElement("img");
+          img.alt = "";
+          img.src = avatarUrl({ id: ticket.ownerId, avatar: ticket.ownerAvatar || "" });
+          const text = document.createElement("div");
+          const strong = document.createElement("strong");
           const num = String(ticket.n ?? 0).padStart(4, "0");
-          const who = ticket.ownerName || ticket.ownerId || "User";
-          const claim = ticket.claimerName ? " · Claim " + ticket.claimerName : "";
-          const reason = ticket.reason ? " · " + ticket.reason : "";
-          line.textContent = num + " · " + (ticket.name || ticket.typeName || "Ticket") + " · " + who + claim + reason;
-          box.append(line);
+          strong.textContent = num + " · " + (ticket.ownerName || "User");
+          const user = document.createElement("span");
+          user.textContent = ticket.ownerUser ? "@" + ticket.ownerUser : "";
+          const id = document.createElement("span");
+          id.textContent = ticket.ownerId || "";
+          const extra = document.createElement("span");
+          const claim = ticket.claimerId ? "Claim " + (ticket.claimerName || ticket.claimerId) : "Noch kein Claim";
+          extra.textContent = (ticket.name || ticket.typeName || "Ticket") + " · " + claim + (ticket.reason ? " · " + ticket.reason : "");
+          text.append(strong, user, id, extra);
+          row.append(img, text);
+          box.append(row);
         });
       } catch {
         box.textContent = "Liste nicht geladen.";
@@ -2518,6 +2559,8 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         localStorage.setItem(KEY, JSON.stringify(saved));
         load();
         render();
+        const note = document.getElementById("commandNote");
+        if (note) note.textContent = cfg.commandsError ? cfg.commandsError : (cfg.commandsOk ? "Befehle sind in Discord, auch /timeout, /untimeout und /unban." : "Befehle werden noch eingetragen.");
       } catch {}
     }
     async function autoLive() {
