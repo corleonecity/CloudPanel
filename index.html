@@ -769,6 +769,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
           <button type="button" class="mod" data-mod="logs"><strong>Logs</strong><span>Ban, Kick, Löschen, Bearbeiten.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="stats"><strong>Server Stats</strong><span>Mitgliederzahl im Sprachkanal.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="warns"><strong>Warn Kick Ban</strong><span>Bild, Name und Grund. Bleibt, bis du löschst.</span><em>Einstellungen</em></button>
+          <button type="button" class="mod" data-mod="spam"><strong>Anti-Spam</strong><span>Links, Caps und doppelte Nachrichten.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="boost"><strong>Booster</strong><span>Danke, wenn jemand boostet.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="inactive"><strong>Inaktiv</strong><span>Rolle nach Tagen ohne Nachricht.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="autorole"><strong>Auto-Rolle</strong><span>Neue Mitglieder bekommen mehrere Rollen.</span><em>Einstellungen</em></button>
@@ -883,10 +884,12 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         </div>
         <div id="mod-warns" hidden>
           <div class="card">
-            <div class="hint">Für /warn, /kick und /ban jeweils eigene Rollen. Mehrere gehen. Admins dürfen es immer. /warns zeigt nur Verwarnungen.</div>
+            <div class="hint">Für jeden Befehl eigene Rollen. Mehrere gehen. Admins dürfen es immer. /kicks und /bans sind die Listen in Discord.</div>
             <label><span>Rollen für /warn</span><textarea id="warnRoleId" placeholder="Rollen wählen"></textarea></label>
             <label><span>Rollen für /kick</span><textarea id="kickRoleId" placeholder="Rollen wählen"></textarea></label>
             <label><span>Rollen für /ban</span><textarea id="banRoleId" placeholder="Rollen wählen"></textarea></label>
+            <label><span>Rollen für /timeout</span><textarea id="timeoutRoleId" placeholder="Rollen wählen"></textarea></label>
+            <label><span>Rollen für /unban</span><textarea id="unbanRoleId" placeholder="Rollen wählen"></textarea></label>
             <label><span>Rollen für /warnings</span><textarea id="warnSeeRoleId" placeholder="Rollen wählen"></textarea></label>
             <label><span>Rollen für /deletewarn</span><textarea id="warnDeleteRoleId" placeholder="Rollen wählen"></textarea></label>
             <label><span>Suche nach Name oder ID</span><input id="warnSearch" placeholder="Name, Grund oder User-ID"></label>
@@ -895,9 +898,21 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
               <button type="button" data-kind="warn">Verwarnung</button>
               <button type="button" data-kind="kick">Kick</button>
               <button type="button" data-kind="ban">Ban</button>
+              <button type="button" data-kind="timeout">Timeout</button>
             </div>
             <div class="scroll-list" id="warnList">Noch keine.</div>
             <button type="button" class="add" id="warnRefresh">Liste neu laden</button>
+          </div>
+        </div>
+        <div id="mod-spam" hidden>
+          <div class="card">
+            <div class="hint">Der Bot prüft etwa jede Minute. Er löscht die Nachricht. Minuten 0 heißt nur löschen, sonst gibt es zusätzlich einen Timeout. Admins und die Warn-, Kick-, Ban- und Timeout-Rollen sind ausgenommen.</div>
+            <label><input id="spamOn" type="checkbox"> Anti-Spam an</label>
+            <label><input id="spamLinks" type="checkbox" checked> Links und Einladungen</label>
+            <label><input id="spamCaps" type="checkbox" checked> Zu viele Großbuchstaben</label>
+            <label><input id="spamDupes" type="checkbox" checked> Dieselbe Nachricht doppelt</label>
+            <label><span>Timeout in Minuten, 0 ist nur löschen</span><input id="spamTimeout" inputmode="numeric" placeholder="0"></label>
+            <label><span>Weitere Rollen, die spam darf</span><textarea id="spamExempt" placeholder="Rollen wählen"></textarea></label>
           </div>
         </div>
         <div id="mod-boost" hidden>
@@ -1143,6 +1158,10 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
       banRoleId: "",
       warnSeeRoleId: "",
       warnDeleteRoleId: "",
+      timeoutRoleId: "",
+      unbanRoleId: "",
+      spamTimeout: "0",
+      spamExempt: "",
       boostChannelId: "",
       boostText: "Danke {user} für den Boost!",
       boostRoleId: "",
@@ -1160,7 +1179,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
       ticketColor: "#5865f2",
       ticketGuildId: ""
     };
-    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole", "giveawayTicketCategory", "giveawayTicketStart", "giveawayTicketSee", "giveawayTicketClaim", "levelXpText", "levelXpVoiceMsg", "levelXpImage", "levelXpFile", "levelXpVoice", "levelCooldown", "levelMinLen", "levelHourCap", "levelChannels", "levelNoChannels", "levelUpChannelId", "levelRolesText", "levelWipeId", "levelAmount", "suggestChannelId", "suggestUp", "suggestDown", "voiceHubId", "voiceCategoryId", "voiceName", "voiceLimit", "welcomeChannelId", "welcomeRulesId", "welcomeVerifyId", "welcomeWatchId", "welcomeTitle", "welcomeText", "welcomeColor", "logChannelId", "statsChannelId", "warnRoleId", "kickRoleId", "banRoleId", "warnSeeRoleId", "warnDeleteRoleId", "boostChannelId", "boostText", "boostRoleId", "inactiveDays", "inactiveRoleId", "inactiveExemptText", "autoRoleId", "inviteRewardsText", "ticketChannelId", "ticketLogId", "ticketDeleteRole", "ticketTitle", "ticketText", "ticketPlaceholder", "ticketColor", "ticketGuildId"];
+    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole", "giveawayTicketCategory", "giveawayTicketStart", "giveawayTicketSee", "giveawayTicketClaim", "levelXpText", "levelXpVoiceMsg", "levelXpImage", "levelXpFile", "levelXpVoice", "levelCooldown", "levelMinLen", "levelHourCap", "levelChannels", "levelNoChannels", "levelUpChannelId", "levelRolesText", "levelWipeId", "levelAmount", "suggestChannelId", "suggestUp", "suggestDown", "voiceHubId", "voiceCategoryId", "voiceName", "voiceLimit", "welcomeChannelId", "welcomeRulesId", "welcomeVerifyId", "welcomeWatchId", "welcomeTitle", "welcomeText", "welcomeColor", "logChannelId", "statsChannelId", "warnRoleId", "kickRoleId", "banRoleId", "warnSeeRoleId", "warnDeleteRoleId", "timeoutRoleId", "unbanRoleId", "spamTimeout", "spamExempt", "boostChannelId", "boostText", "boostRoleId", "inactiveDays", "inactiveRoleId", "inactiveExemptText", "autoRoleId", "inviteRewardsText", "ticketChannelId", "ticketLogId", "ticketDeleteRole", "ticketTitle", "ticketText", "ticketPlaceholder", "ticketColor", "ticketGuildId"];
     const baseGames = [
       { text: "Phasmophobia", roleId: "" },
       { text: "Terraria", roleId: "" },
@@ -1201,6 +1220,14 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         .replaceAll("#wähle-deine-spiele", "{spiele}")
         .replaceAll("#server-ankündigungen", "{news}");
       copy.forEach((id) => { document.getElementById(id).value = data[id] || ""; });
+      const spamOn = document.getElementById("spamOn");
+      const spamLinks = document.getElementById("spamLinks");
+      const spamCaps = document.getElementById("spamCaps");
+      const spamDupes = document.getElementById("spamDupes");
+      if (spamOn) spamOn.checked = !!data.spamOn;
+      if (spamLinks) spamLinks.checked = data.spamLinks !== false;
+      if (spamCaps) spamCaps.checked = data.spamCaps !== false;
+      if (spamDupes) spamDupes.checked = data.spamDupes !== false;
       if (!document.getElementById("ticketGuildId").value) document.getElementById("ticketGuildId").value = document.getElementById("giveawayGuildId").value || "";
       rules = lines(data.rules);
       steps = lines(data.steps);
@@ -1242,6 +1269,10 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         fields: copyFields(type.fields).filter((field) => field.label)
       }));
       data.ticketSeq = ticketSeq;
+      data.spamOn = !!document.getElementById("spamOn")?.checked;
+      data.spamLinks = !!document.getElementById("spamLinks")?.checked;
+      data.spamCaps = !!document.getElementById("spamCaps")?.checked;
+      data.spamDupes = !!document.getElementById("spamDupes")?.checked;
       return data;
     }
     function syncBody(data, target) {
@@ -1344,6 +1375,14 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         banRoles: String(data.banRoleId || "").split(/[^\d]+/).filter((id) => id.length > 10),
         warnSeeRoles: String(data.warnSeeRoleId || "").split(/[^\d]+/).filter((id) => id.length > 10),
         warnDeleteRoles: String(data.warnDeleteRoleId || "").split(/[^\d]+/).filter((id) => id.length > 10),
+        timeoutRoles: String(data.timeoutRoleId || "").split(/[^\d]+/).filter((id) => id.length > 10),
+        unbanRoles: String(data.unbanRoleId || "").split(/[^\d]+/).filter((id) => id.length > 10),
+        spamOn: !!document.getElementById("spamOn")?.checked,
+        spamLinks: !!document.getElementById("spamLinks")?.checked,
+        spamCaps: !!document.getElementById("spamCaps")?.checked,
+        spamDupes: !!document.getElementById("spamDupes")?.checked,
+        spamTimeout: data.spamTimeout || "0",
+        spamExempt: String(data.spamExempt || "").split(/[^\d]+/).filter((id) => id.length > 10),
         boostChannelId: (data.boostChannelId || "").trim(),
         boostText: data.boostText || "Danke {user} für den Boost!",
         boostRoleId: (data.boostRoleId || "").trim(),
@@ -1750,6 +1789,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         document.getElementById("mod-logs").hidden = button.dataset.mod !== "logs";
         document.getElementById("mod-stats").hidden = button.dataset.mod !== "stats";
         document.getElementById("mod-warns").hidden = button.dataset.mod !== "warns";
+        document.getElementById("mod-spam").hidden = button.dataset.mod !== "spam";
         document.getElementById("mod-boost").hidden = button.dataset.mod !== "boost";
         document.getElementById("mod-inactive").hidden = button.dataset.mod !== "inactive";
         document.getElementById("mod-autorole").hidden = button.dataset.mod !== "autorole";
@@ -2025,7 +2065,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
       ["giveawayRoleReroll", "role"], ["giveawayBoosterRole", "role"], ["giveawayTicketSee", "role"], ["giveawayTicketClaim", "role"],
       ["boostRoleId", "role"], ["inactiveRoleId", "role"]
     ];
-    const manyList = [["levelChannels", "text"], ["levelNoChannels", "any"], ["inactiveExemptText", "role"], ["autoRoleId", "role"], ["warnRoleId", "role"], ["kickRoleId", "role"], ["banRoleId", "role"], ["warnSeeRoleId", "role"], ["warnDeleteRoleId", "role"]];
+    const manyList = [["levelChannels", "text"], ["levelNoChannels", "any"], ["inactiveExemptText", "role"], ["autoRoleId", "role"], ["warnRoleId", "role"], ["kickRoleId", "role"], ["banRoleId", "role"], ["warnSeeRoleId", "role"], ["warnDeleteRoleId", "role"], ["timeoutRoleId", "role"], ["unbanRoleId", "role"], ["spamExempt", "role"]];
     function pickItems(kind) {
       const text = catalog.text.map((item) => ({ id: item.id, label: "#" + item.name }));
       const voice = catalog.voice.map((item) => ({ id: item.id, label: item.name }));
@@ -2267,9 +2307,9 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
       const box = document.getElementById("warnList");
       const q = String(document.getElementById("warnSearch")?.value || "").trim().toLowerCase();
       if (!box) return;
-      const kindLabel = { warn: "Verwarnung", kick: "Kick", ban: "Ban" };
+      const kindLabel = { warn: "Verwarnung", kick: "Kick", ban: "Ban", timeout: "Timeout", untimeout: "Timeout weg", unban: "Unban" };
       const list = warnCache.filter((warn) => {
-        const kind = warn.kind === "kick" || warn.kind === "ban" ? warn.kind : "warn";
+        const kind = ["kick", "ban", "timeout", "untimeout", "unban"].includes(warn.kind) ? warn.kind : "warn";
         if (warnKind && kind !== warnKind) return false;
         const hay = [warn.userName, warn.username, warn.userId, warn.reason, warn.modName, kindLabel[kind]].join(" ").toLowerCase();
         return !q || hay.includes(q);
@@ -2280,7 +2320,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         return;
       }
       list.forEach((warn) => {
-        const kind = warn.kind === "kick" || warn.kind === "ban" ? warn.kind : "warn";
+        const kind = ["kick", "ban", "timeout", "untimeout", "unban"].includes(warn.kind) ? warn.kind : "warn";
         const row = document.createElement("div");
         row.className = "user-row";
         const img = document.createElement("img");
@@ -2469,7 +2509,11 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
           kickRoleId: Array.isArray(cfg.kickRoles) ? cfg.kickRoles.join("\n") : (cfg.kickRoleId || ""),
           banRoleId: Array.isArray(cfg.banRoles) ? cfg.banRoles.join("\n") : (cfg.banRoleId || ""),
           warnSeeRoleId: Array.isArray(cfg.warnSeeRoles) ? cfg.warnSeeRoles.join("\n") : (cfg.warnSeeRoleId || ""),
-          warnDeleteRoleId: Array.isArray(cfg.warnDeleteRoles) ? cfg.warnDeleteRoles.join("\n") : (cfg.warnDeleteRoleId || "")
+          warnDeleteRoleId: Array.isArray(cfg.warnDeleteRoles) ? cfg.warnDeleteRoles.join("\n") : (cfg.warnDeleteRoleId || ""),
+          timeoutRoleId: Array.isArray(cfg.timeoutRoles) ? cfg.timeoutRoles.join("\n") : (cfg.timeoutRoleId || ""),
+          unbanRoleId: Array.isArray(cfg.unbanRoles) ? cfg.unbanRoles.join("\n") : (cfg.unbanRoleId || ""),
+          spamTimeout: String(cfg.spamTimeout ?? "0"),
+          spamExempt: Array.isArray(cfg.spamExempt) ? cfg.spamExempt.join("\n") : (cfg.spamExempt || "")
         };
         localStorage.setItem(KEY, JSON.stringify(saved));
         load();
