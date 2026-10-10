@@ -1331,12 +1331,20 @@
         const body = await res.json();
         const list = body.tickets || [];
         box.innerHTML = "";
+        const next = Number(body.next) || 0;
+        const head = document.createElement("p");
+        head.className = "nextnum";
+        head.textContent = next > 0 ? "Bisher vergeben bis " + String(next - 1).padStart(4, "0") + ". Nächste Zahl: " + String(next).padStart(4, "0") + ". Zurück geht sie nicht." : "Noch kein Ticket. Die erste Zahl bleibt danach für immer weg.";
+        box.append(head);
         if (!body.ok) {
           box.textContent = body.error || "Liste nicht geladen.";
           return;
         }
         if (!list.length) {
-          box.textContent = "Keine offenen Tickets.";
+          const empty = document.createElement("p");
+          empty.className = "nextnum";
+          empty.textContent = "Keine offenen Tickets.";
+          box.append(empty);
           return;
         }
         list.forEach((ticket) => {
