@@ -834,6 +834,12 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
               <label><span>Emoji 1</span><input id="suggestUp" maxlength="40" placeholder="⭐"></label>
               <label><span>Emoji 2</span><input id="suggestDown" maxlength="40" placeholder="❌"></label>
             </div>
+            <div class="hint">Starboard: ab der Zahl Reaktionen mit dem Emoji kommt die Nachricht in den anderen Kanal. Geprüft wird etwa jede Minute, die letzten Nachrichten im Vorschlag-Kanal.</div>
+            <label><span>Starboard-Kanal</span><input id="starChannelId" placeholder="Kanal wählen"></label>
+            <div class="pair">
+              <label><span>Ab wie vielen Reaktionen</span><input id="starNeed" inputmode="numeric" placeholder="3"></label>
+              <label><span>Emoji</span><input id="starEmoji" maxlength="40" placeholder="⭐"></label>
+            </div>
           </div>
         </div>
         <div id="mod-voice" hidden>
@@ -895,6 +901,8 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
             <label><span>Rollen für /ban</span><textarea id="banRoleId" placeholder="Rollen wählen"></textarea></label>
             <label><span>Rollen für /timeout</span><textarea id="timeoutRoleId" placeholder="Rollen wählen"></textarea></label>
             <label><span>Rollen für /unban</span><textarea id="unbanRoleId" placeholder="Rollen wählen"></textarea></label>
+            <label><span>Rollen für /clear</span><textarea id="clearRoleId" placeholder="Rollen wählen"></textarea></label>
+            <label><span>Rollen für /lock und /unlock</span><textarea id="lockRoleId" placeholder="Rollen wählen"></textarea></label>
             <label><span>Rollen für /warnings</span><textarea id="warnSeeRoleId" placeholder="Rollen wählen"></textarea></label>
             <label><span>Rollen für /deletewarn</span><textarea id="warnDeleteRoleId" placeholder="Rollen wählen"></textarea></label>
             <label><span>Suche nach Name oder ID</span><input id="warnSearch" placeholder="Name, Grund oder User-ID"></label>
@@ -918,6 +926,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
             <label><input id="spamDupes" type="checkbox" checked> Dieselbe Nachricht doppelt</label>
             <label><span>Timeout in Minuten, 0 ist nur löschen</span><input id="spamTimeout" inputmode="numeric" placeholder="0"></label>
             <label><span>Weitere Rollen, die spam darf</span><textarea id="spamExempt" placeholder="Rollen wählen"></textarea></label>
+            <label><span>Schimpfwörter, ein Wort pro Zeile</span><textarea id="spamWords" placeholder="wort"></textarea></label>
           </div>
         </div>
         <div id="mod-boost" hidden>
@@ -1167,6 +1176,12 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
       unbanRoleId: "",
       spamTimeout: "0",
       spamExempt: "",
+      spamWords: "",
+      clearRoleId: "",
+      lockRoleId: "",
+      starChannelId: "",
+      starNeed: "3",
+      starEmoji: "⭐",
       boostChannelId: "",
       boostText: "Danke {user} für den Boost!",
       boostRoleId: "",
@@ -1184,7 +1199,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
       ticketColor: "#5865f2",
       ticketGuildId: ""
     };
-    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole", "giveawayTicketCategory", "giveawayTicketStart", "giveawayTicketSee", "giveawayTicketClaim", "levelXpText", "levelXpVoiceMsg", "levelXpImage", "levelXpFile", "levelXpVoice", "levelCooldown", "levelMinLen", "levelHourCap", "levelChannels", "levelNoChannels", "levelUpChannelId", "levelRolesText", "levelWipeId", "levelAmount", "suggestChannelId", "suggestUp", "suggestDown", "voiceHubId", "voiceCategoryId", "voiceName", "voiceLimit", "welcomeChannelId", "welcomeRulesId", "welcomeVerifyId", "welcomeWatchId", "welcomeTitle", "welcomeText", "welcomeColor", "logChannelId", "statsChannelId", "warnRoleId", "kickRoleId", "banRoleId", "warnSeeRoleId", "warnDeleteRoleId", "timeoutRoleId", "unbanRoleId", "spamTimeout", "spamExempt", "boostChannelId", "boostText", "boostRoleId", "inactiveDays", "inactiveRoleId", "inactiveExemptText", "autoRoleId", "inviteRewardsText", "ticketChannelId", "ticketLogId", "ticketDeleteRole", "ticketTitle", "ticketText", "ticketPlaceholder", "ticketColor", "ticketGuildId"];
+    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole", "giveawayTicketCategory", "giveawayTicketStart", "giveawayTicketSee", "giveawayTicketClaim", "levelXpText", "levelXpVoiceMsg", "levelXpImage", "levelXpFile", "levelXpVoice", "levelCooldown", "levelMinLen", "levelHourCap", "levelChannels", "levelNoChannels", "levelUpChannelId", "levelRolesText", "levelWipeId", "levelAmount", "suggestChannelId", "suggestUp", "suggestDown", "voiceHubId", "voiceCategoryId", "voiceName", "voiceLimit", "welcomeChannelId", "welcomeRulesId", "welcomeVerifyId", "welcomeWatchId", "welcomeTitle", "welcomeText", "welcomeColor", "logChannelId", "statsChannelId", "warnRoleId", "kickRoleId", "banRoleId", "warnSeeRoleId", "warnDeleteRoleId", "timeoutRoleId", "unbanRoleId", "spamTimeout", "spamExempt", "spamWords", "clearRoleId", "lockRoleId", "starChannelId", "starNeed", "starEmoji", "boostChannelId", "boostText", "boostRoleId", "inactiveDays", "inactiveRoleId", "inactiveExemptText", "autoRoleId", "inviteRewardsText", "ticketChannelId", "ticketLogId", "ticketDeleteRole", "ticketTitle", "ticketText", "ticketPlaceholder", "ticketColor", "ticketGuildId"];
     const baseGames = [
       { text: "Phasmophobia", roleId: "" },
       { text: "Terraria", roleId: "" },
@@ -1388,6 +1403,12 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         spamDupes: !!document.getElementById("spamDupes")?.checked,
         spamTimeout: data.spamTimeout || "0",
         spamExempt: String(data.spamExempt || "").split(/[^\d]+/).filter((id) => id.length > 10),
+        spamWords: String(data.spamWords || "").split(/\n/).map((word) => word.trim().toLowerCase()).filter((word) => word.length >= 2),
+        clearRoles: String(data.clearRoleId || "").split(/[^\d]+/).filter((id) => id.length > 10),
+        lockRoles: String(data.lockRoleId || "").split(/[^\d]+/).filter((id) => id.length > 10),
+        starChannelId: (data.starChannelId || "").trim(),
+        starNeed: data.starNeed || "3",
+        starEmoji: data.starEmoji || "⭐",
         boostChannelId: (data.boostChannelId || "").trim(),
         boostText: data.boostText || "Danke {user} für den Boost!",
         boostRoleId: (data.boostRoleId || "").trim(),
@@ -2000,7 +2021,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
             const id = document.createElement("span");
             id.textContent = person.id || "";
             const nums = document.createElement("span");
-            nums.textContent = "Claim " + (person.claims || 0) + " · Geöffnet " + (person.opened || 0) + " · Geschlossen " + (person.closed || 0) + " · Gelöscht " + (person.deleted || 0);
+            nums.textContent = "Claim " + (person.claims || 0) + " · Geöffnet " + (person.opened || 0) + " · Geschlossen " + (person.closed || 0) + " · Gelöscht " + (person.deleted || 0) + (person.ratingCount ? " · Note " + (person.ratingSum / person.ratingCount).toFixed(1) + " (" + person.ratingCount + ")" : "");
             text.append(strong, user, id, nums);
             row.append(img, text);
             stats.append(row);
@@ -2099,14 +2120,14 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
     let catalog = { text: [], voice: [], categories: [], roles: [] };
     const pickList = [
       ["channelId", "text"], ["newsChannelId", "text"], ["verifyChannelId", "text"], ["gamesChannelId", "text"], ["creatorsChannelId", "text"],
-      ["ticketChannelId", "text"], ["ticketLogId", "text"], ["giveawayChannelId", "text"], ["levelUpChannelId", "text"], ["suggestChannelId", "text"],
+      ["ticketChannelId", "text"], ["ticketLogId", "text"], ["giveawayChannelId", "text"], ["levelUpChannelId", "text"], ["suggestChannelId", "text"], ["starChannelId", "text"],
       ["welcomeChannelId", "text"], ["welcomeRulesId", "text"], ["welcomeVerifyId", "text"], ["welcomeWatchId", "text"], ["logChannelId", "text"], ["boostChannelId", "text"],
       ["statsChannelId", "voice"], ["voiceHubId", "voice"], ["voiceCategoryId", "category"], ["giveawayTicketCategory", "category"],
       ["roleId", "role"], ["verifyRoleId", "role"], ["ticketDeleteRole", "role"], ["giveawayRoleStart", "role"], ["giveawayRoleEnd", "role"],
       ["giveawayRoleReroll", "role"], ["giveawayBoosterRole", "role"], ["giveawayTicketSee", "role"], ["giveawayTicketClaim", "role"],
       ["boostRoleId", "role"], ["inactiveRoleId", "role"]
     ];
-    const manyList = [["levelChannels", "text"], ["levelNoChannels", "any"], ["inactiveExemptText", "role"], ["autoRoleId", "role"], ["warnRoleId", "role"], ["kickRoleId", "role"], ["banRoleId", "role"], ["warnSeeRoleId", "role"], ["warnDeleteRoleId", "role"], ["timeoutRoleId", "role"], ["unbanRoleId", "role"], ["spamExempt", "role"]];
+    const manyList = [["levelChannels", "text"], ["levelNoChannels", "any"], ["inactiveExemptText", "role"], ["autoRoleId", "role"], ["warnRoleId", "role"], ["kickRoleId", "role"], ["banRoleId", "role"], ["warnSeeRoleId", "role"], ["warnDeleteRoleId", "role"], ["timeoutRoleId", "role"], ["unbanRoleId", "role"], ["clearRoleId", "role"], ["lockRoleId", "role"], ["spamExempt", "role"]];
     function pickItems(kind) {
       const text = catalog.text.map((item) => ({ id: item.id, label: "#" + item.name }));
       const voice = catalog.voice.map((item) => ({ id: item.id, label: item.name }));
@@ -2554,7 +2575,13 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
           timeoutRoleId: Array.isArray(cfg.timeoutRoles) ? cfg.timeoutRoles.join("\n") : (cfg.timeoutRoleId || ""),
           unbanRoleId: Array.isArray(cfg.unbanRoles) ? cfg.unbanRoles.join("\n") : (cfg.unbanRoleId || ""),
           spamTimeout: String(cfg.spamTimeout ?? "0"),
-          spamExempt: Array.isArray(cfg.spamExempt) ? cfg.spamExempt.join("\n") : (cfg.spamExempt || "")
+          spamExempt: Array.isArray(cfg.spamExempt) ? cfg.spamExempt.join("\n") : (cfg.spamExempt || ""),
+          spamWords: Array.isArray(cfg.spamWords) ? cfg.spamWords.join("\n") : (cfg.spamWords || ""),
+          clearRoleId: Array.isArray(cfg.clearRoles) ? cfg.clearRoles.join("\n") : (cfg.clearRoleId || ""),
+          lockRoleId: Array.isArray(cfg.lockRoles) ? cfg.lockRoles.join("\n") : (cfg.lockRoleId || ""),
+          starChannelId: cfg.starChannelId || "",
+          starNeed: String(cfg.starNeed || "3"),
+          starEmoji: cfg.starEmoji || "⭐"
         };
         localStorage.setItem(KEY, JSON.stringify(saved));
         load();
