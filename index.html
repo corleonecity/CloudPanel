@@ -70,7 +70,7 @@
   const lost = () => {
     document.documentElement.removeAttribute("data-desk");
     const gate = document.getElementById("gate");
-    if (gate) gate.innerHTML = '<div class="card"><h1>Login fehlgeschlagen</h1></div>';
+    if (gate) gate.innerHTML = '<div class="card"><p>Die Rolle ist weg.</p><a href="/">Zurück</a></div>';
     document.querySelectorAll(".app").forEach((node) => node.remove());
   };
   if (location.hostname !== HOST) return;
@@ -80,8 +80,12 @@
     try {
       const res = await fetch("/api/session", { credentials: "same-origin", cache: "no-store" });
       if (!res.ok) {
-        stopped = true;
-        if (!first) lost();
+        let data = {};
+        try { data = await res.json(); } catch {}
+        if (data.error === "role") {
+          stopped = true;
+          lost();
+        }
         return;
       }
       document.documentElement.dataset.desk = "1";
@@ -91,7 +95,7 @@
     }
   };
   check(true);
-  setInterval(() => check(false), 5000);
+  setInterval(() => check(false), 15000);
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") check(false);
   });
@@ -101,7 +105,7 @@
     if (res.status === 401 && document.documentElement.dataset.desk === "1") {
       try {
         const data = await res.clone().json();
-        if (data && data.error === "Login fehlgeschlagen") lost();
+        if (data && data.error === "role") lost();
       } catch {}
     }
     return res;
