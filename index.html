@@ -292,11 +292,6 @@
           <label><span>Text im Dropdown</span><input id="ticketPlaceholder" placeholder="Ticket-Art wählen"></label>
         </div>
         <div class="card">
-          <div class="hint">Diese Kästchen kommen beim Öffnen. Du benennst sie selbst, zum Beispiel Alter Name. Discord erlaubt höchstens 5. Kurz ist eine Zeile, lang ein Textfeld. Mindestens eins ist Pflicht.</div>
-          <div id="fieldList"></div>
-          <button type="button" class="add" id="addField">Feld hinzufügen</button>
-        </div>
-        <div class="card">
           <div class="hint">Claim darf nur die Claim-Rolle. Danach ist der Button weg und Unclaim da. Unclaim darf nur der, der Claim gedrückt hat. Sehen-Rolle kommt in den privaten Kanal. Transcript geht automatisch in den Log und als PN an den User.</div>
           <div id="ticketList"></div>
           <button type="button" class="add" id="addTicket">Art hinzufügen</button>
@@ -688,9 +683,22 @@
     let games = [];
     let creators = [];
     let ticketTypes = [];
-    let ticketFields = [];
     let ticketSeq = {};
     const lines = (text) => String(text || "").split(/\n/).map((line) => line.trim()).filter(Boolean);
+    function copyFields(list) {
+      const source = Array.isArray(list) && list.length ? list : [
+        { id: "detail", label: "Detail", placeholder: "", long: true, required: false },
+        { id: "warum", label: "Warum", placeholder: "", long: true, required: true },
+        { id: "zusatz", label: "Zusätzlich", placeholder: "", long: true, required: false }
+      ];
+      return source.slice(0, 5).map((field, index) => ({
+        id: String(field.id || ("f" + index)),
+        label: String(field.label || ""),
+        placeholder: String(field.placeholder || ""),
+        long: !!field.long,
+        required: !!field.required
+      }));
+    }
 
     function load() {
       const saved = JSON.parse(localStorage.getItem(KEY) || "null") || {};
@@ -722,21 +730,10 @@
         categoryId: String(type.categoryId || ""),
         start: String(type.start ?? "0"),
         seeRoleId: String(type.seeRoleId || ""),
-        claimRoleId: String(type.claimRoleId || "")
-      })) : baseTickets.map((type) => ({ ...type }));
+        claimRoleId: String(type.claimRoleId || ""),
+        fields: copyFields(type.fields)
+      })) : baseTickets.map((type) => ({ ...type, fields: copyFields() }));
       ticketSeq = data.ticketSeq && typeof data.ticketSeq === "object" ? data.ticketSeq : {};
-      const baseFields = [
-        { id: "reason", label: "Grund", placeholder: "Warum öffnest du ein Ticket?", long: false, required: true },
-        { id: "details", label: "Details", placeholder: "Was ist passiert?", long: true, required: false },
-        { id: "extra", label: "Zusätzlich", placeholder: "", long: true, required: false }
-      ];
-      ticketFields = Array.isArray(data.ticketFields) && data.ticketFields.length ? data.ticketFields.slice(0, 5).map((field, index) => ({
-        id: String(field.id || ("f" + index)),
-        label: String(field.label || ""),
-        placeholder: String(field.placeholder || ""),
-        long: !!field.long,
-        required: !!field.required
-      })) : baseFields.map((field) => ({ ...field }));
     }
     function pack() {
       const data = Object.fromEntries(copy.map((id) => [id, document.getElementById(id).value]));
@@ -751,16 +748,10 @@
         categoryId: type.categoryId.trim(),
         start: type.start,
         seeRoleId: type.seeRoleId.trim(),
-        claimRoleId: type.claimRoleId.trim()
+        claimRoleId: type.claimRoleId.trim(),
+        fields: copyFields(type.fields).filter((field) => field.label)
       }));
       data.ticketSeq = ticketSeq;
-      data.ticketFields = ticketFields.slice(0, 5).map((field) => ({
-        id: field.id,
-        label: field.label.trim(),
-        placeholder: field.placeholder.trim(),
-        long: !!field.long,
-        required: !!field.required
-      })).filter((field) => field.label);
       return data;
     }
     function syncBody(data, target) {
@@ -869,7 +860,6 @@
         ticketPlaceholder: data.ticketPlaceholder,
         ticketColor: data.ticketColor,
         ticketTypes: data.ticketTypes,
-        ticketFields: data.ticketFields,
         target
       };
     }
@@ -965,7 +955,7 @@
         remove.className = "icon";
         remove.textContent = "×";
         remove.setAttribute("aria-label", "Entfernen");
-        remove.addEventListener("click", () => { ticketTypes.splice(index, 1); if (!ticketTypes.length) ticketTypes.push({ id: "t" + Date.now().toString(36), emoji: "🎫", name: "", categoryId: "", start: "0", seeRoleId: "", claimRoleId: "" }); render(); });
+        remove.addEventListener("click", () => { ticketTypes.splice(index, 1); if (!ticketTypes.length) ticketTypes.push({ id: "t" + Date.now().toString(36), emoji: "🎫", name: "", categoryId: "", start: "0", seeRoleId: "", claimRoleId: "", fields: copyFields() }); render(); });
         head.append(emoji, name, remove);
         const grid = document.createElement("div");
         grid.className = "pair";
@@ -991,51 +981,45 @@
         next.className = "nextnum";
         const upcoming = ticketSeq[type.id];
         next.textContent = upcoming === undefined || upcoming === "" ? "Nächste Zahl: " + (type.start || "0") + ". Danach nur noch hoch." : "Nächste Zahl: " + upcoming + ". Zurück geht sie nicht.";
-        block.append(head, grid, next);
-        ticketRoot.append(block);
-      });
-      const fieldRoot = document.getElementById("fieldList");
-      if (fieldRoot) {
-        fieldRoot.innerHTML = "";
-        ticketFields.forEach((field, index) => {
-          const block = document.createElement("div");
-          block.className = "type";
-          const grid = document.createElement("div");
-          grid.className = "pair";
+        if (!Array.isArray(type.fields) || !type.fields.length) type.fields = copyFields();
+        const fields = document.createElement("div");
+        type.fields.forEach((item, fieldIndex) => {
+          const row = document.createElement("div");
+          row.className = "pair";
           const label = document.createElement("input");
-          label.value = field.label;
+          label.value = item.label;
           label.maxLength = 45;
-          label.placeholder = "Name, zum Beispiel Alter Name";
-          label.addEventListener("input", () => { ticketFields[index].label = label.value; });
+          label.placeholder = "Detail, Warum, Alter Name";
+          label.addEventListener("input", () => { ticketTypes[index].fields[fieldIndex].label = label.value; });
           const placeholder = document.createElement("input");
-          placeholder.value = field.placeholder;
+          placeholder.value = item.placeholder;
           placeholder.maxLength = 100;
           placeholder.placeholder = "Platzhalter, kann leer bleiben";
-          placeholder.addEventListener("input", () => { ticketFields[index].placeholder = placeholder.value; });
+          placeholder.addEventListener("input", () => { ticketTypes[index].fields[fieldIndex].placeholder = placeholder.value; });
           const kind = document.createElement("select");
           [["0", "Kurze Zeile"], ["1", "Langer Text"]].forEach(([value, text]) => {
             const option = document.createElement("option");
             option.value = value;
             option.textContent = text;
-            if ((value === "1") === !!field.long) option.selected = true;
+            if ((value === "1") === !!item.long) option.selected = true;
             kind.append(option);
           });
-          kind.addEventListener("change", () => { ticketFields[index].long = kind.value === "1"; });
+          kind.addEventListener("change", () => { ticketTypes[index].fields[fieldIndex].long = kind.value === "1"; });
           const required = document.createElement("label");
           const box = document.createElement("input");
           box.type = "checkbox";
-          box.checked = !!field.required;
-          box.addEventListener("change", () => { ticketFields[index].required = box.checked; });
+          box.checked = !!item.required;
+          box.addEventListener("change", () => { ticketTypes[index].fields[fieldIndex].required = box.checked; });
           required.append(box, document.createTextNode(" Pflicht"));
-          const remove = document.createElement("button");
-          remove.type = "button";
-          remove.className = "icon";
-          remove.textContent = "×";
-          remove.setAttribute("aria-label", "Entfernen");
-          remove.addEventListener("click", () => { ticketFields.splice(index, 1); render(); });
+          const removeField = document.createElement("button");
+          removeField.type = "button";
+          removeField.className = "icon";
+          removeField.textContent = "×";
+          removeField.setAttribute("aria-label", "Feld entfernen");
+          removeField.addEventListener("click", () => { ticketTypes[index].fields.splice(fieldIndex, 1); render(); });
           const labelWrap = document.createElement("label");
           const labelSpan = document.createElement("span");
-          labelSpan.textContent = "Name des Feldes";
+          labelSpan.textContent = "Kästchen";
           labelWrap.append(labelSpan, label);
           const placeWrap = document.createElement("label");
           const placeSpan = document.createElement("span");
@@ -1045,13 +1029,25 @@
           const kindSpan = document.createElement("span");
           kindSpan.textContent = "Größe";
           kindWrap.append(kindSpan, kind);
-          grid.append(labelWrap, placeWrap, kindWrap, required, remove);
-          block.append(grid);
-          fieldRoot.append(block);
+          row.append(labelWrap, placeWrap, kindWrap, required, removeField);
+          fields.append(row);
         });
-      }
-      const addField = document.getElementById("addField");
-      if (addField) addField.disabled = ticketFields.length >= 5;
+        const addOne = document.createElement("button");
+        addOne.type = "button";
+        addOne.className = "add";
+        addOne.textContent = "Kästchen hinzufügen";
+        addOne.disabled = type.fields.length >= 5;
+        addOne.addEventListener("click", () => {
+          if (ticketTypes[index].fields.length >= 5) return;
+          ticketTypes[index].fields.push({ id: "f" + Date.now().toString(36), label: "", placeholder: "", long: true, required: false });
+          render();
+        });
+        const note = document.createElement("p");
+        note.className = "hint";
+        note.textContent = "Nur für " + (type.name || "diese Art") + ". Höchstens 5. Mod kann Detail, Warum, Zusätzlich bleiben. Bewerbung trägst du anders ein.";
+        block.append(head, grid, note, fields, addOne, next);
+        ticketRoot.append(block);
+      });
       preview();
     }
     function channelTag(id) {
@@ -1208,12 +1204,7 @@
     document.getElementById("addStep").onclick = () => { steps.push(""); render(); };
     document.getElementById("addGame").onclick = () => { games.push({ text: "", roleId: "" }); render(); };
     document.getElementById("addCreator").onclick = () => { creators.push({ url: "" }); render(); };
-    document.getElementById("addTicket").onclick = () => { ticketTypes.push({ id: "t" + Date.now().toString(36), emoji: "🎫", name: "", categoryId: "", start: "0", seeRoleId: "", claimRoleId: "" }); render(); };
-    document.getElementById("addField").onclick = () => {
-      if (ticketFields.length >= 5) return;
-      ticketFields.push({ id: "f" + Date.now().toString(36), label: "", placeholder: "", long: false, required: false });
-      render();
-    };
+    document.getElementById("addTicket").onclick = () => { ticketTypes.push({ id: "t" + Date.now().toString(36), emoji: "🎫", name: "", categoryId: "", start: "0", seeRoleId: "", claimRoleId: "", fields: copyFields() }); render(); };
     document.getElementById("ticketGuildId").addEventListener("input", () => { document.getElementById("giveawayGuildId").value = document.getElementById("ticketGuildId").value; });
     document.getElementById("giveawayGuildId").addEventListener("input", () => { document.getElementById("ticketGuildId").value = document.getElementById("giveawayGuildId").value; });
     async function giveawayAction(target) {
