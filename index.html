@@ -72,6 +72,10 @@
     .modal { width: min(520px, calc(100vw - 32px)); }
     input, textarea { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 12px; }
     select { width: 100%; min-height: 44px; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 0 12px; }
+    select.pick[multiple] { min-height: 140px; padding: 8px; }
+    .checks { display: grid; gap: 6px; max-height: 220px; overflow: auto; margin-top: 6px; }
+    .checks label { display: flex; gap: 8px; align-items: center; }
+    [data-picked="1"] { display: none; }
     input[type="color"] { width: 52px; height: 44px; padding: 4px; }
     .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     @media (max-width: 700px) { .pair { grid-template-columns: 1fr; } }
@@ -383,8 +387,8 @@
             </div>
           </div>
           <div class="card">
-            <label><span>Kanal-IDs, die XP geben. Leer = alle Textkanäle. Eine ID pro Zeile.</span><textarea id="levelChannels" placeholder="Rechtsklick auf den Kanal, ID kopieren"></textarea></label>
-            <label><span>Kanal-IDs ohne XP. Eine ID pro Zeile. Text und Sprachchat in diesen Kanälen geben nichts.</span><textarea id="levelNoChannels" placeholder="Rechtsklick auf den Kanal, ID kopieren"></textarea></label>
+            <label><span>Kanäle, die XP geben. Leer = alle Textkanäle.</span><textarea id="levelChannels" data-pick-kind="text" data-pick-many="1" placeholder="Kanäle wählen"></textarea></label>
+            <label><span>Kanäle ohne XP. Text und Sprachchat.</span><textarea id="levelNoChannels" data-pick-kind="any" data-pick-many="1" placeholder="Kanäle wählen"></textarea></label>
             <label><span>Kanal-ID für Level-Up. Dort kommt bei jedem neuen Level eine Nachricht.</span><input id="levelUpChannelId" placeholder="Rechtsklick auf den Kanal, ID kopieren"></label>
             <label><span>Level-Rollen. Eine Zeile: Level und Rollen-ID. Die höchste passende Rolle bleibt, die alte wird entfernt.</span><textarea id="levelRolesText" placeholder="5 123456789012345678"></textarea></label>
           </div>
@@ -410,6 +414,7 @@
           <div class="card grid">
             <label><span>Worker</span><input id="workerUrl"></label>
             <label><span>Admin-Schlüssel</span><input id="adminKey" autocomplete="off"></label>
+            <p class="hint">Muss exakt die Variable ADMIN_KEY in Cloudflare sein. Ist die Variable leer, schreib hier leitstand-colin.</p>
           </div>
         </div>
         <div id="mod-suggest" hidden>
@@ -463,15 +468,13 @@
         <div id="mod-logs" hidden>
           <div class="card">
             <div class="hint">Ban, Kick, Rollen, Kanäle, gelöschte und bearbeitete Nachrichten gehen nur in diesen Discord-Kanal. Beitritt und Austritt auch. In der Datenbank bleibt davon nichts. Der Bot braucht Protokoll ansehen. Was vor dem ersten Durchlauf passiert ist, kommt nicht nachträglich.</div>
-            <label><span>Log-Kanal</span><select id="logChannelPick"><option value="">Kanal wählen</option></select></label>
-            <label><span>Kanal-ID</span><input id="logChannelId" placeholder="Wird aus der Liste gefüllt oder hier reinkopiert"></label>
+            <label><span>Log-Kanal</span><input id="logChannelId" placeholder="Kanal wählen"></label>
           </div>
         </div>
         <div id="mod-stats" hidden>
           <div class="card">
             <div class="hint">Wähl einen extra Sprachkanal, nicht den zum Erstellen. Der Bot benennt ihn in Members: 29. Gezählt werden nur Mitglieder, keine Bots und keine Apps. Der Bot braucht Kanäle verwalten und das Intent Servermitglieder.</div>
-            <label><span>Sprachkanal</span><select id="statsChannelPick"><option value="">Kanal wählen</option></select></label>
-            <label><span>Kanal-ID</span><input id="statsChannelId" placeholder="Rechtsklick auf den Sprachkanal, ID kopieren"></label>
+            <label><span>Sprachkanal</span><input id="statsChannelId" placeholder="Sprachkanal wählen"></label>
             <p class="nextnum" id="statsLive">Wartet auf den nächsten Durchlauf.</p>
           </div>
         </div>
@@ -498,7 +501,7 @@
               <label><span>Tage</span><input id="inactiveDays" inputmode="numeric" placeholder="30"></label>
               <label><span>Inaktiv-Rolle</span><input id="inactiveRoleId" placeholder="Rollen-ID"></label>
             </div>
-            <label><span>Rollen, die nie inaktiv werden</span><textarea id="inactiveExemptText" placeholder="123456789012345678"></textarea></label>
+            <label><span>Rollen, die nie inaktiv werden</span><textarea id="inactiveExemptText" data-pick-kind="role" data-pick-many="1" placeholder="Mehrere Rollen"></textarea></label>
           </div>
         </div>
         <div id="mod-autorole" hidden>
@@ -966,6 +969,7 @@
         const role = document.createElement("input");
         role.value = game.roleId;
         role.placeholder = "Rollen-ID";
+        role.dataset.pickKind = "role";
         role.addEventListener("input", () => { games[index].roleId = role.value; });
         const remove = document.createElement("button");
         remove.type = "button";
@@ -1028,6 +1032,8 @@
           input.placeholder = placeholder;
           if (numeric) input.inputMode = "numeric";
           input.addEventListener("input", () => { ticketTypes[index][key] = input.value; });
+          if (key === "seeRoleId" || key === "claimRoleId") input.dataset.pickKind = "role";
+          if (key === "categoryId") input.dataset.pickKind = "category";
           const label = document.createElement("label");
           const span = document.createElement("span");
           span.textContent = placeholder;
@@ -1112,6 +1118,7 @@
         ticketRoot.append(block);
       });
       preview();
+      bindPickers();
     }
     function channelTag(id) {
       const clean = String(document.getElementById(id).value || "").replace(/^#/, "").trim();
@@ -1523,14 +1530,6 @@
       }
     }
     document.getElementById("ticketRefresh").onclick = () => loadOpenTickets();
-    document.getElementById("logChannelPick").onchange = () => {
-      const picked = document.getElementById("logChannelPick").value;
-      if (picked) document.getElementById("logChannelId").value = picked;
-    };
-    document.getElementById("statsChannelPick").onchange = () => {
-      const picked = document.getElementById("statsChannelPick").value;
-      if (picked) document.getElementById("statsChannelId").value = picked;
-    };
     async function loadWarns() {
       const data = pack();
       const box = document.getElementById("warnList");
@@ -1629,6 +1628,115 @@
     };
     load();
     render();
+    const rawFetch = window.fetch.bind(window);
+    window.fetch = (url, opts) => {
+      try {
+        const key = document.getElementById("adminKey")?.value?.trim() || "";
+        if (key && String(url).includes("/api/")) {
+          const next = new URL(url, location.href);
+          if (!next.searchParams.get("key")) next.searchParams.set("key", key);
+          const headers = new Headers((opts && opts.headers) || {});
+          if (!headers.get("x-admin-key")) headers.set("x-admin-key", key);
+          opts = Object.assign({}, opts, { headers });
+          url = next.toString();
+        }
+      } catch {}
+      return rawFetch(url, opts);
+    };
+    let catalog = { roles: [], text: [], voice: [], categories: [] };
+    function ensurePick(input, multiple) {
+      let select = input.nextElementSibling;
+      if (!select || !select.classList.contains("pick")) {
+        select = document.createElement("select");
+        select.className = "pick";
+        if (multiple) select.multiple = true;
+        input.insertAdjacentElement("afterend", select);
+        select.addEventListener("change", () => {
+          input.value = multiple ? [...select.selectedOptions].map((option) => option.value).filter(Boolean).join("\n") : select.value;
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+        });
+      }
+      input.dataset.picked = "1";
+      return select;
+    }
+    function fillPick(select, items, current, multiple) {
+      const ids = String(current || "").split(/[^\d]+/).filter((id) => id.length > 10);
+      const currentId = ids[0] || "";
+      const chosen = new Set(ids);
+      select.innerHTML = "";
+      if (!multiple) {
+        const empty = document.createElement("option");
+        empty.value = "";
+        empty.textContent = "Auswählen";
+        select.append(empty);
+      }
+      items.forEach((item) => {
+        const option = document.createElement("option");
+        option.value = item.id;
+        option.textContent = item.label;
+        if (multiple ? chosen.has(item.id) : item.id === currentId) option.selected = true;
+        select.append(option);
+      });
+      if (!multiple && currentId && !items.some((item) => item.id === currentId)) {
+        const missing = document.createElement("option");
+        missing.value = currentId;
+        missing.textContent = "Nicht mehr da";
+        missing.selected = true;
+        select.append(missing);
+      }
+    }
+    function fillChecks(input, items, current) {
+      let box = input.nextElementSibling;
+      if (!box || !box.classList.contains("checks")) {
+        box = document.createElement("div");
+        box.className = "checks";
+        input.insertAdjacentElement("afterend", box);
+      }
+      const chosen = new Set(String(current || "").split(/[^\d]+/).filter((id) => id.length > 10));
+      box.innerHTML = "";
+      items.forEach((item) => {
+        const label = document.createElement("label");
+        const check = document.createElement("input");
+        check.type = "checkbox";
+        check.value = item.id;
+        check.checked = chosen.has(item.id);
+        check.addEventListener("change", () => {
+          input.value = [...box.querySelectorAll("input:checked")].map((el) => el.value).join("\n");
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+        });
+        label.append(check, document.createTextNode(item.label));
+        box.append(label);
+      });
+      input.dataset.picked = "1";
+    }
+    function bindPickers() {
+      const text = catalog.text.map((item) => ({ id: item.id, label: "#" + item.name }));
+      const voice = catalog.voice.map((item) => ({ id: item.id, label: item.name }));
+      const categories = catalog.categories.map((item) => ({ id: item.id, label: item.name }));
+      const roles = catalog.roles.map((item) => ({ id: item.id, label: "@" + item.name }));
+      const any = text.concat(voice);
+      const single = {
+        channelId: text, newsChannelId: text, verifyChannelId: text, gamesChannelId: text, creatorsChannelId: text,
+        ticketChannelId: text, ticketLogId: text, giveawayChannelId: text, levelUpChannelId: text, suggestChannelId: text,
+        welcomeChannelId: text, welcomeRulesId: text, welcomeVerifyId: text, welcomeWatchId: text, logChannelId: text, boostChannelId: text,
+        statsChannelId: voice, voiceHubId: voice, voiceCategoryId: categories, giveawayTicketCategory: categories,
+        roleId: roles, verifyRoleId: roles, ticketDeleteRole: roles, giveawayRoleStart: roles, giveawayRoleEnd: roles,
+        giveawayRoleReroll: roles, giveawayBoosterRole: roles, giveawayTicketSee: roles, giveawayTicketClaim: roles,
+        warnRoleId: roles, boostRoleId: roles, inactiveRoleId: roles, autoRoleId: roles
+      };
+      Object.entries(single).forEach(([id, items]) => {
+        const input = document.getElementById(id);
+        if (!input || !items.length) return;
+        fillPick(ensurePick(input, false), items, input.value, false);
+      });
+      document.querySelectorAll("[data-pick-kind]").forEach((input) => {
+        const kind = input.dataset.pickKind;
+        const items = kind === "role" ? roles : kind === "voice" ? voice : kind === "category" ? categories : kind === "any" ? any : text;
+        if (!items.length) return;
+        if (input.dataset.pickMany === "1") fillChecks(input, items, input.value);
+        else fillPick(ensurePick(input, false), items, input.value, false);
+      });
+    }
     async function loadServer() {
       const data = pack();
       if (!data.workerUrl || !data.adminKey) return;
@@ -1663,44 +1771,22 @@
       try {
         const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/channels", { headers: { "x-admin-key": data.adminKey } });
         const body = await res.json();
-        if (!body.ok) return;
+        if (!body.ok) {
+          setStatus(body.error || "Kanäle nicht geladen.", "bad");
+          return;
+        }
         const fields = { regeln: "nameRegeln", verify: "nameVerify", spiele: "nameSpiele", news: "nameNews" };
         Object.entries(fields).forEach(([key, id]) => {
           if (body[key]) document.getElementById(id).value = body[key];
         });
         const views = { regeln: body.regeln, news: body.news, verify: body.verify, spiele: body.spiele, creators: body.creators, giveaway: body.giveaway, ticket: body.ticket };
-        const pick = document.getElementById("logChannelPick");
-        if (pick && Array.isArray(body.choices)) {
-          const current = document.getElementById("logChannelId").value;
-          pick.innerHTML = "";
-          const empty = document.createElement("option");
-          empty.value = "";
-          empty.textContent = "Kanal wählen";
-          pick.append(empty);
-          body.choices.forEach((room) => {
-            const option = document.createElement("option");
-            option.value = room.id;
-            option.textContent = "#" + room.name;
-            if (room.id === current) option.selected = true;
-            pick.append(option);
-          });
-        }
-        const voicePick = document.getElementById("statsChannelPick");
-        if (voicePick && Array.isArray(body.voices)) {
-          const currentVoice = document.getElementById("statsChannelId").value;
-          voicePick.innerHTML = "";
-          const blank = document.createElement("option");
-          blank.value = "";
-          blank.textContent = "Sprachkanal wählen";
-          voicePick.append(blank);
-          body.voices.forEach((room) => {
-            const option = document.createElement("option");
-            option.value = room.id;
-            option.textContent = room.name;
-            if (room.id === currentVoice) option.selected = true;
-            voicePick.append(option);
-          });
-        }
+        catalog = {
+          text: body.choices || [],
+          voice: body.voices || [],
+          categories: body.categories || [],
+          roles: body.roles || []
+        };
+        bindPickers();
         Object.entries(views).forEach(([view, name]) => {
           const button = document.querySelector('nav button[data-view="' + view + '"]');
           if (button && name) button.textContent = "#" + String(name).replace(/^#/, "");
