@@ -75,7 +75,6 @@
     select.pick[multiple] { min-height: 140px; padding: 8px; }
     .checks { display: grid; gap: 6px; max-height: 220px; overflow: auto; margin-top: 6px; }
     .checks label { display: flex; gap: 8px; align-items: center; }
-    [data-picked="1"] { display: none; }
     input[type="color"] { width: 52px; height: 44px; padding: 4px; }
     .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     @media (max-width: 700px) { .pair { grid-template-columns: 1fr; } }
@@ -1626,6 +1625,7 @@
         setStatus("Worker nicht erreichbar. Das neue Skript muss einmal in Cloudflare liegen.", "bad");
       }
     };
+    let catalog = { roles: [], text: [], voice: [], categories: [] };
     load();
     render();
     const rawFetch = window.fetch.bind(window);
@@ -1643,20 +1643,18 @@
       } catch {}
       return rawFetch(url, opts);
     };
-    let catalog = { roles: [], text: [], voice: [], categories: [] };
-    function ensurePick(input, multiple) {
-      let select = input.nextElementSibling;
+    function ensurePick(input) {
+      let select = input.previousElementSibling;
       if (!select || !select.classList.contains("pick")) {
         select = document.createElement("select");
         select.className = "pick";
-        if (multiple) select.multiple = true;
-        input.insertAdjacentElement("afterend", select);
+        input.insertAdjacentElement("beforebegin", select);
         select.addEventListener("change", () => {
-          input.value = multiple ? [...select.selectedOptions].map((option) => option.value).filter(Boolean).join("\n") : select.value;
+          if (!select.value) return;
+          input.value = select.value;
           input.dispatchEvent(new Event("input", { bubbles: true }));
         });
       }
-      input.dataset.picked = "1";
       return select;
     }
     function fillPick(select, items, current, multiple) {
@@ -1667,7 +1665,7 @@
       if (!multiple) {
         const empty = document.createElement("option");
         empty.value = "";
-        empty.textContent = "Auswählen";
+        empty.textContent = String(items[0] && items[0].label || "").startsWith("@") ? "Rolle wählen" : "Kanal wählen";
         select.append(empty);
       }
       items.forEach((item) => {
@@ -1686,11 +1684,11 @@
       }
     }
     function fillChecks(input, items, current) {
-      let box = input.nextElementSibling;
+      let box = input.previousElementSibling;
       if (!box || !box.classList.contains("checks")) {
         box = document.createElement("div");
         box.className = "checks";
-        input.insertAdjacentElement("afterend", box);
+        input.insertAdjacentElement("beforebegin", box);
       }
       const chosen = new Set(String(current || "").split(/[^\d]+/).filter((id) => id.length > 10));
       box.innerHTML = "";
@@ -1707,9 +1705,10 @@
         label.append(check, document.createTextNode(item.label));
         box.append(label);
       });
-      input.dataset.picked = "1";
     }
     function bindPickers() {
+      try {
+      if (!catalog.text.length && !catalog.roles.length && !catalog.voice.length) return;
       const text = catalog.text.map((item) => ({ id: item.id, label: "#" + item.name }));
       const voice = catalog.voice.map((item) => ({ id: item.id, label: item.name }));
       const categories = catalog.categories.map((item) => ({ id: item.id, label: item.name }));
@@ -1727,15 +1726,16 @@
       Object.entries(single).forEach(([id, items]) => {
         const input = document.getElementById(id);
         if (!input || !items.length) return;
-        fillPick(ensurePick(input, false), items, input.value, false);
+        fillPick(ensurePick(input), items, input.value, false);
       });
       document.querySelectorAll("[data-pick-kind]").forEach((input) => {
         const kind = input.dataset.pickKind;
         const items = kind === "role" ? roles : kind === "voice" ? voice : kind === "category" ? categories : kind === "any" ? any : text;
         if (!items.length) return;
         if (input.dataset.pickMany === "1") fillChecks(input, items, input.value);
-        else fillPick(ensurePick(input, false), items, input.value, false);
+        else fillPick(ensurePick(input), items, input.value, false);
       });
+      } catch {}
     }
     async function loadServer() {
       const data = pack();
