@@ -768,7 +768,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
           <button type="button" class="mod" data-mod="welcome"><strong>Willkommen</strong><span>Beitritt, Einlader und Rollen.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="logs"><strong>Logs</strong><span>Ban, Kick, Löschen, Bearbeiten.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="stats"><strong>Server Stats</strong><span>Mitgliederzahl im Sprachkanal.</span><em>Einstellungen</em></button>
-          <button type="button" class="mod" data-mod="warns"><strong>Verwarnungen</strong><span>Bleiben, bis du sie löschst.</span><em>Einstellungen</em></button>
+          <button type="button" class="mod" data-mod="warns"><strong>Warn Kick Ban</strong><span>Bild, Name und Grund. Bleibt, bis du löschst.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="boost"><strong>Booster</strong><span>Danke, wenn jemand boostet.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="inactive"><strong>Inaktiv</strong><span>Rolle nach Tagen ohne Nachricht.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="autorole"><strong>Auto-Rolle</strong><span>Neue Mitglieder bekommen mehrere Rollen.</span><em>Einstellungen</em></button>
@@ -883,9 +883,15 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         </div>
         <div id="mod-warns" hidden>
           <div class="card">
-            <div class="hint">In Discord /warn mit Mitglied und Grund. Hier suchst du den User. Die Verwarnung bleibt, bis du sie löschst.</div>
-            <label><span>Rolle, die verwarnen darf</span><input id="warnRoleId" placeholder="Rolle"></label>
+            <div class="hint">/warn, /kick und /ban. /warns zeigt in Discord nur Verwarnungen. Hier siehst du alle drei, mit Bild, Name und Grund.</div>
+            <label><span>Rolle, die strafen darf</span><input id="warnRoleId" placeholder="Rolle"></label>
             <label><span>Suche nach Name oder ID</span><input id="warnSearch" placeholder="Name, Grund oder User-ID"></label>
+            <div class="actions" id="warnKinds">
+              <button type="button" data-kind="">Alle</button>
+              <button type="button" data-kind="warn">Verwarnung</button>
+              <button type="button" data-kind="kick">Kick</button>
+              <button type="button" data-kind="ban">Ban</button>
+            </div>
             <div class="scroll-list" id="warnList">Noch keine.</div>
             <button type="button" class="add" id="warnRefresh">Liste neu laden</button>
           </div>
@@ -2244,58 +2250,62 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
       document.querySelectorAll(".panel").forEach((panel) => { panel.hidden = true; });
     });
     let warnCache = [];
+    let warnKind = "";
     function paintWarns() {
       const box = document.getElementById("warnList");
       const q = String(document.getElementById("warnSearch")?.value || "").trim().toLowerCase();
       if (!box) return;
+      const kindLabel = { warn: "Verwarnung", kick: "Kick", ban: "Ban" };
       const list = warnCache.filter((warn) => {
-        const hay = [warn.userName, warn.userId, warn.reason, warn.modName].join(" ").toLowerCase();
+        const kind = warn.kind === "kick" || warn.kind === "ban" ? warn.kind : "warn";
+        if (warnKind && kind !== warnKind) return false;
+        const hay = [warn.userName, warn.username, warn.userId, warn.reason, warn.modName, kindLabel[kind]].join(" ").toLowerCase();
         return !q || hay.includes(q);
       });
       box.innerHTML = "";
       if (!list.length) {
-        box.textContent = warnCache.length ? "Niemand passt zur Suche." : "Keine Verwarnungen.";
+        box.textContent = warnCache.length ? "Niemand passt." : "Keine Einträge.";
         return;
       }
-      const groups = new Map();
       list.forEach((warn) => {
-        if (!groups.has(warn.userId)) groups.set(warn.userId, []);
-        groups.get(warn.userId).push(warn);
-      });
-      groups.forEach((items, userId) => {
-        const card = document.createElement("div");
-        card.className = "card";
-        const title = document.createElement("strong");
-        title.textContent = (items[0].userName || "Mitglied") + " · " + items.length;
-        card.append(title);
-        items.forEach((warn) => {
-          const line = document.createElement("div");
-          line.className = "grow";
-          const text = document.createElement("p");
-          const when = warn.at ? new Date(warn.at).toLocaleString("de-DE") : "";
-          text.textContent = (warn.reason || "—") + " · von " + (warn.modName || "Mod") + (when ? " · " + when : "");
-          const del = document.createElement("button");
-          del.type = "button";
-          del.className = "emoji-btn";
-          del.textContent = "×";
-          del.setAttribute("aria-label", "Löschen");
-          del.addEventListener("click", async () => {
-            const data = pack();
-            const payload = syncBody(data, "warn-delete");
-            payload.warnId = warn.id;
-            const sent = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/sync", {
-              method: "POST",
-              headers: { "content-type": "application/json", "x-admin-key": data.adminKey },
-              body: JSON.stringify(payload)
-            });
-            const answer = await sent.json();
-            setStatus(answer.ok ? "Verwarnung gelöscht." : (answer.error || "Nicht gelöscht."), answer.ok ? "ok" : "bad");
-            if (answer.ok) loadWarns();
+        const kind = warn.kind === "kick" || warn.kind === "ban" ? warn.kind : "warn";
+        const row = document.createElement("div");
+        row.className = "user-row";
+        const img = document.createElement("img");
+        img.alt = "";
+        img.src = avatarUrl({ id: warn.userId, avatar: warn.avatar || "" });
+        const text = document.createElement("div");
+        text.style.flex = "1";
+        const strong = document.createElement("strong");
+        strong.textContent = warn.userName || warn.username || "Mitglied";
+        const user = document.createElement("span");
+        user.textContent = warn.username ? "@" + warn.username : "";
+        const id = document.createElement("span");
+        id.textContent = warn.userId || "";
+        const why = document.createElement("span");
+        const when = warn.at ? new Date(warn.at).toLocaleString("de-DE") : "";
+        why.textContent = kindLabel[kind] + " · " + (warn.reason || "—") + " · von " + (warn.modName || "Mod") + (when ? " · " + when : "");
+        text.append(strong, user, id, why);
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "emoji-btn";
+        del.textContent = "×";
+        del.setAttribute("aria-label", "Löschen");
+        del.addEventListener("click", async () => {
+          const data = pack();
+          const payload = syncBody(data, "warn-delete");
+          payload.warnId = warn.id;
+          const sent = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/sync", {
+            method: "POST",
+            headers: { "content-type": "application/json", "x-admin-key": data.adminKey },
+            body: JSON.stringify(payload)
           });
-          line.append(text, del);
-          card.append(line);
+          const answer = await sent.json();
+          setStatus(answer.ok ? "Eintrag gelöscht." : (answer.error || "Nicht gelöscht."), answer.ok ? "ok" : "bad");
+          if (answer.ok) loadWarns();
         });
-        box.append(card);
+        row.append(img, text, del);
+        box.append(row);
       });
     }
     async function loadWarns() {
@@ -2321,6 +2331,13 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
     }
     document.getElementById("warnRefresh").onclick = () => loadWarns();
     document.getElementById("warnSearch").addEventListener("input", paintWarns);
+    document.getElementById("warnKinds").addEventListener("click", (event) => {
+      const button = event.target.closest("button");
+      if (!button) return;
+      warnKind = button.dataset.kind || "";
+      document.querySelectorAll("#warnKinds button").forEach((item) => item.classList.toggle("primary", item === button));
+      paintWarns();
+    });
     load();
     render();
     async function loadServer() {
