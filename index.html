@@ -72,7 +72,7 @@
     .modal { width: min(520px, calc(100vw - 32px)); }
     input, textarea { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 12px; }
     select { width: 100%; min-height: 44px; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 0 12px; color: var(--fg); }
-    .raw-id { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+    .raw-id { display: none !important; }
     .slot { position: relative; }
     .face { width: 100%; min-height: 44px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); padding: 0 12px; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .face i { color: var(--muted); font-style: normal; }
@@ -159,12 +159,12 @@
 
       <div class="view on" id="view-regeln">
         <div class="card">
-          <div class="hint">Die Namen kommen aus den Kanal-IDs. Wenn du den Kanal in Discord umbenennst, ändern sich die Tabs und die Links {regeln} {verify} {spiele} {news} von selbst.</div>
+          <div class="hint">Wähl den Kanal aus der Liste. Der Name in den Links {regeln} {verify} {spiele} {news} ist dann der Kanalname.</div>
           <div class="pair">
-            <label><span>Regeln-Kanal</span><input id="nameRegeln" readonly></label>
-            <label><span>Verify-Kanal</span><input id="nameVerify" readonly></label>
-            <label><span>Spiele-Kanal</span><input id="nameSpiele" readonly></label>
-            <label><span>Ankündigungen-Kanal</span><input id="nameNews" readonly></label>
+            <label><span>Regeln-Kanal</span><input id="nameRegeln"></label>
+            <label><span>Verify-Kanal</span><input id="nameVerify"></label>
+            <label><span>Spiele-Kanal</span><input id="nameSpiele"></label>
+            <label><span>Ankündigungen-Kanal</span><input id="nameNews"></label>
           </div>
         </div>
         <div class="card">
@@ -374,7 +374,7 @@
           <button type="button" class="mod" data-mod="warns"><strong>Verwarnungen</strong><span>Bleiben, bis du sie löschst.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="boost"><strong>Booster</strong><span>Danke, wenn jemand boostet.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="inactive"><strong>Inaktiv</strong><span>Rolle nach Tagen ohne Nachricht.</span><em>Einstellungen</em></button>
-          <button type="button" class="mod" data-mod="autorole"><strong>Auto-Rolle</strong><span>Neue Mitglieder bekommen eine Rolle.</span><em>Einstellungen</em></button>
+          <button type="button" class="mod" data-mod="autorole"><strong>Auto-Rolle</strong><span>Neue Mitglieder bekommen mehrere Rollen.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="voice"><strong>Sprachkanal</strong><span>Rein gehen erstellt einen Kanal. Leer heißt weg.</span><em>Einstellungen</em></button>
         </div>
         <div id="mod-level">
@@ -393,10 +393,10 @@
             </div>
           </div>
           <div class="card">
-            <label><span>Kanal-IDs, die XP geben. Leer = alle Textkanäle. Eine ID pro Zeile.</span><textarea id="levelChannels" placeholder="Rechtsklick auf den Kanal, ID kopieren"></textarea></label>
-            <label><span>Kanal-IDs ohne XP. Eine ID pro Zeile.</span><textarea id="levelNoChannels" placeholder="Rechtsklick auf den Kanal, ID kopieren"></textarea></label>
-            <label><span>Kanal-ID für Level-Up. Dort kommt bei jedem neuen Level eine Nachricht.</span><input id="levelUpChannelId" placeholder="Rechtsklick auf den Kanal, ID kopieren"></label>
-            <label><span>Level-Rollen. Eine Zeile: Level und Rollen-ID. Die höchste passende Rolle bleibt, die alte wird entfernt.</span><textarea id="levelRolesText" placeholder="5 123456789012345678"></textarea></label>
+            <label><span>Kanäle, die XP geben. Leer = alle Textkanäle. Mehrere möglich.</span><textarea id="levelChannels" placeholder="Kanäle wählen"></textarea></label>
+            <label><span>Kanäle ohne XP. Text und Sprachchat. Mehrere möglich.</span><textarea id="levelNoChannels" placeholder="Kanäle wählen"></textarea></label>
+            <label><span>Kanal für Level-Up</span><input id="levelUpChannelId" placeholder="Kanal wählen"></label>
+            <label><span>Level-Rollen. Zahl und Rolle. Die höchste passende Rolle bleibt.</span><textarea id="levelRolesText" placeholder="Level und Rolle"></textarea></label>
           </div>
           <div class="card">
             <div class="hint">User suchen. Dann eine Zahl XP hinzufügen oder abziehen, nicht alles auf einmal.</div>
@@ -486,9 +486,10 @@
         </div>
         <div id="mod-warns" hidden>
           <div class="card">
-            <div class="hint">In Discord /warn mit Mitglied und Grund. Die Verwarnung bleibt, bis du sie hier löschst.</div>
+            <div class="hint">In Discord /warn mit Mitglied und Grund. Hier suchst du den User. Die Verwarnung bleibt, bis du sie löschst.</div>
             <label><span>Rolle, die verwarnen darf</span><input id="warnRoleId" placeholder="Rolle"></label>
-            <div id="warnList">Noch keine.</div>
+            <label><span>Suche nach Name oder ID</span><input id="warnSearch" placeholder="Name, Grund oder User-ID"></label>
+            <div class="scroll-list" id="warnList">Noch keine.</div>
             <button type="button" class="add" id="warnRefresh">Liste neu laden</button>
           </div>
         </div>
@@ -512,8 +513,8 @@
         </div>
         <div id="mod-autorole" hidden>
           <div class="card">
-            <div class="hint">Nur wer neu joint. Die Bot-Rolle muss darüber stehen.</div>
-            <label><span>Rolle</span><input id="autoRoleId" placeholder="Rolle"></label>
+            <div class="hint">Nur wer neu joint. Mehrere Rollen sind möglich. Die Bot-Rolle muss über allen stehen.</div>
+            <label><span>Rollen</span><textarea id="autoRoleId" placeholder="Rollen wählen"></textarea></label>
           </div>
         </div>
       </div>
@@ -919,7 +920,7 @@
         inactiveDays: data.inactiveDays || "30",
         inactiveRoleId: (data.inactiveRoleId || "").trim(),
         inactiveExempt: String(data.inactiveExemptText || "").split(/\n/).map((line) => line.replace(/\D/g, "")).filter(Boolean),
-        autoRoleId: (data.autoRoleId || "").trim(),
+        autoRoles: String(data.autoRoleId || "").split(/[^\d]+/).filter((id) => id.length > 10),
         inviteRewards: String(data.inviteRewardsText || "").split(/\n/).map((line) => {
           const parts = line.trim().split(/[\s,;]+/);
           return { count: Number(parts[0]) || 0, roleId: String(parts[1] || "").replace(/\D/g, "") };
@@ -1323,6 +1324,7 @@
         document.getElementById("mod-inactive").hidden = button.dataset.mod !== "inactive";
         document.getElementById("mod-autorole").hidden = button.dataset.mod !== "autorole";
         if (button.dataset.mod === "warns") loadWarns();
+        bindPickers();
       };
     });
     let levelUsers = [];
@@ -1591,9 +1593,9 @@
       ["statsChannelId", "voice"], ["voiceHubId", "voice"], ["voiceCategoryId", "category"], ["giveawayTicketCategory", "category"],
       ["roleId", "role"], ["verifyRoleId", "role"], ["ticketDeleteRole", "role"], ["giveawayRoleStart", "role"], ["giveawayRoleEnd", "role"],
       ["giveawayRoleReroll", "role"], ["giveawayBoosterRole", "role"], ["giveawayTicketSee", "role"], ["giveawayTicketClaim", "role"],
-      ["warnRoleId", "role"], ["boostRoleId", "role"], ["inactiveRoleId", "role"], ["autoRoleId", "role"]
+      ["warnRoleId", "role"], ["boostRoleId", "role"], ["inactiveRoleId", "role"]
     ];
-    const manyList = [["levelChannels", "text"], ["levelNoChannels", "any"], ["inactiveExemptText", "role"]];
+    const manyList = [["levelChannels", "text"], ["levelNoChannels", "any"], ["inactiveExemptText", "role"], ["autoRoleId", "role"]];
     function pickItems(kind) {
       const text = catalog.text.map((item) => ({ id: item.id, label: "#" + item.name }));
       const voice = catalog.voice.map((item) => ({ id: item.id, label: item.name }));
@@ -1765,6 +1767,46 @@
       add.addEventListener("click", () => { slot.insertBefore(row({ n: "", id: "" }), add); });
       slot.append(add);
     }
+    function mountChannel(nameId, idField, view) {
+      const input = document.getElementById(nameId);
+      const target = document.getElementById(idField);
+      const items = pickItems("text");
+      if (!input || !target || !items.length) return;
+      const slot = ensureSlot(input);
+      const select = document.createElement("select");
+      const empty = document.createElement("option");
+      empty.value = "";
+      empty.textContent = "Kanal wählen";
+      select.append(empty);
+      const current = idsOf(target.value)[0] || "";
+      let found = false;
+      items.forEach((item) => {
+        const option = document.createElement("option");
+        option.value = item.id;
+        option.textContent = item.label;
+        if (item.id === current) { option.selected = true; found = true; }
+        select.append(option);
+      });
+      if (current && !found) {
+        const option = document.createElement("option");
+        option.value = current;
+        option.textContent = input.value ? "#" + String(input.value).replace(/^#/, "") : "Gespeicherter Kanal";
+        option.selected = true;
+        select.append(option);
+      }
+      select.addEventListener("change", () => {
+        const item = items.find((entry) => entry.id === select.value);
+        target.value = select.value;
+        if (item) input.value = item.label.replace(/^#/, "");
+        target.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        const button = document.querySelector('nav button[data-view="' + view + '"]');
+        if (button && input.value) button.textContent = "#" + String(input.value).replace(/^#/, "");
+        const currentView = document.querySelector("nav button[aria-current]")?.dataset.view;
+        if (currentView === view) document.getElementById("title").textContent = "#" + String(input.value).replace(/^#/, "");
+      });
+      slot.append(select);
+    }
     function bindPickers() {
       try {
         pickList.forEach(([id, kind]) => {
@@ -1779,12 +1821,71 @@
         const invites = document.getElementById("inviteRewardsText");
         if (levelRoles) mountPairs(levelRoles, "Level");
         if (invites) mountPairs(invites, "Anzahl");
+        mountChannel("nameRegeln", "channelId", "regeln");
+        mountChannel("nameVerify", "verifyChannelId", "verify");
+        mountChannel("nameSpiele", "gamesChannelId", "spiele");
+        mountChannel("nameNews", "newsChannelId", "news");
         document.querySelectorAll("[data-pick]").forEach((input) => mountOne(input, input.dataset.pick));
       } catch {}
     }
     document.addEventListener("click", () => {
       document.querySelectorAll(".panel").forEach((panel) => { panel.hidden = true; });
     });
+    let warnCache = [];
+    function paintWarns() {
+      const box = document.getElementById("warnList");
+      const q = String(document.getElementById("warnSearch")?.value || "").trim().toLowerCase();
+      if (!box) return;
+      const list = warnCache.filter((warn) => {
+        const hay = [warn.userName, warn.userId, warn.reason, warn.modName].join(" ").toLowerCase();
+        return !q || hay.includes(q);
+      });
+      box.innerHTML = "";
+      if (!list.length) {
+        box.textContent = warnCache.length ? "Niemand passt zur Suche." : "Keine Verwarnungen.";
+        return;
+      }
+      const groups = new Map();
+      list.forEach((warn) => {
+        if (!groups.has(warn.userId)) groups.set(warn.userId, []);
+        groups.get(warn.userId).push(warn);
+      });
+      groups.forEach((items, userId) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        const title = document.createElement("strong");
+        title.textContent = (items[0].userName || "Mitglied") + " · " + items.length;
+        card.append(title);
+        items.forEach((warn) => {
+          const line = document.createElement("div");
+          line.className = "grow";
+          const text = document.createElement("p");
+          const when = warn.at ? new Date(warn.at).toLocaleString("de-DE") : "";
+          text.textContent = (warn.reason || "—") + " · von " + (warn.modName || "Mod") + (when ? " · " + when : "");
+          const del = document.createElement("button");
+          del.type = "button";
+          del.className = "emoji-btn";
+          del.textContent = "×";
+          del.setAttribute("aria-label", "Löschen");
+          del.addEventListener("click", async () => {
+            const data = pack();
+            const payload = syncBody(data, "warn-delete");
+            payload.warnId = warn.id;
+            const sent = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/sync", {
+              method: "POST",
+              headers: { "content-type": "application/json", "x-admin-key": data.adminKey },
+              body: JSON.stringify(payload)
+            });
+            const answer = await sent.json();
+            setStatus(answer.ok ? "Verwarnung gelöscht." : (answer.error || "Nicht gelöscht."), answer.ok ? "ok" : "bad");
+            if (answer.ok) loadWarns();
+          });
+          line.append(text, del);
+          card.append(line);
+        });
+        box.append(card);
+      });
+    }
     async function loadWarns() {
       const data = pack();
       const box = document.getElementById("warnList");
@@ -1796,44 +1897,18 @@
       try {
         const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/warns", { headers: { "x-admin-key": data.adminKey } });
         const body = await res.json();
-        const list = body.warns || [];
-        box.innerHTML = "";
         if (!body.ok) {
           box.textContent = body.error || "Liste nicht geladen.";
           return;
         }
-        if (!list.length) {
-          box.textContent = "Keine Verwarnungen.";
-          return;
-        }
-        list.forEach((warn) => {
-          const line = document.createElement("p");
-          line.className = "nextnum";
-          const when = warn.at ? new Date(warn.at).toLocaleString("de-DE") : "";
-          line.textContent = (warn.userName || warn.userId) + " · " + (warn.reason || "") + " · von " + (warn.modName || "Mod") + (when ? " · " + when : "");
-          const del = document.createElement("button");
-          del.type = "button";
-          del.className = "add";
-          del.textContent = "Löschen";
-          del.addEventListener("click", async () => {
-            const payload = syncBody(pack(), "warn-delete");
-            payload.warnId = warn.id;
-            const sent = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/sync", {
-              method: "POST",
-              headers: { "content-type": "application/json", "x-admin-key": data.adminKey },
-              body: JSON.stringify(payload)
-            });
-            const answer = await sent.json();
-            setStatus(answer.ok ? "Verwarnung gelöscht." : (answer.error || "Nicht gelöscht."), answer.ok ? "ok" : "bad");
-            if (answer.ok) loadWarns();
-          });
-          box.append(line, del);
-        });
+        warnCache = body.warns || [];
+        paintWarns();
       } catch {
         box.textContent = "Liste nicht geladen.";
       }
     }
     document.getElementById("warnRefresh").onclick = () => loadWarns();
+    document.getElementById("warnSearch").addEventListener("input", paintWarns);
     load();
     render();
     async function loadServer() {
@@ -1876,7 +1951,8 @@
         }
         const fields = { regeln: "nameRegeln", verify: "nameVerify", spiele: "nameSpiele", news: "nameNews" };
         Object.entries(fields).forEach(([key, id]) => {
-          if (body[key]) document.getElementById(id).value = body[key];
+          const input = document.getElementById(id);
+          if (body[key] && input && !input.value.trim()) input.value = body[key];
         });
         const views = { regeln: body.regeln, news: body.news, verify: body.verify, spiele: body.spiele, creators: body.creators, giveaway: body.giveaway, ticket: body.ticket };
         catalog.text = body.choices || [];
@@ -1942,7 +2018,8 @@
           levelChannels: Array.isArray(cfg.levelChannels) ? cfg.levelChannels.join("\n") : (cfg.levelChannels || ""),
           levelNoChannels: Array.isArray(cfg.levelNoChannels) ? cfg.levelNoChannels.join("\n") : (cfg.levelNoChannels || ""),
           inviteRewardsText: Array.isArray(cfg.inviteRewards) ? cfg.inviteRewards.map((tier) => tier.count + " " + tier.roleId).join("\n") : (cfg.inviteRewardsText || ""),
-          inactiveExemptText: Array.isArray(cfg.inactiveExempt) ? cfg.inactiveExempt.join("\n") : (cfg.inactiveExemptText || "")
+          inactiveExemptText: Array.isArray(cfg.inactiveExempt) ? cfg.inactiveExempt.join("\n") : (cfg.inactiveExemptText || ""),
+          autoRoleId: Array.isArray(cfg.autoRoles) ? cfg.autoRoles.join("\n") : (cfg.autoRoleId || "")
         };
         localStorage.setItem(KEY, JSON.stringify(saved));
         load();
