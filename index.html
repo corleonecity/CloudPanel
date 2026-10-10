@@ -71,10 +71,17 @@
     dialog::backdrop { background: rgba(0, 0, 0, .62); }
     .modal { width: min(520px, calc(100vw - 32px)); }
     input, textarea { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 12px; }
-    select { width: 100%; min-height: 44px; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 0 12px; }
-    select.pick[multiple] { min-height: 140px; padding: 8px; }
-    .checks { display: grid; gap: 6px; max-height: 220px; overflow: auto; margin-top: 6px; }
-    .checks label { display: flex; gap: 8px; align-items: center; }
+    select { width: 100%; min-height: 44px; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 0 12px; color: var(--fg); }
+    .raw-id { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+    .slot { position: relative; }
+    .face { width: 100%; min-height: 44px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); padding: 0 12px; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .face i { color: var(--muted); font-style: normal; }
+    .panel { position: absolute; z-index: 30; left: 0; right: 0; top: 48px; background: #1c232c; border: 1px solid var(--line); border-radius: 12px; max-height: 240px; overflow: auto; padding: 6px; box-shadow: 0 16px 40px rgba(0, 0, 0, .45); }
+    .panel .row { display: flex; gap: 10px; align-items: center; min-height: 40px; padding: 0 8px; border-radius: 8px; }
+    .panel .row:hover { background: var(--bg); }
+    .pair-row { display: grid; grid-template-columns: 90px minmax(0, 1fr) 44px; gap: 8px; margin-bottom: 8px; }
+    .mod { min-height: 0; }
+    .mod span { min-height: 0; }
     input[type="color"] { width: 52px; height: 44px; padding: 4px; }
     .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     @media (max-width: 700px) { .pair { grid-template-columns: 1fr; } }
@@ -364,6 +371,10 @@
           <button type="button" class="mod" data-mod="welcome"><strong>Willkommen</strong><span>Beitritt, Einlader und Rollen.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="logs"><strong>Logs</strong><span>Ban, Kick, Löschen, Bearbeiten.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="stats"><strong>Server Stats</strong><span>Mitgliederzahl im Sprachkanal.</span><em>Einstellungen</em></button>
+          <button type="button" class="mod" data-mod="warns"><strong>Verwarnungen</strong><span>Bleiben, bis du sie löschst.</span><em>Einstellungen</em></button>
+          <button type="button" class="mod" data-mod="boost"><strong>Booster</strong><span>Danke, wenn jemand boostet.</span><em>Einstellungen</em></button>
+          <button type="button" class="mod" data-mod="inactive"><strong>Inaktiv</strong><span>Rolle nach Tagen ohne Nachricht.</span><em>Einstellungen</em></button>
+          <button type="button" class="mod" data-mod="autorole"><strong>Auto-Rolle</strong><span>Neue Mitglieder bekommen eine Rolle.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="voice"><strong>Sprachkanal</strong><span>Rein gehen erstellt einen Kanal. Leer heißt weg.</span><em>Einstellungen</em></button>
         </div>
         <div id="mod-level">
@@ -462,7 +473,7 @@
         </div>
         <div id="mod-logs" hidden>
           <div class="card">
-            <div class="hint">Ban, Kick, Rollen, Kanäle, gelöschte und bearbeitete Nachrichten gehen nur in diesen Discord-Kanal. In der Datenbank bleibt davon nichts. Der Bot braucht Protokoll ansehen. Was vor dem ersten Durchlauf passiert ist, kommt nicht nachträglich.</div>
+            <div class="hint">Ban, Kick, Rollen, Kanäle, gelöschte und bearbeitete Nachrichten, dazu Beitritt und Austritt. Davon bleibt nichts in der Datenbank. Der Bot braucht Protokoll ansehen.</div>
             <label><span>Log-Kanal</span><input id="logChannelId" placeholder="Rechtsklick auf den Kanal, ID kopieren"></label>
           </div>
         </div>
@@ -471,6 +482,38 @@
             <div class="hint">Wähl einen extra Sprachkanal, nicht den zum Erstellen. Der Bot benennt ihn in Members: 29. Gezählt werden nur Mitglieder, keine Bots und keine Apps. Der Bot braucht Kanäle verwalten und das Intent Servermitglieder.</div>
             <label><span>Sprachkanal</span><input id="statsChannelId" placeholder="Sprachkanal wählen"></label>
             <p class="nextnum" id="statsLive">Wartet auf den nächsten Durchlauf.</p>
+          </div>
+        </div>
+        <div id="mod-warns" hidden>
+          <div class="card">
+            <div class="hint">In Discord /warn mit Mitglied und Grund. Die Verwarnung bleibt, bis du sie hier löschst.</div>
+            <label><span>Rolle, die verwarnen darf</span><input id="warnRoleId" placeholder="Rolle"></label>
+            <div id="warnList">Noch keine.</div>
+            <button type="button" class="add" id="warnRefresh">Liste neu laden</button>
+          </div>
+        </div>
+        <div id="mod-boost" hidden>
+          <div class="card">
+            <div class="hint">{user} wird das Mitglied. Alte Boosts werden nicht noch einmal bedankt.</div>
+            <label><span>Kanal</span><input id="boostChannelId" placeholder="Kanal"></label>
+            <label><span>Text</span><input id="boostText" placeholder="Danke {user} für den Boost!"></label>
+            <label><span>Extra-Rolle, optional</span><input id="boostRoleId" placeholder="Rolle"></label>
+          </div>
+        </div>
+        <div id="mod-inactive" hidden>
+          <div class="card">
+            <div class="hint">Nach den Tagen ohne Nachricht und ohne Sprachchat kommt die Rolle. Wer wieder schreibt, verliert sie. Mehrere Ausnahmen sind möglich.</div>
+            <div class="pair">
+              <label><span>Tage</span><input id="inactiveDays" inputmode="numeric" placeholder="30"></label>
+              <label><span>Inaktiv-Rolle</span><input id="inactiveRoleId" placeholder="Rolle"></label>
+            </div>
+            <label><span>Rollen, die nie inaktiv werden</span><textarea id="inactiveExemptText" placeholder="Mehrere Rollen"></textarea></label>
+          </div>
+        </div>
+        <div id="mod-autorole" hidden>
+          <div class="card">
+            <div class="hint">Nur wer neu joint. Die Bot-Rolle muss darüber stehen.</div>
+            <label><span>Rolle</span><input id="autoRoleId" placeholder="Rolle"></label>
           </div>
         </div>
       </div>
@@ -672,6 +715,14 @@
       welcomeColor: "#5865f2",
       logChannelId: "",
       statsChannelId: "",
+      warnRoleId: "",
+      boostChannelId: "",
+      boostText: "Danke {user} für den Boost!",
+      boostRoleId: "",
+      inactiveDays: "30",
+      inactiveRoleId: "",
+      inactiveExemptText: "",
+      autoRoleId: "",
       inviteRewardsText: "",
       ticketChannelId: "",
       ticketLogId: "",
@@ -682,7 +733,7 @@
       ticketColor: "#5865f2",
       ticketGuildId: ""
     };
-    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole", "giveawayTicketCategory", "giveawayTicketStart", "giveawayTicketSee", "giveawayTicketClaim", "levelXpText", "levelXpVoiceMsg", "levelXpImage", "levelXpFile", "levelXpVoice", "levelCooldown", "levelMinLen", "levelHourCap", "levelChannels", "levelNoChannels", "levelUpChannelId", "levelRolesText", "levelWipeId", "levelAmount", "suggestChannelId", "suggestUp", "suggestDown", "voiceHubId", "voiceCategoryId", "voiceName", "voiceLimit", "welcomeChannelId", "welcomeRulesId", "welcomeVerifyId", "welcomeWatchId", "welcomeTitle", "welcomeText", "welcomeColor", "logChannelId", "statsChannelId", "inviteRewardsText", "ticketChannelId", "ticketLogId", "ticketDeleteRole", "ticketTitle", "ticketText", "ticketPlaceholder", "ticketColor", "ticketGuildId"];
+    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole", "giveawayTicketCategory", "giveawayTicketStart", "giveawayTicketSee", "giveawayTicketClaim", "levelXpText", "levelXpVoiceMsg", "levelXpImage", "levelXpFile", "levelXpVoice", "levelCooldown", "levelMinLen", "levelHourCap", "levelChannels", "levelNoChannels", "levelUpChannelId", "levelRolesText", "levelWipeId", "levelAmount", "suggestChannelId", "suggestUp", "suggestDown", "voiceHubId", "voiceCategoryId", "voiceName", "voiceLimit", "welcomeChannelId", "welcomeRulesId", "welcomeVerifyId", "welcomeWatchId", "welcomeTitle", "welcomeText", "welcomeColor", "logChannelId", "statsChannelId", "warnRoleId", "boostChannelId", "boostText", "boostRoleId", "inactiveDays", "inactiveRoleId", "inactiveExemptText", "autoRoleId", "inviteRewardsText", "ticketChannelId", "ticketLogId", "ticketDeleteRole", "ticketTitle", "ticketText", "ticketPlaceholder", "ticketColor", "ticketGuildId"];
     const baseGames = [
       { text: "Phasmophobia", roleId: "" },
       { text: "Terraria", roleId: "" },
@@ -861,6 +912,14 @@
         welcomeColor: data.welcomeColor,
         logChannelId: (data.logChannelId || "").trim(),
         statsChannelId: (data.statsChannelId || "").trim(),
+        warnRoleId: (data.warnRoleId || "").trim(),
+        boostChannelId: (data.boostChannelId || "").trim(),
+        boostText: data.boostText || "Danke {user} für den Boost!",
+        boostRoleId: (data.boostRoleId || "").trim(),
+        inactiveDays: data.inactiveDays || "30",
+        inactiveRoleId: (data.inactiveRoleId || "").trim(),
+        inactiveExempt: String(data.inactiveExemptText || "").split(/\n/).map((line) => line.replace(/\D/g, "")).filter(Boolean),
+        autoRoleId: (data.autoRoleId || "").trim(),
         inviteRewards: String(data.inviteRewardsText || "").split(/\n/).map((line) => {
           const parts = line.trim().split(/[\s,;]+/);
           return { count: Number(parts[0]) || 0, roleId: String(parts[1] || "").replace(/\D/g, "") };
@@ -915,7 +974,8 @@
         name.addEventListener("input", () => { games[index].text = name.value; preview(); });
         const role = document.createElement("input");
         role.value = game.roleId;
-        role.placeholder = "Rollen-ID";
+        role.placeholder = "Rolle";
+        role.dataset.pick = "role";
         role.addEventListener("input", () => { games[index].roleId = role.value; });
         const remove = document.createElement("button");
         remove.type = "button";
@@ -978,6 +1038,8 @@
           input.placeholder = placeholder;
           if (numeric) input.inputMode = "numeric";
           input.addEventListener("input", () => { ticketTypes[index][key] = input.value; });
+          if (key === "categoryId") input.dataset.pick = "category";
+          if (key === "seeRoleId" || key === "claimRoleId") input.dataset.pick = "role";
           const label = document.createElement("label");
           const span = document.createElement("span");
           span.textContent = placeholder;
@@ -1062,6 +1124,7 @@
         ticketRoot.append(block);
       });
       preview();
+      bindPickers();
     }
     function channelTag(id) {
       const clean = String(document.getElementById(id).value || "").replace(/^#/, "").trim();
@@ -1255,6 +1318,11 @@
         document.getElementById("mod-welcome").hidden = button.dataset.mod !== "welcome";
         document.getElementById("mod-logs").hidden = button.dataset.mod !== "logs";
         document.getElementById("mod-stats").hidden = button.dataset.mod !== "stats";
+        document.getElementById("mod-warns").hidden = button.dataset.mod !== "warns";
+        document.getElementById("mod-boost").hidden = button.dataset.mod !== "boost";
+        document.getElementById("mod-inactive").hidden = button.dataset.mod !== "inactive";
+        document.getElementById("mod-autorole").hidden = button.dataset.mod !== "autorole";
+        if (button.dataset.mod === "warns") loadWarns();
       };
     });
     let levelUsers = [];
@@ -1515,6 +1583,257 @@
         setStatus("Worker nicht erreichbar. Das neue Skript muss einmal in Cloudflare liegen.", "bad");
       }
     };
+    let catalog = { text: [], voice: [], categories: [], roles: [] };
+    const pickList = [
+      ["channelId", "text"], ["newsChannelId", "text"], ["verifyChannelId", "text"], ["gamesChannelId", "text"], ["creatorsChannelId", "text"],
+      ["ticketChannelId", "text"], ["ticketLogId", "text"], ["giveawayChannelId", "text"], ["levelUpChannelId", "text"], ["suggestChannelId", "text"],
+      ["welcomeChannelId", "text"], ["welcomeRulesId", "text"], ["welcomeVerifyId", "text"], ["welcomeWatchId", "text"], ["logChannelId", "text"], ["boostChannelId", "text"],
+      ["statsChannelId", "voice"], ["voiceHubId", "voice"], ["voiceCategoryId", "category"], ["giveawayTicketCategory", "category"],
+      ["roleId", "role"], ["verifyRoleId", "role"], ["ticketDeleteRole", "role"], ["giveawayRoleStart", "role"], ["giveawayRoleEnd", "role"],
+      ["giveawayRoleReroll", "role"], ["giveawayBoosterRole", "role"], ["giveawayTicketSee", "role"], ["giveawayTicketClaim", "role"],
+      ["warnRoleId", "role"], ["boostRoleId", "role"], ["inactiveRoleId", "role"], ["autoRoleId", "role"]
+    ];
+    const manyList = [["levelChannels", "text"], ["levelNoChannels", "any"], ["inactiveExemptText", "role"]];
+    function pickItems(kind) {
+      const text = catalog.text.map((item) => ({ id: item.id, label: "#" + item.name }));
+      const voice = catalog.voice.map((item) => ({ id: item.id, label: item.name }));
+      const categories = catalog.categories.map((item) => ({ id: item.id, label: item.name }));
+      const roles = catalog.roles.map((item) => ({ id: item.id, label: "@" + item.name }));
+      if (kind === "role") return roles;
+      if (kind === "voice") return voice;
+      if (kind === "category") return categories;
+      if (kind === "any") return text.concat(voice);
+      return text;
+    }
+    function idsOf(value) {
+      return String(value || "").split(/[^\d]+/).filter((id) => id.length > 10);
+    }
+    function showRaw(input) {
+      input.classList.remove("raw-id");
+      const slot = input.previousElementSibling;
+      if (slot && slot.classList.contains("slot")) slot.remove();
+    }
+    function ensureSlot(input) {
+      let slot = input.previousElementSibling;
+      if (!slot || !slot.classList.contains("slot")) {
+        slot = document.createElement("div");
+        slot.className = "slot";
+        input.before(slot);
+      }
+      slot.innerHTML = "";
+      input.classList.add("raw-id");
+      return slot;
+    }
+    function mountOne(input, kind) {
+      const items = pickItems(kind);
+      if (!items.length) return showRaw(input);
+      const slot = ensureSlot(input);
+      const select = document.createElement("select");
+      const empty = document.createElement("option");
+      empty.value = "";
+      empty.textContent = kind === "role" ? "Rolle wählen" : "Kanal wählen";
+      select.append(empty);
+      const current = idsOf(input.value)[0] || "";
+      let found = false;
+      items.forEach((item) => {
+        const option = document.createElement("option");
+        option.value = item.id;
+        option.textContent = item.label;
+        if (item.id === current) { option.selected = true; found = true; }
+        select.append(option);
+      });
+      if (current && !found) {
+        const option = document.createElement("option");
+        option.value = current;
+        option.textContent = "Gespeicherte Auswahl";
+        option.selected = true;
+        select.append(option);
+      }
+      select.addEventListener("change", () => {
+        input.value = select.value;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+      slot.append(select);
+    }
+    function mountMany(input, kind) {
+      const items = pickItems(kind);
+      if (!items.length) return showRaw(input);
+      const slot = ensureSlot(input);
+      const chosen = new Set(idsOf(input.value));
+      const face = document.createElement("button");
+      face.type = "button";
+      face.className = "face";
+      const panel = document.createElement("div");
+      panel.className = "panel";
+      panel.hidden = true;
+      function paint() {
+        const names = items.filter((item) => chosen.has(item.id)).map((item) => item.label);
+        face.innerHTML = "";
+        face.append(document.createTextNode(names.length ? names.join(", ") : (kind === "role" ? "Rollen wählen" : "Kanäle wählen")));
+        const mark = document.createElement("i");
+        mark.textContent = names.length ? String(names.length) : "▾";
+        face.append(mark);
+      }
+      items.forEach((item) => {
+        const row = document.createElement("div");
+        row.className = "row";
+        const box = document.createElement("input");
+        box.type = "checkbox";
+        box.checked = chosen.has(item.id);
+        const name = document.createElement("span");
+        name.textContent = item.label;
+        row.append(box, name);
+        row.addEventListener("click", (event) => {
+          if (event.target !== box) box.checked = !box.checked;
+          if (box.checked) chosen.add(item.id);
+          else chosen.delete(item.id);
+          input.value = [...chosen].join("\n");
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+          paint();
+        });
+        panel.append(row);
+      });
+      face.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const open = panel.hidden;
+        document.querySelectorAll(".panel").forEach((item) => { item.hidden = true; });
+        panel.hidden = !open;
+      });
+      paint();
+      panel.addEventListener("click", (event) => event.stopPropagation());
+      slot.append(face, panel);
+    }
+    function mountPairs(input, noun) {
+      const roles = pickItems("role");
+      if (!roles.length) return showRaw(input);
+      const slot = ensureSlot(input);
+      const lines = String(input.value || "").split(/\n/).map((line) => {
+        const parts = line.trim().split(/[\s,;]+/);
+        return { n: parts[0] || "", id: String(parts[1] || "").replace(/\D/g, "") };
+      }).filter((line) => line.n || line.id);
+      if (!lines.length) lines.push({ n: "", id: "" });
+      function write() {
+        input.value = [...slot.querySelectorAll(".pair-row")].map((row) => {
+          const n = row.querySelector("input").value.trim();
+          const id = row.querySelector("select").value;
+          return n && id ? n + " " + id : "";
+        }).filter(Boolean).join("\n");
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+      function row(line) {
+        const wrap = document.createElement("div");
+        wrap.className = "pair-row";
+        const num = document.createElement("input");
+        num.inputMode = "numeric";
+        num.placeholder = noun;
+        num.value = line.n;
+        const select = document.createElement("select");
+        const empty = document.createElement("option");
+        empty.value = "";
+        empty.textContent = "Rolle wählen";
+        select.append(empty);
+        let found = false;
+        roles.forEach((item) => {
+          const option = document.createElement("option");
+          option.value = item.id;
+          option.textContent = item.label;
+          if (item.id === line.id) { option.selected = true; found = true; }
+          select.append(option);
+        });
+        if (line.id && !found) {
+          const option = document.createElement("option");
+          option.value = line.id;
+          option.textContent = "Gespeicherte Rolle";
+          option.selected = true;
+          select.append(option);
+        }
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "icon";
+        remove.textContent = "×";
+        remove.addEventListener("click", () => { wrap.remove(); write(); });
+        num.addEventListener("input", write);
+        select.addEventListener("change", write);
+        wrap.append(num, select, remove);
+        return wrap;
+      }
+      lines.forEach((line) => slot.append(row(line)));
+      const add = document.createElement("button");
+      add.type = "button";
+      add.className = "add";
+      add.textContent = "Zeile";
+      add.addEventListener("click", () => { slot.insertBefore(row({ n: "", id: "" }), add); });
+      slot.append(add);
+    }
+    function bindPickers() {
+      try {
+        pickList.forEach(([id, kind]) => {
+          const input = document.getElementById(id);
+          if (input) mountOne(input, kind);
+        });
+        manyList.forEach(([id, kind]) => {
+          const input = document.getElementById(id);
+          if (input) mountMany(input, kind);
+        });
+        const levelRoles = document.getElementById("levelRolesText");
+        const invites = document.getElementById("inviteRewardsText");
+        if (levelRoles) mountPairs(levelRoles, "Level");
+        if (invites) mountPairs(invites, "Anzahl");
+        document.querySelectorAll("[data-pick]").forEach((input) => mountOne(input, input.dataset.pick));
+      } catch {}
+    }
+    document.addEventListener("click", () => {
+      document.querySelectorAll(".panel").forEach((panel) => { panel.hidden = true; });
+    });
+    async function loadWarns() {
+      const data = pack();
+      const box = document.getElementById("warnList");
+      if (!box) return;
+      if (!data.workerUrl || !data.adminKey) {
+        box.textContent = "Erst Worker und Admin-Schlüssel speichern.";
+        return;
+      }
+      try {
+        const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/warns", { headers: { "x-admin-key": data.adminKey } });
+        const body = await res.json();
+        const list = body.warns || [];
+        box.innerHTML = "";
+        if (!body.ok) {
+          box.textContent = body.error || "Liste nicht geladen.";
+          return;
+        }
+        if (!list.length) {
+          box.textContent = "Keine Verwarnungen.";
+          return;
+        }
+        list.forEach((warn) => {
+          const line = document.createElement("p");
+          line.className = "nextnum";
+          const when = warn.at ? new Date(warn.at).toLocaleString("de-DE") : "";
+          line.textContent = (warn.userName || warn.userId) + " · " + (warn.reason || "") + " · von " + (warn.modName || "Mod") + (when ? " · " + when : "");
+          const del = document.createElement("button");
+          del.type = "button";
+          del.className = "add";
+          del.textContent = "Löschen";
+          del.addEventListener("click", async () => {
+            const payload = syncBody(pack(), "warn-delete");
+            payload.warnId = warn.id;
+            const sent = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/sync", {
+              method: "POST",
+              headers: { "content-type": "application/json", "x-admin-key": data.adminKey },
+              body: JSON.stringify(payload)
+            });
+            const answer = await sent.json();
+            setStatus(answer.ok ? "Verwarnung gelöscht." : (answer.error || "Nicht gelöscht."), answer.ok ? "ok" : "bad");
+            if (answer.ok) loadWarns();
+          });
+          box.append(line, del);
+        });
+      } catch {
+        box.textContent = "Liste nicht geladen.";
+      }
+    }
+    document.getElementById("warnRefresh").onclick = () => loadWarns();
     load();
     render();
     async function loadServer() {
@@ -1560,6 +1879,11 @@
           if (body[key]) document.getElementById(id).value = body[key];
         });
         const views = { regeln: body.regeln, news: body.news, verify: body.verify, spiele: body.spiele, creators: body.creators, giveaway: body.giveaway, ticket: body.ticket };
+        catalog.text = body.choices || [];
+        catalog.voice = body.voices || [];
+        catalog.categories = body.categories || [];
+        catalog.roles = body.roles || [];
+        bindPickers();
         Object.entries(views).forEach(([view, name]) => {
           const button = document.querySelector('nav button[data-view="' + view + '"]');
           if (button && name) button.textContent = "#" + String(name).replace(/^#/, "");
@@ -1617,7 +1941,8 @@
           levelRolesText: Array.isArray(cfg.levelRoles) ? cfg.levelRoles.map((tier) => tier.level + " " + tier.roleId).join("\n") : (cfg.levelRolesText || ""),
           levelChannels: Array.isArray(cfg.levelChannels) ? cfg.levelChannels.join("\n") : (cfg.levelChannels || ""),
           levelNoChannels: Array.isArray(cfg.levelNoChannels) ? cfg.levelNoChannels.join("\n") : (cfg.levelNoChannels || ""),
-          inviteRewardsText: Array.isArray(cfg.inviteRewards) ? cfg.inviteRewards.map((tier) => tier.count + " " + tier.roleId).join("\n") : (cfg.inviteRewardsText || "")
+          inviteRewardsText: Array.isArray(cfg.inviteRewards) ? cfg.inviteRewards.map((tier) => tier.count + " " + tier.roleId).join("\n") : (cfg.inviteRewardsText || ""),
+          inactiveExemptText: Array.isArray(cfg.inactiveExempt) ? cfg.inactiveExempt.join("\n") : (cfg.inactiveExemptText || "")
         };
         localStorage.setItem(KEY, JSON.stringify(saved));
         load();
