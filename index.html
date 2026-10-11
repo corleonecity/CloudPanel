@@ -78,7 +78,10 @@
     if (gate) gate.innerHTML = '<div class="card"><p>Die Rolle ist weg.</p><a href="/">Zurück</a></div>';
     document.querySelectorAll(".app").forEach((node) => node.remove());
   };
-  if (location.hostname !== HOST) return;
+  if (location.hostname !== HOST) {
+    document.documentElement.dataset.desk = "1";
+    return;
+  }
   let stopped = false;
   const check = async (first) => {
     if (stopped) return;
@@ -486,6 +489,14 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
 .type:first-child { border-top: 0; }
 .typehead { display: grid; grid-template-columns: 72px minmax(0, 1fr) 44px; gap: 8px; align-items: center; }
 .nextnum { color: var(--muted); font-size: 13px; }
+.probe-hit { color: var(--bad); }
+.probe-ok { color: #57f287; }
+.crown { background: linear-gradient(90deg, rgba(240, 180, 41, 0.16), transparent 72%); border-radius: 12px; }
+#appealList .user-row { flex-wrap: wrap; align-items: center; }
+#appealList .user-row > div { flex: 1 1 220px; min-width: 0; }
+#appealList .user-row span { white-space: pre-wrap; overflow-wrap: anywhere; }
+.role-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.role-preview span { display: inline-flex; align-items: center; min-height: 32px; padding: 0 10px; border-radius: 4px; color: white; font-weight: 700; font-size: 14px; }
 .grid { display: grid; gap: 12px; }
 #ticketList .type > div:not([class]) .pair {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.8fr) auto 44px;
@@ -578,6 +589,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         <button type="button" data-view="news">#server-ankündigungen</button>
         <button type="button" data-view="verify">#verifizieren-hub</button>
         <button type="button" data-view="spiele">#wähle-deine-spiele</button>
+        <button type="button" data-view="rollen">#rollen</button>
         <button type="button" data-view="creators">#content-creators</button>
         <button type="button" data-view="giveaway">#giveaway</button>
         <button type="button" data-view="ticket">#ticket-system</button>
@@ -715,6 +727,25 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         </div>
       </div>
 
+      <div class="view" id="view-rollen">
+        <div class="card grid">
+          <label><span>Kanal für die Rollen-Buttons</span><input id="roleChannelId" placeholder="Rechtsklick auf den Kanal, ID kopieren"></label>
+        </div>
+        <div class="card">
+          <div class="hint">Selbstbedienung. Ein Klick gibt die Rolle, nochmal klicken nimmt sie weg. Höchstens 20. An Discord schreiben setzt die Nachricht in den Kanal.</div>
+          <div class="pair">
+            <label><span>Titel</span><input id="roleTitle" placeholder="Hol dir eine Rolle"></label>
+            <label><span>Farbe der Leiste</span><input id="roleColor" type="color"></label>
+          </div>
+          <label><span>Text</span><textarea id="roleText" placeholder="Klick auf Gaming oder Musik. Nochmal klicken nimmt die Rolle weg."></textarea></label>
+        </div>
+        <div class="card">
+          <div class="hint">Emoji, Name auf dem Button, Rolle, Farbe. Gaming und Musik sind nur Beispiele.</div>
+          <div id="roleList"></div>
+          <button type="button" class="add" id="addRoleButton">Rolle hinzufügen</button>
+        </div>
+      </div>
+
       <div class="view" id="view-creators">
         <div class="card grid">
           <label><span>Kanal-ID von #content-creators</span><input id="creatorsChannelId" placeholder="Rechtsklick auf den Kanal, ID kopieren"></label>
@@ -750,7 +781,12 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
           <button type="button" class="add" id="addTicket">Art hinzufügen</button>
         </div>
         <div class="card">
-          <div class="hint">Die Zahlen gehen nur hoch. Unclaim zieht Claim nicht wieder ab. Claim ist, wie viele Tickets jemand übernommen hat.</div>
+          <div class="hint">Bester Supporter des Monats. Die Sterne nach dem Schließen zählen ab jetzt. Gleiche Note: mehr Bewertungen stehen weiter oben. In Discord: /supporter.</div>
+          <p class="nextnum" id="supporterMonth">Dieser Monat</p>
+          <div class="scroll-list" id="supporterBoard">Wird geladen…</div>
+        </div>
+        <div class="card">
+          <div class="hint">Die Zahlen gehen nur hoch. Unclaim zieht Claim nicht wieder ab. Claim ist, wie viele Tickets jemand übernommen hat. Alte Noten stehen hier, nicht in der Monats-Rangliste.</div>
           <div class="scroll-list" id="ticketStats">Wird geladen…</div>
         </div>
         <div class="card">
@@ -817,6 +853,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
           <button type="button" class="mod" data-mod="suggest"><strong>Vorschläge</strong><span>Der Bot setzt zwei Emojis auf neue Nachrichten.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="welcome"><strong>Willkommen</strong><span>Beitritt, Einlader und Rollen.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="logs"><strong>Logs</strong><span>Ban, Kick, Löschen, Bearbeiten.</span><em>Einstellungen</em></button>
+          <button type="button" class="mod" data-mod="appeal"><strong>Einspruch</strong><span>Gebannte schreiben ein Formular. Du nimmst an oder lehnst ab.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="stats"><strong>Server Stats</strong><span>Mitgliederzahl im Sprachkanal.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="warns"><strong>Warn Kick Ban</strong><span>Bild, Name und Grund. Bleibt, bis du löschst.</span><em>Einstellungen</em></button>
           <button type="button" class="mod" data-mod="spam"><strong>Anti-Spam</strong><span>Links, Caps und doppelte Nachrichten.</span><em>Einstellungen</em></button>
@@ -928,8 +965,22 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         </div>
         <div id="mod-logs" hidden>
           <div class="card">
-            <div class="hint">Ban, Kick, Rollen, Kanäle, gelöschte und bearbeitete Nachrichten, dazu Beitritt und Austritt. Davon bleibt nichts in der Datenbank. Der Bot braucht Protokoll ansehen.</div>
+            <div class="hint">Ban, Kick, Rollen, Kanäle, gelöschte und bearbeitete Nachrichten, dazu Beitritt und Austritt. Kick und Ban über den Bot gehen nur mit Grund, sonst lässt Discord den Befehl nicht raus. Ein Ban per Rechtsklick kann ohne Grund bleiben, dann steht hier "Grund fehlt". Der Bot braucht Protokoll ansehen.</div>
             <label><span>Log-Kanal</span><input id="logChannelId" placeholder="Rechtsklick auf den Kanal, ID kopieren"></label>
+          </div>
+        </div>
+        <div id="mod-appeal" hidden>
+          <div class="card">
+            <div class="hint">Gebannte öffnen den Link, tragen ihre User-ID ein und schreiben, was passiert ist. Annehmen hebt den Ban auf. Ablehnen lässt ihn.</div>
+            <label><input id="appealOn" type="checkbox"> Einspruch an</label>
+            <label><span>Kanal für neue Einsprüche</span><input id="appealChannelId" placeholder="Leer = der Log-Kanal"></label>
+            <label><span>Text auf der Seite</span><textarea id="appealIntro" placeholder="Du bist gebannt und willst zurück."></textarea></label>
+            <p class="nextnum" id="appealLink">Link erscheint, sobald der Worker steht.</p>
+          </div>
+          <div class="card">
+            <div class="hint">Offene zuerst. Annehmen schreibt den Ban weg, wenn der Bot ihn setzen darf.</div>
+            <div class="scroll-list" id="appealList">Wird geladen…</div>
+            <button type="button" class="add" id="appealRefresh">Liste neu laden</button>
           </div>
         </div>
         <div id="mod-stats" hidden>
@@ -941,7 +992,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         </div>
         <div id="mod-warns" hidden>
           <div class="card">
-            <div class="hint">Für jeden Befehl eigene Rollen. Mehrere gehen. Admins dürfen es immer. /kicks und /bans sind die Listen in Discord.</div>
+            <div class="hint">Für jeden Befehl eigene Rollen. Mehrere gehen. Admins dürfen es immer. /kick, /ban, /tempban, /warn und /timeout verlangen einen Grund mit mindestens 3 Zeichen. Discord lässt den Befehl sonst nicht raus. /kicks und /bans sind die Listen.</div>
             <label><span>Rollen für /warn</span><textarea id="warnRoleId" placeholder="Rollen wählen"></textarea></label>
             <label><span>Rollen für /kick</span><textarea id="kickRoleId" placeholder="Rollen wählen"></textarea></label>
             <label><span>Rollen für /ban</span><textarea id="banRoleId" placeholder="Rollen wählen"></textarea></label>
@@ -966,14 +1017,17 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         </div>
         <div id="mod-spam" hidden>
           <div class="card">
-            <div class="hint">Der Bot prüft etwa jede Minute. Er löscht die Nachricht. Minuten 0 heißt nur löschen, sonst gibt es zusätzlich einen Timeout. Admins und die Warn-, Kick-, Ban- und Timeout-Rollen sind ausgenommen.</div>
+            <div class="hint">Der Bot prüft etwa jede Minute. Er löscht die Nachricht. Minuten 0 heißt nur löschen, sonst gibt es zusätzlich einen Timeout. Admins und die Warn-, Kick-, Ban- und Timeout-Rollen sind ausgenommen. Schimpfwörter erkennen auch Sch3iße und Sch eiße. Das Wort muss für sich stehen, nicht mitten in einem längeren.</div>
             <label><input id="spamOn" type="checkbox"> Anti-Spam an</label>
-            <label><input id="spamLinks" type="checkbox" checked> Links und Einladungen</label>
+            <label><input id="spamLinks" type="checkbox" checked> Fremde Links und Einladungen</label>
+            <label><span>Erlaubte Domains, eine pro Zeile. Leer = jeder Link weg. youtube.com gilt auch für m.youtube.com. youtu.be extra.</span><textarea id="linkAllow" placeholder="youtube.com&#10;youtu.be"></textarea></label>
             <label><input id="spamCaps" type="checkbox" checked> Zu viele Großbuchstaben</label>
             <label><input id="spamDupes" type="checkbox" checked> Dieselbe Nachricht doppelt</label>
             <label><span>Timeout in Minuten, 0 ist nur löschen</span><input id="spamTimeout" inputmode="numeric" placeholder="0"></label>
             <label><span>Weitere Rollen, die spam darf</span><textarea id="spamExempt" placeholder="Rollen wählen"></textarea></label>
             <label><span>Schimpfwörter, ein Wort pro Zeile</span><textarea id="spamWords" placeholder="wort"></textarea></label>
+            <label><span>Nachricht testen</span><input id="spamProbe" placeholder="Sch eiße oder https://spamsite.xyz"></label>
+            <p class="nextnum" id="spamProbeOut">Tipp eine Nachricht. Varianten und fremde Links siehst du sofort.</p>
           </div>
         </div>
         <div id="mod-boost" hidden>
@@ -1054,6 +1108,17 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
           <div class="drop" id="prevGamesDrop">Triff eine Auswahl</div>
         </div>
       </article>
+      <article class="msg" id="previewRoles" hidden>
+        <div class="avatar">L</div>
+        <div>
+          <div class="who"><strong>Leitstand</strong><em>APP</em><time>jetzt</time></div>
+          <div class="embed" id="rolesEmbed">
+            <h3 id="prevRoleTitle">Rollen</h3>
+            <p id="prevRoleText"></p>
+          </div>
+          <div class="role-preview" id="prevRoleButtons"></div>
+        </div>
+      </article>
       <article class="msg" id="previewCreators" hidden>
         <div class="avatar">L</div>
         <div>
@@ -1106,24 +1171,10 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
     </form>
   </dialog>
   <script>
-(() => {
-  const storeKey = "leitstand-sync-v1";
-  const orig = window.fetch.bind(window);
-  window.fetch = (input, init) => {
-    let saved = null;
-    try { saved = JSON.parse(localStorage.getItem(storeKey) || "null"); } catch {}
-    const url = typeof input === "string" ? input : (input && input.url) || "";
-    if (!saved && String(url).includes("workers.dev")) {
-      return Promise.resolve(new Response(JSON.stringify({ ok: true }), { status: 200, headers: { "content-type": "application/json" } }));
-    }
-    return orig(input, init);
-  };
-})();
-</script>
-<script>
     if (history.scrollRestoration) history.scrollRestoration = "manual";
     window.scrollTo(0, 0);
     const KEY = "leitstand-sync-v1";
+    const onServer = location.hostname === "colincommnunity.keulecolin2005.workers.dev";
     const base = {
       workerUrl: "https://colincommnunity.keulecolin2005.workers.dev",
       adminKey: "leitstand-colin",
@@ -1244,9 +1295,16 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
       ticketText: "Wähl unten eine Ticket-Art.",
       ticketPlaceholder: "Ticket-Art wählen",
       ticketColor: "#5865f2",
-      ticketGuildId: ""
+      ticketGuildId: "",
+      roleChannelId: "",
+      roleTitle: "Hol dir eine Rolle",
+      roleText: "Klick auf Gaming oder Musik. Nochmal klicken nimmt die Rolle weg.",
+      roleColor: "#5865f2",
+      linkAllow: "youtube.com\nyoutu.be",
+      appealChannelId: "",
+      appealIntro: "Du bist gebannt und willst zurück. Schreib, was passiert ist."
     };
-    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole", "giveawayTicketCategory", "giveawayTicketStart", "giveawayTicketSee", "giveawayTicketClaim", "levelXpText", "levelXpVoiceMsg", "levelXpImage", "levelXpFile", "levelXpVoice", "levelCooldown", "levelMinLen", "levelHourCap", "levelChannels", "levelNoChannels", "levelUpChannelId", "levelRolesText", "levelWipeId", "levelAmount", "suggestChannelId", "suggestUp", "suggestDown", "voiceHubId", "voiceCategoryId", "voiceName", "voiceLimit", "welcomeChannelId", "welcomeRulesId", "welcomeVerifyId", "welcomeWatchId", "welcomeTitle", "welcomeText", "welcomeColor", "logChannelId", "statsChannelId", "warnRoleId", "kickRoleId", "banRoleId", "warnSeeRoleId", "warnDeleteRoleId", "timeoutRoleId", "unbanRoleId", "spamTimeout", "spamExempt", "spamWords", "clearRoleId", "lockRoleId", "starChannelId", "starNeed", "starEmoji", "boostChannelId", "boostText", "boostRoleId", "inactiveDays", "inactiveRoleId", "inactiveExemptText", "autoRoleId", "inviteRewardsText", "ticketChannelId", "ticketLogId", "ticketDeleteRole", "ticketTitle", "ticketText", "ticketPlaceholder", "ticketColor", "ticketGuildId"];
+    const copy = ["workerUrl", "adminKey", "channelId", "roleId", "nameRegeln", "nameVerify", "nameSpiele", "nameNews", "serverName", "rulesIntro", "stepsTitle", "embedTitle", "embedColor", "stepsColor", "links", "buttonLabel", "buttonEmoji", "buttonStyle", "footer", "acceptReply", "newsChannelId", "newsTitle", "newsColor", "newsPing", "newsIntro", "verifyChannelId", "verifyRoleId", "verifyTitle", "verifyColor", "verifyEmoji", "verifyLabel", "verifyStyle", "verifyText", "verifyReply", "gamesChannelId", "gamesPlaceholder", "gamesText", "gamesColor", "creatorsChannelId", "creatorsPing", "giveawayChannelId", "giveawayPrize", "giveawayWinners", "giveawayEnds", "giveawayHost", "giveawayColor", "giveawayButton", "giveawayImage", "giveawayGuildId", "giveawayRoleStart", "giveawayRoleEnd", "giveawayRoleReroll", "giveawayBoosterRole", "giveawayTicketCategory", "giveawayTicketStart", "giveawayTicketSee", "giveawayTicketClaim", "levelXpText", "levelXpVoiceMsg", "levelXpImage", "levelXpFile", "levelXpVoice", "levelCooldown", "levelMinLen", "levelHourCap", "levelChannels", "levelNoChannels", "levelUpChannelId", "levelRolesText", "levelWipeId", "levelAmount", "suggestChannelId", "suggestUp", "suggestDown", "voiceHubId", "voiceCategoryId", "voiceName", "voiceLimit", "welcomeChannelId", "welcomeRulesId", "welcomeVerifyId", "welcomeWatchId", "welcomeTitle", "welcomeText", "welcomeColor", "logChannelId", "statsChannelId", "warnRoleId", "kickRoleId", "banRoleId", "warnSeeRoleId", "warnDeleteRoleId", "timeoutRoleId", "unbanRoleId", "spamTimeout", "spamExempt", "spamWords", "clearRoleId", "lockRoleId", "starChannelId", "starNeed", "starEmoji", "boostChannelId", "boostText", "boostRoleId", "inactiveDays", "inactiveRoleId", "inactiveExemptText", "autoRoleId", "inviteRewardsText", "ticketChannelId", "ticketLogId", "ticketDeleteRole", "ticketTitle", "ticketText", "ticketPlaceholder", "ticketColor", "ticketGuildId", "roleChannelId", "roleTitle", "roleText", "roleColor", "linkAllow", "appealChannelId", "appealIntro"];
     const baseGames = [
       { text: "Phasmophobia", roleId: "" },
       { text: "Terraria", roleId: "" },
@@ -1260,6 +1318,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
     let creators = [];
     let ticketTypes = [];
     let ticketSeq = {};
+    let roleButtons = [];
     const lines = (text) => String(text || "").split(/\n/).map((line) => line.trim()).filter(Boolean);
     function copyFields(list) {
       const source = Array.isArray(list) && list.length ? list : [
@@ -1295,6 +1354,8 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
       if (spamLinks) spamLinks.checked = data.spamLinks !== false;
       if (spamCaps) spamCaps.checked = data.spamCaps !== false;
       if (spamDupes) spamDupes.checked = data.spamDupes !== false;
+      const appealOn = document.getElementById("appealOn");
+      if (appealOn) appealOn.checked = !!data.appealOn;
       if (!document.getElementById("ticketGuildId").value) document.getElementById("ticketGuildId").value = document.getElementById("giveawayGuildId").value || "";
       rules = lines(data.rules);
       steps = lines(data.steps);
@@ -1318,6 +1379,16 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         fields: copyFields(type.fields)
       })) : baseTickets.map((type) => ({ ...type, fields: copyFields() }));
       ticketSeq = data.ticketSeq && typeof data.ticketSeq === "object" ? data.ticketSeq : {};
+      const baseRoles = [
+        { emoji: "🎮", label: "Gaming", roleId: "", style: "1" },
+        { emoji: "🎵", label: "Musik", roleId: "", style: "3" }
+      ];
+      roleButtons = Array.isArray(data.roleButtons) && data.roleButtons.length ? data.roleButtons.map((button) => ({
+        emoji: String(button.emoji || ""),
+        label: String(button.label || ""),
+        roleId: String(button.roleId || ""),
+        style: String(button.style || "2")
+      })) : baseRoles.map((button) => ({ ...button }));
     }
     function pack() {
       const data = Object.fromEntries(copy.map((id) => [id, document.getElementById(id).value]));
@@ -1336,6 +1407,13 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         fields: copyFields(type.fields).filter((field) => field.label)
       }));
       data.ticketSeq = ticketSeq;
+      data.roleButtons = roleButtons.map((button) => ({
+        emoji: String(button.emoji || "").trim(),
+        label: String(button.label || "").trim(),
+        roleId: String(button.roleId || "").trim(),
+        style: String(button.style || "2")
+      }));
+      data.appealOn = !!document.getElementById("appealOn")?.checked;
       data.spamOn = !!document.getElementById("spamOn")?.checked;
       data.spamLinks = !!document.getElementById("spamLinks")?.checked;
       data.spamCaps = !!document.getElementById("spamCaps")?.checked;
@@ -1475,6 +1553,15 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         ticketPlaceholder: data.ticketPlaceholder,
         ticketColor: data.ticketColor,
         ticketTypes: data.ticketTypes,
+        roleChannelId: (data.roleChannelId || "").trim(),
+        roleTitle: data.roleTitle || "Rollen",
+        roleText: data.roleText || "",
+        roleColor: data.roleColor || "#5865f2",
+        roleButtons: data.roleButtons || [],
+        linkAllow: String(data.linkAllow || "").split(/\n/).map((line) => line.trim()).filter(Boolean),
+        appealOn: !!data.appealOn,
+        appealChannelId: (data.appealChannelId || "").trim(),
+        appealIntro: data.appealIntro || "",
         target
       };
     }
@@ -1666,6 +1753,55 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         block.append(head, grid, note, fields, addOne, next);
         ticketRoot.append(block);
       });
+      const roleRoot = document.getElementById("roleList");
+      if (roleRoot) {
+        roleRoot.innerHTML = "";
+        roleButtons.forEach((button, index) => {
+          const block = document.createElement("div");
+          block.className = "type";
+          const head = document.createElement("div");
+          head.className = "typehead";
+          const emoji = document.createElement("input");
+          emoji.value = button.emoji;
+          emoji.maxLength = 8;
+          emoji.placeholder = "🎮";
+          emoji.addEventListener("input", () => { roleButtons[index].emoji = emoji.value; preview(); });
+          const name = document.createElement("input");
+          name.value = button.label;
+          name.placeholder = "Gaming";
+          name.addEventListener("input", () => { roleButtons[index].label = name.value; preview(); });
+          const remove = document.createElement("button");
+          remove.type = "button";
+          remove.className = "icon";
+          remove.textContent = "×";
+          remove.setAttribute("aria-label", "Entfernen");
+          remove.addEventListener("click", () => {
+            roleButtons.splice(index, 1);
+            if (!roleButtons.length) roleButtons.push({ emoji: "", label: "", roleId: "", style: "2" });
+            render();
+          });
+          head.append(emoji, name, remove);
+          const grid = document.createElement("div");
+          grid.className = "pair";
+          const role = document.createElement("input");
+          role.value = button.roleId;
+          role.placeholder = "Rolle";
+          role.dataset.pick = "role";
+          role.addEventListener("input", () => { roleButtons[index].roleId = role.value; });
+          const style = document.createElement("select");
+          [["1", "Blau"], ["2", "Grau"], ["3", "Grün"], ["4", "Rot"]].forEach(([value, label]) => {
+            const option = document.createElement("option");
+            option.value = value;
+            option.textContent = label;
+            if (String(button.style || "2") === value) option.selected = true;
+            style.append(option);
+          });
+          style.addEventListener("change", () => { roleButtons[index].style = style.value; preview(); });
+          grid.append(role, style);
+          block.append(head, grid);
+          roleRoot.append(block);
+        });
+      }
       preview();
       bindPickers();
     }
@@ -1772,6 +1908,25 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
       if (ticketText) ticketText.textContent = document.getElementById("ticketText").value || "";
       const ticketDrop = document.getElementById("prevTicketDrop");
       if (ticketDrop) ticketDrop.textContent = document.getElementById("ticketPlaceholder").value || "Ticket-Art wählen";
+      const rolesEmbed = document.getElementById("rolesEmbed");
+      if (rolesEmbed) rolesEmbed.style.borderLeftColor = (document.getElementById("roleColor") || {}).value || "#5865f2";
+      const roleTitle = document.getElementById("prevRoleTitle");
+      if (roleTitle) roleTitle.textContent = (document.getElementById("roleTitle") || {}).value || "Rollen";
+      const roleText = document.getElementById("prevRoleText");
+      if (roleText) roleText.textContent = (document.getElementById("roleText") || {}).value || "";
+      const roleBtns = document.getElementById("prevRoleButtons");
+      if (roleBtns) {
+        const styles = { "1": "#5865f2", "2": "#4e5058", "3": "#248046", "4": "#da373c" };
+        roleBtns.innerHTML = "";
+        roleButtons.forEach((button) => {
+          if (!String(button.label || "").trim()) return;
+          const chip = document.createElement("span");
+          chip.textContent = (button.emoji ? button.emoji + " " : "") + button.label;
+          chip.style.background = styles[button.style] || styles["2"];
+          roleBtns.append(chip);
+        });
+      }
+      paintProbe();
       const giveawayNext = document.getElementById("giveawayTicketNext");
       if (giveawayNext) {
         const upcoming = ticketSeq.giveaway;
@@ -1791,7 +1946,8 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
       spiele: ["#wähle-deine-spiele", "Dropdown. Jede Zeile ist ein Spiel und eine Rolle."],
       creators: ["#content-creators", "Links von YouTube, Twitch, TikTok oder Kick. Ein neues Live wird in den Kanal geschickt."],
       giveaway: ["#giveaway", "Preis, Zeit und Gewinner. Der Button im Kanal trägt ein, danach wird gezogen."],
-      ticket: ["#ticket-system", "Dropdown. Jede Art hat eine eigene Kategorie und eine eigene Zahl, die nur hochzählt."],
+      rollen: ["#rollen", "Buttons. Ein Klick gibt die Rolle, nochmal klicken nimmt sie weg."],
+      ticket: ["#ticket-system", "Dropdown. Jede Art hat eine eigene Kategorie und eine eigene Zahl, die nur hochzählt. Sterne werden zur Monats-Rangliste."],
       link: ["Einstellung", "XP, Willkommen, Einladungen und die Verbindung. /level, /leaderboard und /invites kann jeder benutzen."]
     };
     document.querySelectorAll("nav button").forEach((button) => {
@@ -1810,7 +1966,8 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         document.getElementById("previewCreators").hidden = view !== "creators";
         document.getElementById("previewGiveaway").hidden = view !== "giveaway";
         document.getElementById("previewTicket").hidden = view !== "ticket";
-        const titles = { news: "Vorschau Ankündigungen", verify: "Vorschau Verifizierung", spiele: "Vorschau Spiele", creators: "Vorschau Live", giveaway: "Vorschau Giveaway", ticket: "Vorschau Tickets", link: "Leaderboard" };
+        document.getElementById("previewRoles").hidden = view !== "rollen";
+        const titles = { news: "Vorschau Ankündigungen", verify: "Vorschau Verifizierung", spiele: "Vorschau Spiele", rollen: "Vorschau Rollen", creators: "Vorschau Live", giveaway: "Vorschau Giveaway", ticket: "Vorschau Tickets", link: "Leaderboard" };
         document.querySelector(".preview-col h2").textContent = titles[view] || "Vorschau Regeln";
         preview();
         if (view === "giveaway") loadGiveaways();
@@ -1824,6 +1981,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
     document.getElementById("addGame").onclick = () => { games.push({ text: "", roleId: "" }); render(); };
     document.getElementById("addCreator").onclick = () => { creators.push({ url: "" }); render(); };
     document.getElementById("addTicket").onclick = () => { ticketTypes.push({ id: "t" + Date.now().toString(36), emoji: "🎫", name: "", categoryId: "", start: "0", seeRoleId: "", claimRoleId: "", fields: copyFields() }); render(); };
+    document.getElementById("addRoleButton").onclick = () => { roleButtons.push({ emoji: "", label: "", roleId: "", style: "2" }); render(); };
     document.getElementById("ticketGuildId").addEventListener("input", () => { document.getElementById("giveawayGuildId").value = document.getElementById("ticketGuildId").value; });
     document.getElementById("giveawayGuildId").addEventListener("input", () => { document.getElementById("ticketGuildId").value = document.getElementById("giveawayGuildId").value; });
     async function giveawayAction(target) {
@@ -1860,6 +2018,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         document.getElementById("mod-voice").hidden = button.dataset.mod !== "voice";
         document.getElementById("mod-welcome").hidden = button.dataset.mod !== "welcome";
         document.getElementById("mod-logs").hidden = button.dataset.mod !== "logs";
+        document.getElementById("mod-appeal").hidden = button.dataset.mod !== "appeal";
         document.getElementById("mod-stats").hidden = button.dataset.mod !== "stats";
         document.getElementById("mod-warns").hidden = button.dataset.mod !== "warns";
         document.getElementById("mod-spam").hidden = button.dataset.mod !== "spam";
@@ -1867,6 +2026,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         document.getElementById("mod-inactive").hidden = button.dataset.mod !== "inactive";
         document.getElementById("mod-autorole").hidden = button.dataset.mod !== "autorole";
         if (button.dataset.mod === "warns") loadWarns();
+        if (button.dataset.mod === "appeal") loadAppeals();
         bindPickers();
       };
     });
@@ -2074,6 +2234,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
             stats.append(row);
           });
         }
+        paintSupporter(body);
         box.innerHTML = "";
         const next = Number(body.next) || 0;
         const head = document.createElement("p");
@@ -2116,9 +2277,187 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         box.textContent = "Liste nicht geladen.";
       }
     }
+
+    function foldSpam(raw) {
+      const leet = { "0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "8": "b", "@": "a", "$": "s", "€": "e", "!": "i" };
+      let out = "";
+      for (const ch of String(raw || "").toLowerCase().replace(/[\u200b\u200c\u200d\ufeff]/g, "")) {
+        let next = "";
+        if (ch === "ä") next = "a";
+        else if (ch === "ö") next = "o";
+        else if (ch === "ü") next = "u";
+        else if (ch === "ß") next = "ss";
+        else if (leet[ch]) next = leet[ch];
+        else if (ch >= "a" && ch <= "z") next = ch;
+        if (next) out += next;
+        else if (out && !out.endsWith(" ")) out += " ";
+      }
+      return out.replace(/ +/g, " ").trim();
+    }
+    function clientSwear(list, sample) {
+      const words = String(list || "").split(/\n/).map((word) => word.trim().toLowerCase()).filter((word) => word.length >= 2);
+      const loose = " " + foldSpam(sample) + " ";
+      for (const word of words) {
+        const compact = foldSpam(word).replace(/ /g, "");
+        if (compact.length < 2) continue;
+        if (compact.length < 4) {
+          if (loose.includes(" " + compact + " ")) return word;
+          continue;
+        }
+        const pattern = compact.split("").join("[^a-z]{0,3}");
+        if (new RegExp("(?:^|[^a-z])" + pattern + "(?:[^a-z]|$)").test(loose)) return word;
+      }
+      return "";
+    }
+    function cleanDomain(raw) {
+      let text = String(raw || "").trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0].split("?")[0].split("#")[0].split(":")[0];
+      if (!/^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?)+$/.test(text)) return "";
+      return text;
+    }
+    function clientHosts(sample) {
+      const hosts = [];
+      const re = /(?:https?:\/\/|www\.)[^\s<>()\]]+|discord\.gg\/[a-z0-9-]+|discord(?:app)?\.com\/invite\/[a-z0-9-]+/gi;
+      let match;
+      while ((match = re.exec(String(sample || "")))) {
+        let raw = match[0].replace(/[.,!?;:]+$/, "");
+        if (/^discord\.gg\//i.test(raw) || /^discord(?:app)?\.com\//i.test(raw)) raw = "https://" + raw;
+        else if (/^www\./i.test(raw)) raw = "https://" + raw;
+        try { hosts.push(new URL(raw).hostname.replace(/^www\./i, "").toLowerCase() || "invalid"); } catch { hosts.push("invalid"); }
+      }
+      return hosts;
+    }
+    function paintProbe() {
+      const out = document.getElementById("spamProbeOut");
+      const sample = document.getElementById("spamProbe");
+      if (!out || !sample) return;
+      const text = sample.value.trim();
+      if (!text) {
+        out.textContent = "Tipp eine Nachricht. Sch3iße und Sch eiße bleiben hängen, youtube.com nicht, wenn die Domain in der Liste steht.";
+        out.className = "nextnum";
+        return;
+      }
+      const swear = clientSwear(document.getElementById("spamWords").value, text);
+      const allow = String(document.getElementById("linkAllow").value || "").split(/\n/).map(cleanDomain).filter(Boolean);
+      const bad = clientHosts(text).find((host) => !allow.some((domain) => host === domain || host.endsWith("." + domain)));
+      if (swear) {
+        out.textContent = "Würde gelöscht. Schimpfwort: " + swear;
+        out.className = "nextnum probe-hit";
+      } else if (bad) {
+        out.textContent = "Würde gelöscht. Fremder Link: " + bad;
+        out.className = "nextnum probe-hit";
+      } else if (clientHosts(text).length) {
+        out.textContent = "Links sind erlaubt.";
+        out.className = "nextnum probe-ok";
+      } else {
+        out.textContent = "Geht durch.";
+        out.className = "nextnum probe-ok";
+      }
+    }
+    function paintSupporter(body) {
+      const box = document.getElementById("supporterBoard");
+      const month = document.getElementById("supporterMonth");
+      if (!box) return;
+      if (month) month.textContent = body && body.month ? body.month : "Dieser Monat";
+      const people = body && Array.isArray(body.supporter) ? body.supporter : [];
+      box.innerHTML = "";
+      if (!people.length) {
+        box.textContent = "Diesen Monat hat noch niemand Sterne bekommen. Gezählt wird ab jetzt.";
+        return;
+      }
+      people.forEach((person, index) => {
+        const row = document.createElement("div");
+        row.className = "user-row" + (index === 0 ? " crown" : "");
+        const img = document.createElement("img");
+        img.alt = "";
+        img.src = avatarUrl(person);
+        const text = document.createElement("div");
+        const strong = document.createElement("strong");
+        strong.textContent = (index === 0 ? "Bester Supporter · " : (index + 1) + ". ") + (person.name || person.username || "User");
+        const user = document.createElement("span");
+        user.textContent = person.username ? "@" + person.username : "";
+        const avg = Number(person.avg) || 0;
+        const full = Math.max(0, Math.min(5, Math.round(avg)));
+        const nums = document.createElement("span");
+        nums.textContent = "★★★★★".slice(0, full) + "☆☆☆☆☆".slice(0, 5 - full) + "  " + avg.toFixed(1) + " · " + (person.ratingCount || 0) + " Bewertungen";
+        text.append(strong, user, nums);
+        row.append(img, text);
+        box.append(row);
+      });
+    }
+    async function loadAppeals() {
+      const box = document.getElementById("appealList");
+      const link = document.getElementById("appealLink");
+      const data = pack();
+      if (link) link.textContent = data.workerUrl ? "Formular: " + data.workerUrl.replace(/\/$/, "") + "/appeal" : "Erst den Worker eintragen.";
+      if (!box) return;
+      if (!data.workerUrl || !data.adminKey) {
+        box.textContent = "Erst Worker und Admin-Schlüssel speichern.";
+        return;
+      }
+      try {
+        const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/appeals", { headers: { "x-admin-key": data.adminKey } });
+        const body = await res.json();
+        const list = body.appeals || [];
+        box.innerHTML = "";
+        if (!list.length) {
+          box.textContent = "Noch keiner.";
+          return;
+        }
+        list.forEach((appeal) => {
+          const row = document.createElement("div");
+          row.className = "user-row";
+          const text = document.createElement("div");
+          const strong = document.createElement("strong");
+          const when = appeal.at ? new Date(appeal.at).toLocaleString("de-DE") : "";
+          const state = appeal.status === "accepted" ? "angenommen" : appeal.status === "denied" ? "abgelehnt" : "offen";
+          strong.textContent = state + " · " + (appeal.userId || "");
+          const extra = document.createElement("span");
+          extra.textContent = (appeal.text || "") + (when ? " · " + when : "");
+          text.append(strong, extra);
+          row.append(text);
+          if (appeal.status === "open") {
+            const yes = document.createElement("button");
+            yes.type = "button";
+            yes.className = "add";
+            yes.textContent = "Annehmen";
+            yes.onclick = () => decideAppeal("appeal-accept", appeal.id);
+            const no = document.createElement("button");
+            no.type = "button";
+            no.className = "add";
+            no.textContent = "Ablehnen";
+            no.onclick = () => decideAppeal("appeal-deny", appeal.id);
+            row.append(yes, no);
+          }
+          box.append(row);
+        });
+      } catch {
+        box.textContent = "Liste nicht geladen.";
+      }
+    }
+    async function decideAppeal(target, id) {
+      const data = pack();
+      localStorage.setItem(KEY, JSON.stringify(data));
+      setStatus(target === "appeal-accept" ? "Ban wird aufgehoben…" : "Einspruch wird abgelehnt…");
+      try {
+        const body = syncBody(data, target);
+        body.appealId = id;
+        const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/sync", {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-admin-key": data.adminKey },
+          body: JSON.stringify(body)
+        });
+        const answer = await res.json();
+        setStatus(answer.ok ? (answer.mode || "fertig") + "." : (answer.error || "Klappt nicht."), answer.ok ? "ok" : "bad");
+        if (answer.ok) loadAppeals();
+      } catch {
+        setStatus("Worker nicht erreichbar.", "bad");
+      }
+    }
     document.getElementById("ticketRefresh").onclick = () => loadOpenTickets();
+    const appealRefresh = document.getElementById("appealRefresh");
+    if (appealRefresh) appealRefresh.onclick = () => loadAppeals();
     document.querySelector(".stage").addEventListener("input", (event) => {
-      if (event.target.closest("#ruleList, #stepList, #gameList, #creatorList, #ticketList")) return;
+      if (event.target.closest("#ruleList, #stepList, #gameList, #creatorList, #ticketList, #roleList")) return;
       preview();
     });
     document.getElementById("save").onclick = async () => {
@@ -2146,7 +2485,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         const res = await fetch(data.workerUrl.replace(/\/$/, "") + "/api/sync", {
           method: "POST",
           headers: { "content-type": "application/json", "x-admin-key": data.adminKey },
-          body: JSON.stringify(syncBody(data, view === "news" ? "news" : view === "verify" ? "verify" : view === "spiele" ? "spiele" : view === "creators" ? "creators" : view === "giveaway" ? "giveaway-start" : view === "ticket" ? "ticket" : "regeln"))
+          body: JSON.stringify(syncBody(data, view === "news" ? "news" : view === "verify" ? "verify" : view === "spiele" ? "spiele" : view === "rollen" ? "rollen" : view === "creators" ? "creators" : view === "giveaway" ? "giveaway-start" : view === "ticket" ? "ticket" : "regeln"))
         });
         const body = await res.json();
         if (body.ok && view === "creators") {
@@ -2172,7 +2511,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
       ["statsChannelId", "voice"], ["voiceHubId", "voice"], ["voiceCategoryId", "category"], ["giveawayTicketCategory", "category"],
       ["roleId", "role"], ["verifyRoleId", "role"], ["ticketDeleteRole", "role"], ["giveawayRoleStart", "role"], ["giveawayRoleEnd", "role"],
       ["giveawayRoleReroll", "role"], ["giveawayBoosterRole", "role"], ["giveawayTicketSee", "role"], ["giveawayTicketClaim", "role"],
-      ["boostRoleId", "role"], ["inactiveRoleId", "role"]
+      ["boostRoleId", "role"], ["inactiveRoleId", "role"], ["roleChannelId", "text"], ["appealChannelId", "text"]
     ];
     const manyList = [["levelChannels", "text"], ["levelNoChannels", "any"], ["inactiveExemptText", "role"], ["autoRoleId", "role"], ["warnRoleId", "role"], ["kickRoleId", "role"], ["banRoleId", "role"], ["warnSeeRoleId", "role"], ["warnDeleteRoleId", "role"], ["timeoutRoleId", "role"], ["unbanRoleId", "role"], ["clearRoleId", "role"], ["lockRoleId", "role"], ["spamExempt", "role"]];
     function pickItems(kind) {
@@ -2531,8 +2870,10 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         if (img.getAttribute("src") !== body.icon) img.src = body.icon;
       } catch {}
     }
-    loadServer();
-    setInterval(loadServer, 60000);
+    if (onServer) {
+      loadServer();
+      setInterval(loadServer, 60000);
+    }
     async function loadChannels() {
       const data = pack();
       if (!data.workerUrl || !data.adminKey) return;
@@ -2548,7 +2889,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
           const input = document.getElementById(id);
           if (body[key] && input && !input.value.trim()) input.value = body[key];
         });
-        const views = { regeln: body.regeln, news: body.news, verify: body.verify, spiele: body.spiele, creators: body.creators, giveaway: body.giveaway, ticket: body.ticket };
+        const views = { regeln: body.regeln, news: body.news, verify: body.verify, spiele: body.spiele, rollen: body.rollen, creators: body.creators, giveaway: body.giveaway, ticket: body.ticket };
         catalog.text = body.choices || [];
         catalog.voice = body.voices || [];
         catalog.categories = body.categories || [];
@@ -2563,8 +2904,10 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
         preview();
       } catch {}
     }
-    loadChannels();
-    setInterval(loadChannels, 60000);
+    if (onServer) {
+      loadChannels();
+      setInterval(loadChannels, 60000);
+    }
     async function loadLevels() {
       const data = pack();
       const board = document.getElementById("levelBoard");
@@ -2581,8 +2924,10 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
       }
     }
     document.getElementById("levelSearch").addEventListener("input", showLevelUsers);
-    loadLevels();
-    setInterval(loadLevels, 60000);
+    if (onServer) {
+      loadLevels();
+      setInterval(loadLevels, 60000);
+    }
     window.scrollTo(0, 0);
     const wait = 60;
     let nextAt = Date.now() + 8 * 1000;
@@ -2624,6 +2969,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
           spamTimeout: String(cfg.spamTimeout ?? "0"),
           spamExempt: Array.isArray(cfg.spamExempt) ? cfg.spamExempt.join("\n") : (cfg.spamExempt || ""),
           spamWords: Array.isArray(cfg.spamWords) ? cfg.spamWords.join("\n") : (cfg.spamWords || ""),
+          linkAllow: Array.isArray(cfg.linkAllow) ? cfg.linkAllow.join("\n") : (cfg.linkAllow || ""),
           clearRoleId: Array.isArray(cfg.clearRoles) ? cfg.clearRoles.join("\n") : (cfg.clearRoleId || ""),
           lockRoleId: Array.isArray(cfg.lockRoles) ? cfg.lockRoles.join("\n") : (cfg.lockRoleId || ""),
           starChannelId: cfg.starChannelId || "",
@@ -2662,7 +3008,7 @@ input[type="color"] { width: 52px; height: 44px; padding: 4px; }
       checking = false;
       tick();
     }
-    pull().finally(() => {
+    if (onServer) pull().finally(() => {
       nextAt = Date.now() + 8 * 1000;
       tick();
       setInterval(tick, 250);
