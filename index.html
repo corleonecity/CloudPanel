@@ -165,6 +165,15 @@
     @media (max-width: 780px) {
       .lives { position: static; transform: none; flex-direction: row; flex-wrap: wrap; justify-content: flex-end; margin-top: 8px; }
     }
+    .spotify {
+      display: flex; align-items: center; gap: 10px;
+      margin-top: 8px; padding: 8px 12px 8px 8px;
+      text-decoration: none; color: #fff;
+    }
+    .spotify[hidden] { display: none; }
+    .spotify img { width: 42px; height: 42px; border-radius: 8px; object-fit: cover; flex: none; }
+    .spotify b { display: block; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .spotify em { display: block; margin-top: 2px; font-style: normal; font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .player { display: flex; align-items: center; gap: 12px; padding: 12px; }
     .cover { width: 52px; height: 52px; border-radius: 6px; object-fit: cover; flex: none; }
     .track { min-width: 0; flex: 1; }
@@ -270,6 +279,13 @@
       </section>
       <div class="lives" id="lives" hidden></div>
       </div>
+      <a class="glass spotify" id="spotify" hidden target="_blank" rel="noreferrer">
+        <img id="spotify-cover" alt="" width="42" height="42" />
+        <span class="min">
+          <b id="spotify-title"></b>
+          <em id="spotify-artist"></em>
+        </span>
+      </a>
 
       <section class="glass player">
         <img class="cover" id="cover" src="cover-1.jpeg" alt="" width="52" height="52" />
@@ -547,6 +563,19 @@
       dot.className = "dot " + (card.status || "offline");
       const label = card.status === "online" ? "online" : card.status === "idle" ? "abwesend" : card.status === "dnd" ? "nicht stören" : "offline";
       document.getElementById("status-label").title = label;
+      const spotify = document.getElementById("spotify");
+      const song = card.spotify;
+      if (song && (song.title || song.artist)) {
+        spotify.hidden = false;
+        spotify.href = song.url || "https://open.spotify.com";
+        document.getElementById("spotify-title").textContent = song.title || "Spotify";
+        document.getElementById("spotify-artist").textContent = song.artist || "";
+        const cover = document.getElementById("spotify-cover");
+        if (song.cover) { cover.hidden = false; cover.src = song.cover; }
+        else { cover.hidden = true; cover.removeAttribute("src"); }
+      } else {
+        spotify.hidden = true;
+      }
     }
     function pullDiscord() {
       fetch(API + "/api/discord").then((res) => res.ok ? res.json() : null).then((data) => { if (data) paintDiscord(data); }).catch(() => {});
