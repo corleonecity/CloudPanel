@@ -6,7 +6,13 @@
   <title>Colin</title>
   <meta name="description" content="Carry Freedom in Your Heart" />
   <meta name="theme-color" content="#07080c" />
-  <link rel="preconnect" href="https://cobalt-fleet-wind-finch.grok.me" />
+  <link rel="preload" as="image" href="avatar.webp" />
+  <link rel="preload" as="image" href="sparkle.gif" />
+  <link rel="preload" as="image" href="cover-1.jpeg" />
+  <link rel="preload" as="image" href="cover-2.jpeg" />
+  <link rel="preload" as="image" href="buttom1.jpeg" />
+  <link rel="preload" as="audio" href="song-1.mp3" />
+  <link rel="preload" as="audio" href="song-2.mp3" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link href="https://api.fontshare.com/v2/css?f[]=chillax@500,600&display=swap" rel="stylesheet" />
@@ -257,7 +263,7 @@
       </div>
     </div>
   </main>
-  <audio id="audio" preload="none"></audio>
+  <audio id="audio" preload="auto" src="song-1.mp3"></audio>
   <script>
     const API = "https://cobalt-fleet-wind-finch.grok.me";
     const tracks = [
@@ -280,7 +286,7 @@
       const track = tracks[index];
       document.getElementById("title").textContent = track.title;
       document.getElementById("cover").src = track.cover;
-      audio.src = track.src;
+      if (!audio.src.endsWith(track.src)) audio.src = track.src;
       document.getElementById("time").textContent = "0:00";
       document.getElementById("dur").textContent = "0:00";
       scrub.value = 0;
@@ -304,7 +310,7 @@
       applyVol();
       audio.play().then(() => { playing = true; setIcon(); }).catch(() => { playing = false; setIcon(); });
     }
-    function startVideo() {
+    function primeVideo() {
       const bg = document.getElementById("bg");
       if (!bg) return;
       const phone = window.matchMedia("(hover: none) and (pointer: coarse)").matches || window.matchMedia("(max-width: 800px)").matches;
@@ -312,13 +318,24 @@
       bg.muted = true;
       bg.defaultMuted = true;
       bg.playsInline = true;
-      bg.setAttribute("playsinline", "true");
-      bg.setAttribute("webkit-playsinline", "true");
+      bg.preload = "auto";
+      bg.load();
+      const pending = bg.play();
+      if (pending) pending.then(() => { bg.pause(); try { bg.currentTime = 0; } catch (e) {} }).catch(() => {});
+    }
+    function startVideo() {
+      const bg = document.getElementById("bg");
+      if (!bg) return;
+      try { bg.currentTime = 0; } catch (e) {}
       const kick = () => { const pending = bg.play(); if (pending) pending.catch(() => {}); };
       kick();
-      bg.addEventListener("loadeddata", kick, { once: true });
       bg.addEventListener("canplay", kick, { once: true });
     }
+    primeVideo();
+    ["avatar.webp", "sparkle.gif", "cursor.png", "buttom1.jpeg", "buttom2.jpeg", "buttom3.jpeg", "buttom4.jpeg", "cover-1.jpeg", "cover-2.jpeg"].forEach((src) => { const img = new Image(); img.src = src; });
+    const nextSong = new Audio("song-2.mp3");
+    nextSong.preload = "auto";
+    nextSong.load();
     let opened = false;
     function openPage() {
       if (opened) return;
