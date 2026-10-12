@@ -374,10 +374,7 @@
       .catch(() => {});
 
     function activityLogo(card) {
-      if (card.icon) return card.icon;
-      const text = ((card.headline || "") + " " + (card.detail || "") + " " + (card.activity || "")).toLowerCase();
-      if (text.includes("roblox")) return "https://cdn.medal.tv/asset/games/roblox/icon-1734633744595.jpg";
-      return "";
+      return card.icon || "";
     }
     function paintDiscord(card) {
       document.getElementById("discord-name").textContent = card.username || "asuna.rb";
