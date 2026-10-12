@@ -18,7 +18,7 @@
       --glass: #101218;
       --sans: "Onest", ui-sans-serif, system-ui, sans-serif;
       --display: "Chillax", "Onest", ui-sans-serif, system-ui, sans-serif;
-      --cursor: url("media/cursor.png") 16 16, auto;
+      --cursor: url("cursor.png") 16 16, auto;
     }
     * { box-sizing: border-box; }
     html, body, button, a, input { cursor: var(--cursor); }
@@ -73,7 +73,7 @@
     }
     .sparkle {
       position: absolute; left: -16px; right: -16px; top: -12px; bottom: -12px; pointer-events: none;
-      background: url("media/sparkle.gif") 0 0 / 90px 68px;
+      background: url("sparkle.gif") 0 0 / 90px 68px;
       mix-blend-mode: screen;
     }
     .gem {
@@ -121,9 +121,9 @@
 </head>
 <body>
   <main class="stage">
-    <img class="bg" src="media/forest.jpg" alt="" />
-    <video class="bg" autoplay muted loop playsinline poster="media/forest.jpg">
-      <source src="media/forest.mp4" type="video/mp4" />
+    <img class="bg" src="forest.jpg" alt="" />
+    <video class="bg" autoplay muted loop playsinline poster="forest.jpg">
+      <source src="forest.mp4" type="video/mp4" />
     </video>
     <div class="vignette"></div>
 
@@ -137,7 +137,7 @@
     <div class="wrap" id="page" hidden>
       <section class="glass card">
         <div class="top">
-          <img class="avatar" src="media/avatar.webp" alt="" width="72" height="72" />
+          <img class="avatar" src="avatar.webp" alt="" width="72" height="72" />
           <div class="meta">
             <span class="row"><span aria-hidden="true">◉</span> <span id="views">163</span></span>
             <span class="row">Deutschland, Thüringen</span>
@@ -164,7 +164,7 @@
       </section>
 
       <section class="glass player">
-        <img class="cover" id="cover" src="media/cover-lubi.jpg" alt="" width="48" height="48" />
+        <img class="cover" id="cover" src="cover-lubi.jpg" alt="" width="48" height="48" />
         <div class="track">
           <div class="line">
             <p class="title" id="title">Люби меня</p>
@@ -192,8 +192,8 @@
   <audio id="audio" preload="none"></audio>
   <script>
     const tracks = [
-      { title: "Люби меня", src: "https://p.scdn.co/mp3-preview/dec9d2636dba834b61421e0e0c400c785e677d57", cover: "media/cover-lubi.jpg" },
-      { title: "Влюбился в неё", src: "https://p.scdn.co/mp3-preview/b80e6f918a44cf4f47e2dca7dc17635c26dcd2d9", cover: "media/cover-vlub.jpg" }
+      { title: "Люби меня", src: "https://p.scdn.co/mp3-preview/dec9d2636dba834b61421e0e0c400c785e677d57", cover: "cover-lubi.jpg" },
+      { title: "Влюбился в неё", src: "https://p.scdn.co/mp3-preview/b80e6f918a44cf4f47e2dca7dc17635c26dcd2d9", cover: "cover-vlub.jpg" }
     ];
     const audio = document.getElementById("audio");
     const scrub = document.getElementById("scrub");
