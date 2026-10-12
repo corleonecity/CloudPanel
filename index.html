@@ -66,10 +66,17 @@
       position: absolute; top: 50%; right: calc(50% + 14rem + 18px);
       transform: translateY(-50%);
       display: flex; flex-direction: column; gap: 8px; width: 250px;
+      max-height: calc(5 * 46px + 4 * 8px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,.4) transparent;
     }
+    .links::-webkit-scrollbar { width: 4px; }
+    .links::-webkit-scrollbar-thumb { background: rgba(255,255,255,.4); border-radius: 999px; }
     .stack { display: flex; flex-direction: column; gap: 12px; width: min(100%, 28rem); }
     .pill {
-      display: flex; align-items: center; gap: 8px;
+      display: flex; align-items: center; gap: 8px; flex: none;
       min-height: 46px; padding: 4px 12px 4px 4px; border-radius: 999px;
       text-decoration: none; color: #fff;
     }
@@ -222,15 +229,7 @@
         <span class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden">Lautstärke</span>
         <input class="vol" id="vol" type="range" min="0" max="1" step="0.01" value="0.35" aria-label="Lautstärke" />
       </label>
-      <nav class="links" aria-label="Links">
-        <a class="pill glass" href="https://discord.gg/4424J6EQBH" target="_blank" rel="noreferrer">
-          <img class="pill-ico" src="buttom1.jpeg" alt="" width="34" height="34" />
-          <span class="pill-copy"><span class="pill-title">Discord Colin’s Community</span><span class="pill-url"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></svg>discord.gg/4424J6EQBH</span></span>
-        </a>
-        <div class="pill glass empty"><img class="pill-ico" src="buttom2.jpeg" alt="" width="34" height="34" /></div>
-        <div class="pill glass empty"><img class="pill-ico" src="buttom3.jpeg" alt="" width="34" height="34" /></div>
-        <div class="pill glass empty"><img class="pill-ico" src="buttom4.jpeg" alt="" width="34" height="34" /></div>
-      </nav>
+      <nav class="links" id="links" aria-label="Links"></nav>
       <div class="stack">
       <section class="glass card">
         <img class="avatar" src="avatar.webp" alt="" width="76" height="76" />
@@ -291,6 +290,51 @@
   <audio id="audio" preload="auto" src="song-1.mp3"></audio>
   <script>
     const API = "https://cobalt-fleet-wind-finch.grok.me";
+    function paintButtons(list) {
+      const nav = document.getElementById("links");
+      if (!nav || !Array.isArray(list)) return;
+      nav.replaceChildren();
+      list.forEach((item) => {
+        const img = document.createElement("img");
+        img.className = "pill-ico";
+        img.src = item.bild || "";
+        img.alt = "";
+        img.width = 34;
+        img.height = 34;
+        if (item.link) {
+          const link = document.createElement("a");
+          link.className = "pill glass";
+          link.href = item.link;
+          link.target = "_blank";
+          link.rel = "noreferrer";
+          link.append(img);
+          if (item.titel || item.text) {
+            const copy = document.createElement("span");
+            copy.className = "pill-copy";
+            if (item.titel) {
+              const title = document.createElement("span");
+              title.className = "pill-title";
+              title.textContent = item.titel;
+              copy.append(title);
+            }
+            if (item.text) {
+              const url = document.createElement("span");
+              url.className = "pill-url";
+              url.textContent = item.text;
+              copy.append(url);
+            }
+            link.append(copy);
+          }
+          nav.append(link);
+        } else {
+          const box = document.createElement("div");
+          box.className = "pill glass empty";
+          box.append(img);
+          nav.append(box);
+        }
+      });
+    }
+    fetch("buttons.json").then((res) => res.ok ? res.json() : []).then(paintButtons).catch(() => {});
     const tracks = [
       { title: "Люби меня", src: "song-1.mp3", cover: "cover-1.jpeg" },
       { title: "Влюбился в неё", src: "song-2.mp3", cover: "cover-2.jpeg" }
