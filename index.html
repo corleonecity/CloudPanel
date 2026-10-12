@@ -228,7 +228,6 @@
         <div class="min">
           <p class="who" id="discord-name">asuna.rb</p>
           <p class="play" id="discord-play">currently doing nothing</p>
-          <p class="act" id="discord-act"></p>
         </div>
         <img class="app" id="discord-app" alt="" hidden />
       </section>
@@ -357,19 +356,23 @@
 
     const views = document.getElementById("views");
     const wait = 10 * 60 * 1000;
+    let viewer = "";
     let count = true;
     try {
+      viewer = localStorage.getItem("colin-viewer") || "";
+      if (!viewer) {
+        viewer = Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem("colin-viewer", viewer);
+      }
       const last = Number(localStorage.getItem("colin-view-at") || 0);
       count = !last || Date.now() - last >= wait;
+      if (count) localStorage.setItem("colin-view-at", String(Date.now()));
     } catch (e) { count = true; }
-    fetch(API + "/api/views", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ increment: count }) })
+    fetch(API + "/api/views", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ increment: count, viewer: viewer }) })
       .then((res) => res.ok ? res.json() : null)
       .then((data) => {
         if (!data || typeof data.count !== "number") return;
         views.textContent = String(data.count);
-        if (count) {
-          try { localStorage.setItem("colin-view-at", String(Date.now())); } catch (e) {}
-        }
       })
       .catch(() => {});
 
@@ -379,9 +382,6 @@
     function paintDiscord(card) {
       document.getElementById("discord-name").textContent = card.username || "asuna.rb";
       document.getElementById("discord-play").textContent = card.headline || card.activity || "currently doing nothing";
-      const act = document.getElementById("discord-act");
-      act.textContent = card.detail || "";
-      act.hidden = !card.detail;
       if (card.avatar) document.getElementById("discord-avatar").src = card.avatar;
       const app = document.getElementById("discord-app");
       const logo = activityLogo(card);
