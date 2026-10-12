@@ -32,10 +32,14 @@
     }
     button { font: inherit; color: inherit; background: none; border: 0; padding: 0; }
     .stage { min-height: 100vh; position: relative; overflow: hidden; }
-    .bg {
-      position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
-      pointer-events: none;
+    .yt-bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; background: #000; }
+    .yt-bg[hidden] { display: none; }
+    .yt-bg iframe {
+      position: absolute; top: 50%; left: 50%;
+      width: 3840px; height: 2160px; max-width: none; border: 0;
+      transform: translate(-50%, -50%) scale(max(100vw / 3840px, 100vh / 2160px));
     }
+    .spot { width: 100%; height: 80px; border: 0; border-radius: 16px; display: block; }
     .vignette {
       position: absolute; inset: 0; pointer-events: none;
       background: radial-gradient(ellipse at center, transparent 10%, color-mix(in oklab, var(--ink) 18%, transparent) 62%, color-mix(in oklab, var(--ink) 88%, transparent) 100%);
@@ -122,9 +126,9 @@
 </head>
 <body>
   <main class="stage">
-    <video class="bg" id="bg" hidden muted loop playsinline>
-      <source src="forest.mp4" type="video/mp4" />
-    </video>
+    <div class="yt-bg" id="yt" hidden>
+      <iframe id="yt-frame" title="Hintergrund" allow="autoplay; encrypted-media; picture-in-picture"></iframe>
+    </div>
     <div class="vignette" hidden id="shade"></div>
 
     <button class="enter" id="enter" type="button">
@@ -163,101 +167,18 @@
         </div>
       </section>
 
-      <section class="glass player">
-        <img class="cover" id="cover" src="cover-lubi.jpg" alt="" width="48" height="48" />
-        <div class="track">
-          <div class="line">
-            <p class="title" id="title">Люби меня</p>
-            <div class="controls">
-              <button type="button" id="prev" aria-label="Vorheriger Titel">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zM20 6v12L9 12z"/></svg>
-              </button>
-              <button type="button" id="play" aria-label="Abspielen">
-                <svg id="play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-              </button>
-              <button type="button" id="next" aria-label="Nächster Titel">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM4 6l11 6-11 6z"/></svg>
-              </button>
-            </div>
-          </div>
-          <div class="scrub-row">
-            <span class="time" id="time">0:00</span>
-            <input id="scrub" type="range" min="0" max="0" step="0.1" value="0" aria-label="Fortschritt" />
-            <span class="time end" id="dur">0:00</span>
-          </div>
-        </div>
-      </section>
+      <iframe class="spot" title="Люби меня" src="https://open.spotify.com/embed/track/6r9DYAeSXuDNIqtH2pEFSj?utm_source=generator&theme=0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+      <iframe class="spot" title="Влюбился в неё" src="https://open.spotify.com/embed/track/4DbGntPVyXDvu9vFCYQCcW?utm_source=generator&theme=0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
     </div>
   </main>
-  <audio id="audio" preload="none"></audio>
   <script>
-    const tracks = [
-      { title: "Люби меня", src: "https://p.scdn.co/mp3-preview/dec9d2636dba834b61421e0e0c400c785e677d57", cover: "cover-lubi.jpg" },
-      { title: "Влюбился в неё", src: "https://p.scdn.co/mp3-preview/b80e6f918a44cf4f47e2dca7dc17635c26dcd2d9", cover: "cover-vlub.jpg" }
-    ];
-    const audio = document.getElementById("audio");
-    const scrub = document.getElementById("scrub");
-    let index = 0;
-    let playing = false;
-
-    function clock(seconds) {
-      if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
-      const m = Math.floor(seconds / 60);
-      const s = Math.floor(seconds % 60);
-      return m + ":" + String(s).padStart(2, "0");
-    }
-    function show(i) {
-      index = (i + tracks.length) % tracks.length;
-      const track = tracks[index];
-      document.getElementById("title").textContent = track.title;
-      document.getElementById("cover").src = track.cover;
-      audio.src = track.src;
-      document.getElementById("time").textContent = "0:00";
-      document.getElementById("dur").textContent = "0:00";
-      scrub.value = 0;
-      scrub.style.setProperty("--pct", "0%");
-    }
-    function setIcon() {
-      document.getElementById("play-icon").innerHTML = playing
-        ? '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>'
-        : '<path d="M8 5v14l11-7z"/>';
-      document.getElementById("play").setAttribute("aria-label", playing ? "Pause" : "Abspielen");
-    }
-    function play() {
-      audio.play().then(() => { playing = true; setIcon(); }).catch(() => { playing = false; setIcon(); });
-    }
     document.getElementById("enter").addEventListener("click", () => {
       document.getElementById("enter").hidden = true;
       document.getElementById("page").hidden = false;
-      const bg = document.getElementById("bg");
-      const shade = document.getElementById("shade");
-      bg.hidden = false;
-      shade.hidden = false;
-      bg.play();
-      show(0);
-      play();
-    });
-    document.getElementById("play").addEventListener("click", () => {
-      if (audio.paused) play();
-      else { audio.pause(); playing = false; setIcon(); }
-    });
-    document.getElementById("prev").addEventListener("click", () => { show(index - 1); if (playing) play(); });
-    document.getElementById("next").addEventListener("click", () => { show(index + 1); if (playing) play(); });
-    audio.addEventListener("timeupdate", () => {
-      document.getElementById("time").textContent = clock(audio.currentTime);
-      scrub.value = audio.currentTime;
-      const pct = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
-      scrub.style.setProperty("--pct", pct + "%");
-    });
-    audio.addEventListener("loadedmetadata", () => {
-      document.getElementById("dur").textContent = clock(audio.duration);
-      scrub.max = audio.duration || 0;
-    });
-    audio.addEventListener("ended", () => { show(index + 1); play(); });
-    scrub.addEventListener("input", () => {
-      audio.currentTime = Number(scrub.value);
-      const pct = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
-      scrub.style.setProperty("--pct", pct + "%");
+      const frame = document.getElementById("yt-frame");
+      frame.src = "https://www.youtube-nocookie.com/embed/yAKO8TPZLm8?autoplay=1&mute=1&controls=0&start=70&modestbranding=1&rel=0&playsinline=1&loop=1&playlist=yAKO8TPZLm8&disablekb=1&fs=0&iv_load_policy=3&vq=hd2160";
+      document.getElementById("yt").hidden = false;
+      document.getElementById("shade").hidden = false;
     });
 
     const views = document.getElementById("views");
