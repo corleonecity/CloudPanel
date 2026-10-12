@@ -43,6 +43,7 @@
     .enter {
       position: absolute; inset: 0; z-index: 20;
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+      background: #000;
     }
     .enter[hidden] { display: none; }
     .mark { width: 48px; height: 48px; animation: pulse 2.8s ease-in-out infinite; }
@@ -121,11 +122,10 @@
 </head>
 <body>
   <main class="stage">
-    <img class="bg" src="forest.jpg" alt="" />
-    <video class="bg" autoplay muted loop playsinline poster="forest.jpg">
+    <video class="bg" id="bg" hidden muted loop playsinline>
       <source src="forest.mp4" type="video/mp4" />
     </video>
-    <div class="vignette"></div>
+    <div class="vignette" hidden id="shade"></div>
 
     <button class="enter" id="enter" type="button">
       <svg class="mark" viewBox="0 0 64 64" aria-hidden="true">
@@ -229,6 +229,11 @@
     document.getElementById("enter").addEventListener("click", () => {
       document.getElementById("enter").hidden = true;
       document.getElementById("page").hidden = false;
+      const bg = document.getElementById("bg");
+      const shade = document.getElementById("shade");
+      bg.hidden = false;
+      shade.hidden = false;
+      bg.play();
       show(0);
       play();
     });
