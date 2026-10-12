@@ -70,10 +70,11 @@
       overflow-y: auto;
       overscroll-behavior: contain;
       scrollbar-width: thin;
-      scrollbar-color: rgba(255,255,255,.4) transparent;
+      scrollbar-color: rgba(255,255,255,.7) transparent;
+      padding-right: 6px;
     }
-    .links::-webkit-scrollbar { width: 4px; }
-    .links::-webkit-scrollbar-thumb { background: rgba(255,255,255,.4); border-radius: 999px; }
+    .links::-webkit-scrollbar { width: 8px; }
+    .links::-webkit-scrollbar-thumb { background: rgba(255,255,255,.7); border-radius: 999px; }
     .stack { display: flex; flex-direction: column; gap: 12px; width: min(100%, 28rem); }
     .pill {
       display: flex; align-items: center; gap: 8px; flex: none;
@@ -348,7 +349,14 @@
       { bild: "buttom3.jpeg", titel: "", link: "", text: "" },
       { bild: "buttom4.jpeg", titel: "", link: "", text: "" }
     ];
-    fetch("buttons.json", { cache: "no-store" }).then((res) => res.ok ? res.json() : null).then((list) => { if (Array.isArray(list) && list.length) paintButtons(list); }).catch(() => {});
+    fetch("buttons.json", { cache: "no-store" })
+      .then((res) => res.ok ? res.text() : "")
+      .then((text) => {
+        if (!text) return;
+        const data = JSON.parse(text.replace(/}\s*{/g, "},{"));
+        if (Array.isArray(data) && data.length) paintButtons(data);
+      })
+      .catch(() => {});
     const tracks = [
       { title: "Люби меня", src: "song-1.mp3", cover: "cover-1.jpeg" },
       { title: "Влюбился в неё", src: "song-2.mp3", cover: "cover-2.jpeg" }
