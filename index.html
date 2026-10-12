@@ -35,6 +35,7 @@
     .yt-bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; background: #000; }
     .yt-bg video {
       position: absolute; inset: 0; width: 100%; height: 100%;
+      min-width: 100%; min-height: 100%;
       object-fit: cover; pointer-events: none; background: #000;
     }
     .vignette {
@@ -52,11 +53,10 @@
     .wrap {
       position: relative; z-index: 10;
       min-height: 100vh; width: 100%; margin: 0;
-      display: grid; grid-template-columns: minmax(160px, 1fr) minmax(280px, 28rem) minmax(24px, 1fr);
-      align-items: center; gap: 28px;
-      padding: 72px 28px 72px 12px;
+      display: flex; align-items: center; justify-content: center; gap: 22px;
+      padding: 72px 20px;
     }
-    .links { display: flex; flex-direction: column; gap: 8px; width: min(100%, 250px); justify-self: start; }
+    .links { display: flex; flex-direction: column; gap: 8px; width: 250px; flex: none; }
     .stack { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
     .pill {
       display: flex; align-items: center; gap: 8px;
@@ -154,6 +154,8 @@
       box-shadow: 0 10px 30px rgba(0,0,0,.35);
       backdrop-filter: blur(12px);
     }
+    @media (hover: none) and (pointer: coarse) { .loud { display: none; } }
+    @media (max-width: 800px) { .loud { display: none; } }
     input[type="range"] {
       -webkit-appearance: none; appearance: none; width: 100%; height: 20px; margin: 0; background: transparent;
     }
@@ -171,7 +173,7 @@
 <body>
   <main class="stage">
     <div class="yt-bg" id="yt">
-      <video id="bg" src="https://pub-a1f6c25dd7294e5ea77b520b4b52a8ee.r2.dev/1012%20(2)(1).mp4" muted loop playsinline preload="auto"></video>
+      <video id="bg" src="https://pub-a1f6c25dd7294e5ea77b520b4b52a8ee.r2.dev/1012%20(2)(1).mp4" muted playsinline webkit-playsinline="true" loop preload="auto"></video>
     </div>
     <div class="vignette" id="shade"></div>
 
@@ -306,14 +308,33 @@
       applyVol();
       audio.play().then(() => { playing = true; setIcon(); }).catch(() => { playing = false; setIcon(); });
     }
-    document.getElementById("enter").addEventListener("click", () => {
+    function startVideo() {
+      const bg = document.getElementById("bg");
+      if (!bg) return;
+      const phone = window.matchMedia("(hover: none) and (pointer: coarse)").matches || window.matchMedia("(max-width: 800px)").matches;
+      if (phone) bg.src = "bg.mp4";
+      bg.muted = true;
+      bg.defaultMuted = true;
+      bg.playsInline = true;
+      bg.setAttribute("playsinline", "true");
+      bg.setAttribute("webkit-playsinline", "true");
+      const kick = () => { const pending = bg.play(); if (pending) pending.catch(() => {}); };
+      kick();
+      bg.addEventListener("loadeddata", kick, { once: true });
+      bg.addEventListener("canplay", kick, { once: true });
+    }
+    let opened = false;
+    function openPage() {
+      if (opened) return;
+      opened = true;
+      startVideo();
       document.getElementById("enter").hidden = true;
       document.getElementById("page").hidden = false;
-      const bg = document.getElementById("bg");
-      if (bg) bg.play();
       show(0);
       play();
-    });
+    }
+    document.getElementById("enter").addEventListener("pointerup", openPage);
+    document.getElementById("enter").addEventListener("click", openPage);
     document.getElementById("play").addEventListener("click", () => {
       if (audio.paused) play();
       else { audio.pause(); playing = false; setIcon(); }
@@ -338,14 +359,20 @@
     });
 
     const views = document.getElementById("views");
+    const wait = 10 * 60 * 1000;
     let count = true;
-    try { count = sessionStorage.getItem("colin-db-view") !== "1"; } catch (e) { count = true; }
+    try {
+      const last = Number(localStorage.getItem("colin-view-at") || 0);
+      count = !last || Date.now() - last >= wait;
+    } catch (e) { count = true; }
     fetch(API + "/api/views", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ increment: count }) })
       .then((res) => res.ok ? res.json() : null)
       .then((data) => {
         if (!data || typeof data.count !== "number") return;
         views.textContent = String(data.count);
-        try { sessionStorage.setItem("colin-db-view", "1"); } catch (e) {}
+        if (count) {
+          try { localStorage.setItem("colin-view-at", String(Date.now())); } catch (e) {}
+        }
       })
       .catch(() => {});
 
