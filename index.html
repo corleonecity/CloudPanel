@@ -423,7 +423,7 @@
     }
     function paintDiscord(card) {
       document.getElementById("discord-name").textContent = card.username || "asuna.rb";
-      document.getElementById("discord-play").textContent = card.headline || card.activity || "currently doing nothing";
+      document.getElementById("discord-play").textContent = (card.headline || card.activity || "currently doing nothing").replace(/\s+with\s+medal\b/gi, "").trim();
       if (card.avatar) document.getElementById("discord-avatar").src = card.avatar;
       const app = document.getElementById("discord-app");
       const logo = activityLogo(card);
