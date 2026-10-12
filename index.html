@@ -33,10 +33,9 @@
     button { font: inherit; color: inherit; background: none; border: 0; padding: 0; }
     .stage { min-height: 100vh; position: relative; overflow: hidden; }
     .yt-bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; background: #000; }
-    .yt-bg iframe {
-      position: absolute; top: 50%; left: 50%; border: 0; pointer-events: none;
-      width: 2560px; height: 1440px;
-      transform: translate(-50%, -50%) scale(1.35);
+    .yt-bg video {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; pointer-events: none; background: #000;
     }
     .vignette {
       position: absolute; inset: 0; pointer-events: none;
@@ -66,8 +65,8 @@
     }
     .card { position: relative; padding: 28px 20px 18px; }
     .avatar {
-      position: absolute; left: 18px; top: 0; width: 76px; height: 76px;
-      transform: translateY(-50%); border-radius: 999px; object-fit: cover;
+      position: absolute; left: 18px; top: 0; width: 80px; height: 80px;
+      transform: translateY(-46%); border-radius: 22px; object-fit: cover;
       box-shadow: 0 10px 24px rgba(0,0,0,.4);
     }
     .meta {
@@ -151,7 +150,7 @@
 <body>
   <main class="stage">
     <div class="yt-bg" id="yt">
-      <iframe id="yt-frame" title="Hintergrund" src="https://www.youtube-nocookie.com/embed/yAKO8TPZLm8?autoplay=1&mute=1&controls=0&start=70&modestbranding=1&rel=0&playsinline=1&disablekb=1&fs=0&iv_load_policy=3&vq=hd1440" allow="autoplay; encrypted-media" tabindex="-1"></iframe>
+      <video id="bg" src="forest.mp4" muted loop playsinline preload="auto"></video>
     </div>
     <div class="vignette" id="shade"></div>
 
@@ -269,6 +268,8 @@
     document.getElementById("enter").addEventListener("click", () => {
       document.getElementById("enter").hidden = true;
       document.getElementById("page").hidden = false;
+      const bg = document.getElementById("bg");
+      if (bg) bg.play();
       show(0);
       play();
     });
