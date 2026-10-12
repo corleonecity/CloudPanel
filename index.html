@@ -70,11 +70,12 @@
       overflow-y: auto;
       overscroll-behavior: contain;
       scrollbar-width: thin;
-      scrollbar-color: rgba(255,255,255,.7) transparent;
-      padding-right: 6px;
+      scrollbar-color: rgba(255,255,255,.45) transparent;
+      padding-right: 2px;
     }
-    .links::-webkit-scrollbar { width: 8px; }
-    .links::-webkit-scrollbar-thumb { background: rgba(255,255,255,.7); border-radius: 999px; }
+    .links::-webkit-scrollbar { width: 4px; background: transparent; }
+    .links::-webkit-scrollbar-track { background: transparent; }
+    .links::-webkit-scrollbar-thumb { background: rgba(255,255,255,.45); border-radius: 999px; }
     .stack { display: flex; flex-direction: column; gap: 8px; width: min(100%, 28rem); }
     .pill {
       display: flex; align-items: center; gap: 8px; flex: none;
@@ -98,7 +99,7 @@
       backdrop-filter: blur(18px);
       border-radius: 16px;
     }
-    .pill.glass { border-radius: 999px; }
+    .pill.glass { border-radius: 999px; box-shadow: none; }
     .card { position: relative; padding: 28px 20px 10px; }
     .avatar {
       position: absolute; left: 18px; top: 0; width: 80px; height: 80px;
