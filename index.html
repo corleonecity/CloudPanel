@@ -35,8 +35,8 @@
     .yt-bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; background: #000; }
     .yt-bg iframe {
       position: absolute; top: 50%; left: 50%; border: 0; pointer-events: none;
-      width: 180vw; height: 101.25vw; min-width: 320vh; min-height: 180vh;
-      transform: translate(-50%, -50%);
+      width: 2560px; height: 1440px;
+      transform: translate(-50%, -50%) scale(1.35);
     }
     .vignette {
       position: absolute; inset: 0; pointer-events: none;
@@ -125,7 +125,7 @@
 <body>
   <main class="stage">
     <div class="yt-bg" id="yt">
-      <iframe id="yt-frame" title="Hintergrund" src="https://www.youtube-nocookie.com/embed/yAKO8TPZLm8?autoplay=1&mute=1&controls=0&start=70&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&disablekb=1&fs=0&iv_load_policy=3" allow="autoplay; encrypted-media" tabindex="-1"></iframe>
+      <iframe id="yt-frame" title="Hintergrund" src="https://www.youtube-nocookie.com/embed/yAKO8TPZLm8?autoplay=1&mute=1&controls=0&start=70&modestbranding=1&rel=0&playsinline=1&disablekb=1&fs=0&iv_load_policy=3&vq=hd1440" allow="autoplay; encrypted-media" tabindex="-1"></iframe>
     </div>
     <div class="vignette" id="shade"></div>
 
@@ -192,26 +192,8 @@
     </div>
   </main>
   <audio id="audio" preload="none"></audio>
-  <script src="https://www.youtube.com/iframe_api"></script>
   <script>
-    function onYouTubeIframeAPIReady() {
-      new YT.Player("yt-frame", {
-        events: {
-          onReady: function (event) {
-            event.target.mute();
-            event.target.playVideo();
-          },
-          onStateChange: function (event) {
-            if (event.data === YT.PlayerState.ENDED) {
-              event.target.seekTo(70, true);
-              event.target.playVideo();
-            }
-          }
-        }
-      });
-    }
-  </script>
-  <script>
+    const API = "https://cobalt-fleet-wind-finch.grok.me";
     const tracks = [
       { title: "Люби меня", src: "song-1.mp3", cover: "cover-1.jpeg" },
       { title: "Влюбился в неё", src: "song-2.mp3", cover: "cover-2.jpeg" }
@@ -279,7 +261,7 @@
     const views = document.getElementById("views");
     let count = true;
     try { count = sessionStorage.getItem("colin-db-view") !== "1"; } catch (e) { count = true; }
-    fetch("/api/views", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ increment: count }) })
+    fetch(API + "/api/views", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ increment: count }) })
       .then((res) => res.ok ? res.json() : null)
       .then((data) => {
         if (!data || typeof data.count !== "number") return;
@@ -298,7 +280,7 @@
       document.getElementById("status-label").title = label;
     }
     function pullDiscord() {
-      fetch("/api/discord").then((res) => res.ok ? res.json() : null).then((data) => { if (data) paintDiscord(data); }).catch(() => {});
+      fetch(API + "/api/discord").then((res) => res.ok ? res.json() : null).then((data) => { if (data) paintDiscord(data); }).catch(() => {});
     }
     pullDiscord();
     setInterval(pullDiscord, 20000);
