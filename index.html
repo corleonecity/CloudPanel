@@ -363,7 +363,13 @@
     ];
     const audio = document.getElementById("audio");
     const scrub = document.getElementById("scrub");
-    let index = 0;
+    function randomIndex(except) {
+      if (tracks.length < 2) return 0;
+      let next = except;
+      while (next === except) next = Math.floor(Math.random() * tracks.length);
+      return next;
+    }
+    let index = randomIndex(-1);
     let playing = false;
 
     function clock(seconds) {
@@ -423,18 +429,49 @@
       bg.addEventListener("canplay", kick, { once: true });
     }
     primeVideo();
-    ["avatar.webp", "sparkle.gif", "cursor.png", "buttom1.jpeg", "buttom2.jpeg", "buttom3.jpeg", "buttom4.jpeg", "cover-1.jpeg", "cover-2.jpeg"].forEach((src) => { const img = new Image(); img.src = src; });
-    const nextSong = new Audio("song-2.mp3");
-    nextSong.preload = "auto";
-    nextSong.load();
+    ["avatar.webp", "sparkle.gif", "cursor.png", "buttom1.jpeg", "buttom2.jpeg", "buttom3.jpeg", "buttom4.jpeg"].forEach((src) => { const img = new Image(); img.src = src; });
     let opened = false;
+    function primeSongs() {
+      tracks.forEach((track) => {
+        const extra = new Audio();
+        extra.preload = "auto";
+        extra.src = track.src;
+        extra.load();
+        if (track.cover) {
+          const img = new Image();
+          img.src = track.cover;
+        }
+      });
+      show(index);
+    }
+    function useSongs(list) {
+      const next = list.map((item) => ({
+        title: item.titel || item.title || "",
+        src: item.datei || item.src || "",
+        cover: item.cover || ""
+      })).filter((item) => item.src);
+      if (!next.length) return;
+      tracks.splice(0, tracks.length, ...next);
+      if (opened) return;
+      index = randomIndex(-1);
+      primeSongs();
+    }
+    fetch("songs.json", { cache: "no-store" })
+      .then((res) => res.ok ? res.text() : "")
+      .then((text) => {
+        if (!text) return;
+        const data = JSON.parse(text.replace(/}\s*{/g, "},{"));
+        if (Array.isArray(data)) useSongs(data);
+      })
+      .catch(() => {});
+    primeSongs();
     function openPage() {
       if (opened) return;
       opened = true;
       startVideo();
       document.getElementById("enter").hidden = true;
       document.getElementById("page").hidden = false;
-      show(0);
+      show(index);
       play();
     }
     document.getElementById("enter").addEventListener("pointerup", openPage);
@@ -443,8 +480,8 @@
       if (audio.paused) play();
       else { audio.pause(); playing = false; setIcon(); }
     });
-    document.getElementById("prev").addEventListener("click", () => { show(index - 1); play(); });
-    document.getElementById("next").addEventListener("click", () => { show(index + 1); play(); });
+    document.getElementById("prev").addEventListener("click", () => { show(randomIndex(index)); play(); });
+    document.getElementById("next").addEventListener("click", () => { show(randomIndex(index)); play(); });
     audio.addEventListener("timeupdate", () => {
       document.getElementById("time").textContent = clock(audio.currentTime);
       scrub.value = audio.currentTime;
@@ -455,7 +492,7 @@
       document.getElementById("dur").textContent = clock(audio.duration);
       scrub.max = audio.duration || 0;
     });
-    audio.addEventListener("ended", () => { show(index + 1); play(); });
+    audio.addEventListener("ended", () => { show(randomIndex(index)); play(); });
     scrub.addEventListener("input", () => {
       audio.currentTime = Number(scrub.value);
       const pct = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
