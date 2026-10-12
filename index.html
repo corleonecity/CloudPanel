@@ -53,28 +53,28 @@
     .wrap {
       position: relative; z-index: 10;
       min-height: 100vh; width: 100%; margin: 0;
-      display: flex; align-items: center; justify-content: center; gap: 22px;
-      padding: 72px 20px;
+      display: grid; place-items: center;
+      padding: 72px 16px;
     }
-    .links { display: flex; flex-direction: column; gap: 8px; width: 250px; flex: none; }
-    .stack { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+    .links {
+      position: absolute; top: 50%; right: calc(50% + 14rem + 18px);
+      transform: translateY(-50%);
+      display: flex; flex-direction: column; gap: 8px; width: 250px;
+    }
+    .stack { display: flex; flex-direction: column; gap: 12px; width: min(100%, 28rem); }
     .pill {
       display: flex; align-items: center; gap: 8px;
-      min-height: 46px; padding: 4px 10px 4px 4px; border-radius: 999px;
+      min-height: 46px; padding: 4px 12px 4px 4px; border-radius: 999px;
       text-decoration: none; color: #fff;
-      background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.08));
-      border: 1px solid rgba(255,255,255,.38);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 12px 28px rgba(0,0,0,.28);
-      backdrop-filter: blur(18px);
     }
-    .pill:hover { background: linear-gradient(180deg, rgba(255,255,255,.32), rgba(255,255,255,.12)); }
-    .pill-ico { width: 34px; height: 34px; border-radius: 999px; object-fit: cover; flex: none; background: rgba(255,255,255,.16); }
-    .pill-copy { flex: 1; min-width: 0; text-align: center; padding-right: 2px; }
-    .pill-title { display: block; font-weight: 700; font-size: 12px; letter-spacing: .01em; line-height: 1.15; }
-    .pill-url { display: flex; justify-content: center; align-items: center; gap: 4px; margin-top: 1px; font-size: 10px; color: rgba(255,255,255,.8); }
-    @media (max-width: 980px) {
-      .wrap { display: flex; flex-direction: column; max-width: 28rem; margin: 0 auto; padding: 64px 16px; }
-      .links { width: 100%; justify-self: stretch; order: 2; }
+    .pill-ico { width: 34px; height: 34px; border-radius: 999px; object-fit: cover; flex: none; }
+    .pill-copy { flex: 1; min-width: 0; text-align: center; padding-right: 6px; }
+    .pill-title { display: block; font-weight: 700; font-size: 12px; line-height: 1.15; }
+    .pill-url { display: flex; justify-content: center; align-items: center; gap: 4px; margin-top: 1px; font-size: 10px; color: var(--muted); }
+    .pill.empty { min-height: 46px; }
+    @media (max-width: 1100px) {
+      .wrap { display: flex; flex-direction: column; align-items: center; max-width: 28rem; margin: 0 auto; padding: 64px 16px; }
+      .links { position: static; transform: none; width: 100%; order: 2; }
     }
     .wrap[hidden] { display: none; }
     .glass {
@@ -84,6 +84,7 @@
       backdrop-filter: blur(18px);
       border-radius: 16px;
     }
+    .pill.glass { border-radius: 999px; }
     .card { position: relative; padding: 28px 20px 18px; }
     .avatar {
       position: absolute; left: 18px; top: 0; width: 80px; height: 80px;
@@ -123,8 +124,11 @@
     .dot.idle { background: #f0b232; }
     .dot.dnd { background: #f23f43; }
     .dot.offline { background: transparent; border: 2px solid #80848e; }
-    .who { margin: 0; font-size: 14px; font-weight: 500; }
+    .who { margin: 0; font-size: 14px; font-weight: 600; }
+    .min { flex: 1; min-width: 0; }
+    .play { margin: 2px 0 0; font-size: 13px; font-weight: 600; }
     .act { margin: 0; font-size: 12px; color: var(--muted); }
+    .app { width: 46px; height: 46px; margin-left: auto; object-fit: contain; flex: none; }
     .player { display: flex; align-items: center; gap: 12px; padding: 12px; }
     .cover { width: 52px; height: 52px; border-radius: 6px; object-fit: cover; flex: none; }
     .track { min-width: 0; flex: 1; }
@@ -191,28 +195,19 @@
         <input class="vol" id="vol" type="range" min="0" max="1" step="0.01" value="0.35" aria-label="Lautstärke" />
       </label>
       <nav class="links" aria-label="Links">
-        <a class="pill" href="https://discord.gg/4424J6EQBH" target="_blank" rel="noreferrer">
+        <a class="pill glass" href="https://discord.gg/4424J6EQBH" target="_blank" rel="noreferrer">
           <img class="pill-ico" src="buttom1.jpeg" alt="" width="34" height="34" />
           <span class="pill-copy"><span class="pill-title">Discord Colin’s Community</span><span class="pill-url"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></svg>discord.gg/4424J6EQBH</span></span>
         </a>
-        <a class="pill" href="https://guns.lol/b" target="_blank" rel="noreferrer">
-          <img class="pill-ico" src="buttom2.jpeg" alt="" width="48" height="48" />
-          <span class="pill-copy"><span class="pill-title">/brook /b</span><span class="pill-url"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></svg>https://guns.lol/b</span></span>
-        </a>
-        <a class="pill" href="https://guns.lol/death" target="_blank" rel="noreferrer">
-          <img class="pill-ico" src="buttom3.jpeg" alt="" width="48" height="48" />
-          <span class="pill-copy"><span class="pill-title">/mango /death</span><span class="pill-url"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></svg>https://guns.lol/death</span></span>
-        </a>
-        <a class="pill" href="https://guns.lol/badge" target="_blank" rel="noreferrer">
-          <img class="pill-ico" src="buttom4.jpeg" alt="" width="48" height="48" />
-          <span class="pill-copy"><span class="pill-title">/badge /badges (You're Here)</span><span class="pill-url"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></svg>https://guns.lol/badge</span></span>
-        </a>
+        <div class="pill glass empty"><img class="pill-ico" src="buttom2.jpeg" alt="" width="34" height="34" /></div>
+        <div class="pill glass empty"><img class="pill-ico" src="buttom3.jpeg" alt="" width="34" height="34" /></div>
+        <div class="pill glass empty"><img class="pill-ico" src="buttom4.jpeg" alt="" width="34" height="34" /></div>
       </nav>
       <div class="stack">
       <section class="glass card">
         <img class="avatar" src="avatar.webp" alt="" width="76" height="76" />
         <div class="meta">
-          <span class="row">◉ <span id="views">163</span></span>
+          <span class="row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg> <span id="views">163</span></span>
           <span class="sep">|</span>
           <span class="row">Deutschland, Thüringen</span>
         </div>
@@ -230,10 +225,12 @@
           <img id="discord-avatar" src="https://cdn.discordapp.com/avatars/917426398120005653/0fb9799e2a9097e840f91c6618ae735f.png?size=128" alt="" width="44" height="44" />
           <span class="badge" id="status-label"><span class="dot" id="status-dot"></span></span>
         </div>
-        <div>
+        <div class="min">
           <p class="who" id="discord-name">asuna.rb</p>
-          <p class="act" id="discord-act">currently doing nothing</p>
+          <p class="play" id="discord-play">currently doing nothing</p>
+          <p class="act" id="discord-act"></p>
         </div>
+        <img class="app" id="discord-app" alt="" hidden />
       </section>
 
       <section class="glass player">
@@ -378,8 +375,14 @@
 
     function paintDiscord(card) {
       document.getElementById("discord-name").textContent = card.username || "asuna.rb";
-      document.getElementById("discord-act").textContent = card.activity || "currently doing nothing";
+      document.getElementById("discord-play").textContent = card.headline || card.activity || "currently doing nothing";
+      const act = document.getElementById("discord-act");
+      act.textContent = card.detail || "";
+      act.hidden = !card.detail;
       if (card.avatar) document.getElementById("discord-avatar").src = card.avatar;
+      const app = document.getElementById("discord-app");
+      if (card.icon) { app.src = card.icon; app.hidden = false; }
+      else { app.hidden = true; app.removeAttribute("src"); }
       const dot = document.getElementById("status-dot");
       dot.className = "dot " + (card.status || "offline");
       const label = card.status === "online" ? "online" : card.status === "idle" ? "abwesend" : card.status === "dnd" ? "nicht stören" : "offline";
