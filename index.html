@@ -128,7 +128,7 @@
     .min { flex: 1; min-width: 0; }
     .play { margin: 2px 0 0; font-size: 13px; font-weight: 600; }
     .act { margin: 0; font-size: 12px; color: var(--muted); }
-    .app { width: 46px; height: 46px; margin-left: auto; object-fit: contain; flex: none; }
+    .app { width: 46px; height: 46px; margin-left: auto; object-fit: contain; flex: none; border-radius: 10px; }
     .player { display: flex; align-items: center; gap: 12px; padding: 12px; }
     .cover { width: 52px; height: 52px; border-radius: 6px; object-fit: cover; flex: none; }
     .track { min-width: 0; flex: 1; }
@@ -373,6 +373,12 @@
       })
       .catch(() => {});
 
+    function activityLogo(card) {
+      if (card.icon) return card.icon;
+      const text = ((card.headline || "") + " " + (card.detail || "") + " " + (card.activity || "")).toLowerCase();
+      if (text.includes("roblox")) return "https://cdn.medal.tv/asset/games/roblox/icon-1734633744595.jpg";
+      return "";
+    }
     function paintDiscord(card) {
       document.getElementById("discord-name").textContent = card.username || "asuna.rb";
       document.getElementById("discord-play").textContent = card.headline || card.activity || "currently doing nothing";
@@ -381,7 +387,8 @@
       act.hidden = !card.detail;
       if (card.avatar) document.getElementById("discord-avatar").src = card.avatar;
       const app = document.getElementById("discord-app");
-      if (card.icon) { app.src = card.icon; app.hidden = false; }
+      const logo = activityLogo(card);
+      if (logo) { app.src = logo; app.hidden = false; }
       else { app.hidden = true; app.removeAttribute("src"); }
       const dot = document.getElementById("status-dot");
       dot.className = "dot " + (card.status || "offline");
