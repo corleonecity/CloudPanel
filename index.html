@@ -371,6 +371,17 @@
     }
     let index = randomIndex(-1);
     let playing = false;
+    const history = [];
+    function go(i, remember) {
+      if (remember && i !== index) history.push(index);
+      show(i);
+      play();
+    }
+    function back() {
+      if (!history.length) return;
+      show(history.pop());
+      play();
+    }
 
     function clock(seconds) {
       if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
@@ -480,8 +491,8 @@
       if (audio.paused) play();
       else { audio.pause(); playing = false; setIcon(); }
     });
-    document.getElementById("prev").addEventListener("click", () => { show(randomIndex(index)); play(); });
-    document.getElementById("next").addEventListener("click", () => { show(randomIndex(index)); play(); });
+    document.getElementById("prev").addEventListener("click", back);
+    document.getElementById("next").addEventListener("click", () => { go(randomIndex(index), true); });
     audio.addEventListener("timeupdate", () => {
       document.getElementById("time").textContent = clock(audio.currentTime);
       scrub.value = audio.currentTime;
@@ -492,7 +503,7 @@
       document.getElementById("dur").textContent = clock(audio.duration);
       scrub.max = audio.duration || 0;
     });
-    audio.addEventListener("ended", () => { show(randomIndex(index)); play(); });
+    audio.addEventListener("ended", () => { go(randomIndex(index), true); });
     scrub.addEventListener("input", () => {
       audio.currentTime = Number(scrub.value);
       const pct = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
