@@ -229,7 +229,15 @@
         <span class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden">Lautstärke</span>
         <input class="vol" id="vol" type="range" min="0" max="1" step="0.01" value="0.35" aria-label="Lautstärke" />
       </label>
-      <nav class="links" id="links" aria-label="Links"></nav>
+      <nav class="links" id="links" aria-label="Links">
+        <a class="pill glass" href="https://discord.gg/4424J6EQBH" target="_blank" rel="noreferrer">
+          <img class="pill-ico" src="buttom1.jpeg" alt="" width="34" height="34" />
+          <span class="pill-copy"><span class="pill-title">Discord Colin’s Community</span><span class="pill-url">discord.gg/4424J6EQBH</span></span>
+        </a>
+        <div class="pill glass empty"><img class="pill-ico" src="buttom2.jpeg" alt="" width="34" height="34" /></div>
+        <div class="pill glass empty"><img class="pill-ico" src="buttom3.jpeg" alt="" width="34" height="34" /></div>
+        <div class="pill glass empty"><img class="pill-ico" src="buttom4.jpeg" alt="" width="34" height="34" /></div>
+      </nav>
       <div class="stack">
       <section class="glass card">
         <img class="avatar" src="avatar.webp" alt="" width="76" height="76" />
@@ -334,7 +342,13 @@
         }
       });
     }
-    fetch("buttons.json").then((res) => res.ok ? res.json() : []).then(paintButtons).catch(() => {});
+    const FALLBACK_BUTTONS = [
+      { bild: "buttom1.jpeg", titel: "Discord Colin’s Community", link: "https://discord.gg/4424J6EQBH", text: "discord.gg/4424J6EQBH" },
+      { bild: "buttom2.jpeg", titel: "", link: "", text: "" },
+      { bild: "buttom3.jpeg", titel: "", link: "", text: "" },
+      { bild: "buttom4.jpeg", titel: "", link: "", text: "" }
+    ];
+    fetch("buttons.json", { cache: "no-store" }).then((res) => res.ok ? res.json() : null).then((list) => { if (Array.isArray(list) && list.length) paintButtons(list); }).catch(() => {});
     const tracks = [
       { title: "Люби меня", src: "song-1.mp3", cover: "cover-1.jpeg" },
       { title: "Влюбился в неё", src: "song-2.mp3", cover: "cover-2.jpeg" }
