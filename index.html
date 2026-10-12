@@ -6,7 +6,7 @@
   <title>Colin</title>
   <meta name="description" content="Carry Freedom in Your Heart" />
   <meta name="theme-color" content="#07080c" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://cobalt-fleet-wind-finch.grok.me" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link href="https://api.fontshare.com/v2/css?f[]=chillax@500,600&display=swap" rel="stylesheet" />
@@ -64,12 +64,19 @@
       backdrop-filter: blur(18px);
       border-radius: 16px;
     }
-    .card { padding: 16px 20px 20px; }
-    .top { display: flex; align-items: flex-start; gap: 12px; }
-    .avatar { width: 64px; height: 64px; border-radius: 999px; object-fit: cover; flex: none; }
-    .meta { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; padding-top: 4px; font-size: 12px; color: var(--muted); }
+    .card { position: relative; padding: 28px 20px 18px; }
+    .avatar {
+      position: absolute; left: 18px; top: 0; width: 76px; height: 76px;
+      transform: translateY(-50%); border-radius: 999px; object-fit: cover;
+      box-shadow: 0 10px 24px rgba(0,0,0,.4);
+    }
+    .meta {
+      min-height: 28px; display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+      font-size: 12px; color: var(--muted);
+    }
     .row { display: inline-flex; align-items: center; gap: 6px; }
-    .name-row { margin-top: 16px; display: flex; align-items: center; gap: 8px; }
+    .sep { opacity: .7; }
+    .name-row { margin-top: 18px; display: flex; align-items: center; gap: 8px; }
     h1 {
       position: relative; margin: 0;
       font-family: var(--display); font-size: 30px; line-height: 1; font-weight: 600; letter-spacing: 0.02em;
@@ -99,15 +106,34 @@
     .who { margin: 0; font-size: 14px; font-weight: 500; }
     .act { margin: 0; font-size: 12px; color: var(--muted); }
     .player { display: flex; align-items: center; gap: 12px; padding: 12px; }
-    .cover { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; flex: none; }
+    .cover { width: 52px; height: 52px; border-radius: 6px; object-fit: cover; flex: none; }
     .track { min-width: 0; flex: 1; }
-    .line { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .title { margin: 0; font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .scrub-row { margin-top: 4px; display: flex; align-items: center; gap: 8px; }
     .controls { display: flex; flex: none; }
-    .controls button { width: 44px; height: 44px; display: grid; place-items: center; }
-    .scrub-row { display: flex; align-items: center; gap: 8px; }
-    .time { width: 32px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .controls button { width: 32px; height: 32px; display: grid; place-items: center; }
+    .time { width: 36px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
     .time.end { text-align: right; }
+    input[type="range"].vol {
+      width: 118px; height: 18px;
+    }
+    input[type="range"].vol::-webkit-slider-runnable-track {
+      height: 4px; background: #fff;
+    }
+    input[type="range"].vol::-webkit-slider-thumb {
+      width: 14px; height: 14px; margin-top: -5px; background: #fff;
+      box-shadow: 0 0 0 3px rgba(255,255,255,.18);
+    }
+    .loud {
+      position: fixed; top: 16px; left: 16px; z-index: 30;
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; color: #fff;
+      background: rgba(12,12,16,.62);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      backdrop-filter: blur(12px);
+    }
     input[type="range"] {
       -webkit-appearance: none; appearance: none; width: 100%; height: 20px; margin: 0; background: transparent;
     }
@@ -137,13 +163,17 @@
     </button>
 
     <div class="wrap" id="page" hidden>
+      <label class="loud">
+        <svg id="vol-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm11.5 3a3.5 3.5 0 0 0-2-3.1v6.2a3.5 3.5 0 0 0 2-3.1z"/></svg>
+        <span class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden">Lautstärke</span>
+        <input class="vol" id="vol" type="range" min="0" max="1" step="0.01" value="0.35" aria-label="Lautstärke" />
+      </label>
       <section class="glass card">
-        <div class="top">
-          <img class="avatar" src="avatar.webp" alt="" width="72" height="72" />
-          <div class="meta">
-            <span class="row"><span aria-hidden="true">◉</span> <span id="views">163</span></span>
-            <span class="row">Deutschland, Thüringen</span>
-          </div>
+        <img class="avatar" src="avatar.webp" alt="" width="76" height="76" />
+        <div class="meta">
+          <span class="row">◉ <span id="views">163</span></span>
+          <span class="sep">|</span>
+          <span class="row">Deutschland, Thüringen</span>
         </div>
         <div class="name-row">
           <h1>colinse21<span class="sparkle" aria-hidden="true"></span></h1>
@@ -166,26 +196,24 @@
       </section>
 
       <section class="glass player">
-        <img class="cover" id="cover" src="cover-1.jpeg" alt="" width="48" height="48" />
+        <img class="cover" id="cover" src="cover-1.jpeg" alt="" width="52" height="52" />
         <div class="track">
-          <div class="line">
-            <p class="title" id="title">Люби меня</p>
-            <div class="controls">
-              <button type="button" id="prev" aria-label="Vorheriger Titel">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zM20 6v12L9 12z"/></svg>
-              </button>
-              <button type="button" id="play" aria-label="Abspielen">
-                <svg id="play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-              </button>
-              <button type="button" id="next" aria-label="Nächster Titel">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM4 6l11 6-11 6z"/></svg>
-              </button>
-            </div>
-          </div>
+          <p class="title" id="title">Люби меня</p>
           <div class="scrub-row">
             <span class="time" id="time">0:00</span>
             <input id="scrub" type="range" min="0" max="0" step="0.1" value="0" aria-label="Fortschritt" />
             <span class="time end" id="dur">0:00</span>
+            <div class="controls">
+              <button type="button" id="prev" aria-label="Vorheriger Titel">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zM20 6v12L9 12z"/></svg>
+              </button>
+              <button type="button" id="play" aria-label="Abspielen">
+                <svg id="play-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              </button>
+              <button type="button" id="next" aria-label="Nächster Titel">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM4 6l11 6-11 6z"/></svg>
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -226,7 +254,16 @@
         : '<path d="M8 5v14l11-7z"/>';
       document.getElementById("play").setAttribute("aria-label", playing ? "Pause" : "Abspielen");
     }
+    function applyVol() {
+      const vol = document.getElementById("vol");
+      audio.volume = Number(vol.value);
+      document.getElementById("vol-icon").innerHTML = Number(vol.value) === 0
+        ? '<path d="M4 9v6h4l5 4V5L8 9H4zm13.2 3 2.1-2.1-1.4-1.4L15.8 10.6 13.7 8.5l-1.4 1.4 2.1 2.1-2.1 2.1 1.4 1.4 2.1-2.1 2.1 2.1 1.4-1.4z"/>'
+        : '<path d="M4 9v6h4l5 4V5L8 9H4zm11.5 3a3.5 3.5 0 0 0-2-3.1v6.2a3.5 3.5 0 0 0 2-3.1z"/>';
+    }
+    document.getElementById("vol").addEventListener("input", applyVol);
     function play() {
+      applyVol();
       audio.play().then(() => { playing = true; setIcon(); }).catch(() => { playing = false; setIcon(); });
     }
     document.getElementById("enter").addEventListener("click", () => {
