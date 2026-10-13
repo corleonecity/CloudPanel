@@ -239,22 +239,10 @@
     /* Visualizer */
     .viz { display: block; width: 100%; height: 8px; margin-top: 4px; opacity: .8; }
 
-    /* Gästebuch: kleiner Knopf unten rechts */
+    /* Gästebuch: kleiner Knopf unten rechts, Giscus im Fenster */
     .gb-toggle { position: fixed; right: 16px; bottom: 16px; z-index: 30; padding: 8px 14px; border-radius: 999px; font-size: 12px; font-weight: 600; }
-    .guest { position: fixed; right: 16px; bottom: 58px; z-index: 30; width: 260px; padding: 10px 12px; }
+    .guest { position: fixed; right: 16px; bottom: 58px; z-index: 30; width: 340px; max-width: calc(100vw - 32px); max-height: 60vh; overflow-y: auto; padding: 10px 12px; scrollbar-width: thin; }
     .guest[hidden] { display: none; }
-    .guest form { display: flex; flex-direction: column; gap: 5px; }
-    .guest input[type="text"], .guest textarea {
-      width: 100%; padding: 6px 8px; border-radius: 8px; font: inherit; font-size: 12px; color: var(--fg);
-      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); outline: none; resize: none;
-    }
-    .guest .send-row { display: flex; align-items: center; gap: 8px; }
-    .guest button { padding: 5px 12px; border-radius: 999px; background: rgba(255,255,255,.12); font-size: 11px; font-weight: 600; }
-    .guest .note { font-size: 10px; color: var(--muted); }
-    .guest-list { list-style: none; margin: 8px 0 0; padding: 0; max-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; scrollbar-width: thin; }
-    .guest-list li { font-size: 11px; padding: 5px 7px; border-radius: 7px; background: rgba(255,255,255,.04); word-break: break-word; }
-    .guest-list b { font-weight: 600; margin-right: 4px; }
-    .guest-list span { color: var(--muted); }
   </style>
 </head>
 <body>
@@ -350,14 +338,7 @@
       </div>
     </div>
     <button class="glass gb-toggle" id="gb-toggle" type="button">Gästebuch</button>
-      <section class="glass guest" id="guest" hidden>
-                <form id="guest-form">
-          <input type="text" id="guest-name" maxlength="24" placeholder="Name" required />
-          <textarea id="guest-msg" rows="2" maxlength="200" placeholder="Hinterlass eine Nachricht" required></textarea>
-          <div class="send-row"><button type="submit">Senden</button><span class="note" id="guest-note"></span></div>
-        </form>
-        <ul class="guest-list" id="guest-list"></ul>
-      </section>
+      <section class="glass guest" id="guest" hidden><div id="giscus-box"></div></section>
   </main>
   <audio id="audio" preload="auto" src="song-1.mp3"></audio>
   <script>
@@ -740,48 +721,33 @@
       document.getElementById("play").addEventListener("click", setup);
     })();
 
-    // Gästebuch (braucht /api/guestbook im Backend)
+    // Gästebuch über Giscus (GitHub Discussions in corleonecity/colinse21)
     (function () {
+      let loaded = false;
       document.getElementById("gb-toggle").addEventListener("click", () => {
-        const g = document.getElementById("guest"); g.hidden = !g.hidden;
+        const g = document.getElementById("guest");
+        g.hidden = !g.hidden;
+        if (loaded || g.hidden) return;
+        loaded = true;
+        const sc = document.createElement("script");
+        sc.src = "https://giscus.app/client.js";
+        sc.setAttribute("data-repo", "corleonecity/colinse21");
+        sc.setAttribute("data-repo-id", "R_kgDOQ_jNyg");
+        sc.setAttribute("data-category", "General");
+        sc.setAttribute("data-category-id", "DIC_kwDOQ_jNys4DITpE");
+        sc.setAttribute("data-mapping", "specific");
+        sc.setAttribute("data-term", "Gästebuch");
+        sc.setAttribute("data-strict", "1");
+        sc.setAttribute("data-reactions-enabled", "1");
+        sc.setAttribute("data-emit-metadata", "0");
+        sc.setAttribute("data-input-position", "top");
+        sc.setAttribute("data-theme", "transparent_dark");
+        sc.setAttribute("data-lang", "de");
+        sc.setAttribute("data-loading", "lazy");
+        sc.crossOrigin = "anonymous";
+        sc.async = true;
+        document.getElementById("giscus-box").append(sc);
       });
-      const list = document.getElementById("guest-list");
-      const note = document.getElementById("guest-note");
-      function paint(items) {
-        list.replaceChildren();
-        (items || []).slice(0, 30).forEach((it) => {
-          const li = document.createElement("li");
-          const b = document.createElement("b"); b.textContent = it.name;
-          const sp = document.createElement("span"); sp.textContent = it.message;
-          li.append(b, sp); list.append(li);
-        });
-      }
-      function load() {
-        fetch(API + "/api/guestbook", { cache: "no-store" })
-          .then((r) => r.ok ? r.json() : null)
-          .then((d) => { if (d) paint(d.items || d); })
-          .catch(() => {});
-      }
-      document.getElementById("guest-form").addEventListener("submit", (e) => {
-        e.preventDefault();
-        let last = 0; try { last = Number(localStorage.getItem("colin-guest-at") || 0); } catch (x) {}
-        if (Date.now() - last < 60000) { note.textContent = "Bitte kurz warten."; return; }
-        const name = document.getElementById("guest-name").value.trim();
-        const message = document.getElementById("guest-msg").value.trim();
-        if (!name || !message) return;
-        note.textContent = "Sende…";
-        fetch(API + "/api/guestbook", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name, message, viewer }) })
-          .then((r) => {
-            if (!r.ok) throw 0;
-            note.textContent = "Danke!";
-            try { localStorage.setItem("colin-guest-at", String(Date.now())); } catch (x) {}
-            document.getElementById("guest-msg").value = "";
-            load();
-          })
-          .catch(() => { note.textContent = "Konnte nicht gesendet werden."; });
-      });
-      load();
-      setInterval(load, 15000);
     })();
   </script>
 </body>
