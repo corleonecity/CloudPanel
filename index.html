@@ -643,10 +643,49 @@
     function pullLive() {
       fetch(API + "/api/live").then((res) => res.ok ? res.json() : null).then((data) => { if (data) paintLive(data.items || []); }).catch(() => {});
     }
-    pullDiscord();
     pullLive();
-    setInterval(pullDiscord, 5000);
     setInterval(pullLive, 60000);
+
+    // Discord-Status live über Lanyard (WebSocket)
+    (function () {
+      const DISCORD_ID = "917426398120005653";
+      function toCard(d) {
+        const u = d.discord_user || {};
+        const acts = d.activities || [];
+        const game = acts.find((a) => a.type === 0);
+        const custom = acts.find((a) => a.type === 4);
+        let icon = "";
+        if (game && game.assets && game.assets.large_image) {
+          const img = game.assets.large_image;
+          icon = img.startsWith("mp:external/")
+            ? "https://media.discordapp.net/external/" + img.slice(12)
+            : "https://cdn.discordapp.com/app-assets/" + game.application_id + "/" + img + ".png";
+        }
+        const sp = d.listening_to_spotify && d.spotify;
+        return {
+          username: u.global_name || u.username,
+          avatar: u.avatar ? "https://cdn.discordapp.com/avatars/" + u.id + "/" + u.avatar + ".png?size=128" : "",
+          status: d.discord_status || "offline",
+          headline: game ? "Spielt " + game.name : (custom && custom.state) || "",
+          icon: icon,
+          spotify: sp ? { title: sp.song, artist: sp.artist, cover: sp.album_art_url, url: "https://open.spotify.com/track/" + sp.track_id } : null
+        };
+      }
+      function connect() {
+        const ws = new WebSocket("wss://api.lanyard.rest/socket");
+        let beat;
+        ws.onmessage = ({ data }) => {
+          const msg = JSON.parse(data);
+          if (msg.op === 1) {
+            beat = setInterval(() => ws.send(JSON.stringify({ op: 3 })), msg.d.heartbeat_interval);
+            ws.send(JSON.stringify({ op: 2, d: { subscribe_to_id: DISCORD_ID } }));
+          }
+          if (msg.op === 0 && msg.d) paintDiscord(toCard(msg.d));
+        };
+        ws.onclose = () => { clearInterval(beat); setTimeout(connect, 5000); };
+      }
+      connect();
+    })();
 
     // Tipp-Effekt in der Bio
     (function () {
