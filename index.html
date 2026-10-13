@@ -258,30 +258,31 @@
   </style>
 
   <style>
-    /* Terminal */
-    .term-btn { position: fixed; right: 18px; bottom: 18px; z-index: 60; width: 44px; height: 44px; border-radius: 12px;
-      font: 600 14px ui-monospace, Consolas, monospace; color: #7CFFB2; display: grid; place-items: center;
-      background: color-mix(in oklab, #101218 70%, transparent); border: 1px solid rgba(124,255,178,.35);
-      box-shadow: 0 0 18px rgba(124,255,178,.18); backdrop-filter: blur(14px); transition: transform .2s, box-shadow .2s; }
-    .term-btn:hover { transform: translateY(-2px); box-shadow: 0 0 26px rgba(124,255,178,.35); }
+    /* Terminal (passend zu den Glas-Karten) */
+    .term-btn { position: fixed; right: 18px; bottom: 18px; z-index: 60; width: 44px; height: 44px; border-radius: 14px;
+      font: 600 14px ui-monospace, Consolas, monospace; color: #fff; display: grid; place-items: center;
+      background: color-mix(in oklab, #101218 52%, transparent); border: 1px solid rgba(255,255,255,.1);
+      box-shadow: 0 24px 60px rgba(0,0,0,.45); backdrop-filter: blur(18px); transition: transform .2s, background .2s; }
+    .term-btn:hover { transform: translateY(-2px); background: color-mix(in oklab, #101218 70%, transparent); }
     .term { position: fixed; right: 18px; bottom: 74px; z-index: 60; width: min(420px, calc(100vw - 36px)); height: 280px;
-      display: flex; flex-direction: column; border-radius: 14px; overflow: hidden;
-      background: rgba(8,10,14,.82); border: 1px solid rgba(124,255,178,.25);
-      box-shadow: 0 24px 60px rgba(0,0,0,.55), 0 0 30px rgba(124,255,178,.08); backdrop-filter: blur(18px);
-      font: 12.5px/1.5 ui-monospace, Consolas, monospace; color: #cfe9da;
+      display: flex; flex-direction: column; border-radius: 16px; overflow: hidden;
+      background: color-mix(in oklab, #101218 52%, transparent); border: 1px solid rgba(255,255,255,.1);
+      box-shadow: 0 24px 60px rgba(0,0,0,.45); backdrop-filter: blur(18px);
+      font: 12.5px/1.55 ui-monospace, Consolas, monospace; color: #d8dbe2;
       transform-origin: bottom right; animation: termIn .22s ease-out; }
     .term[hidden] { display: none; }
-    @keyframes termIn { from { opacity: 0; transform: scale(.92) translateY(8px); } }
-    .term-bar { display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: rgba(255,255,255,.04); border-bottom: 1px solid rgba(255,255,255,.06); }
-    .term-bar i { width: 10px; height: 10px; border-radius: 99px; display: block; }
-    .term-bar span { margin-left: 8px; color: #8aa598; font-size: 11px; }
-    .term-out { flex: 1; overflow-y: auto; padding: 10px 12px; white-space: pre-wrap; word-break: break-word; }
-    .term-out a { color: #7CFFB2; }
-    .term-out .c { color: #7CFFB2; }
-    .term-out .m { color: #8aa598; }
-    .term-in { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid rgba(255,255,255,.06); }
-    .term-in b { color: #7CFFB2; font-weight: 600; }
-    .term-in input { flex: 1; background: none; border: 0; outline: 0; color: #fff; font: inherit; caret-color: #7CFFB2; }
+    @keyframes termIn { from { opacity: 0; transform: scale(.94) translateY(8px); } }
+    .term-bar { display: flex; align-items: center; gap: 6px; padding: 9px 14px; border-bottom: 1px solid rgba(255,255,255,.07); }
+    .term-bar i { width: 9px; height: 9px; border-radius: 99px; display: block; background: rgba(255,255,255,.18); }
+    .term-bar span { margin-left: 8px; color: #9aa0ab; font: 600 11px var(--display, inherit); letter-spacing: .04em; }
+    .term-out { flex: 1; overflow-y: auto; padding: 10px 14px; white-space: pre-wrap; word-break: break-word; }
+    .term-out a { color: #fff; text-decoration: underline; text-decoration-color: rgba(255,255,255,.3); }
+    .term-out .c { color: #fff; font-weight: 600; }
+    .term-out .m { color: #8b909b; }
+    .term-in { display: flex; align-items: center; gap: 8px; padding: 9px 14px; border-top: 1px solid rgba(255,255,255,.07); }
+    .term-in b { color: #fff; font-weight: 600; }
+    .term-in input { flex: 1; background: none; border: 0; outline: 0; color: #fff; font: inherit; caret-color: #fff; }
+    .term-in input::placeholder { color: #6b707a; }
     /* Cursor-Funken */
     #sparks { position: fixed; inset: 0; pointer-events: none; z-index: 70; }
   </style>
@@ -971,18 +972,18 @@
       function size() { W = cv.width = innerWidth / Z; H = cv.height = innerHeight / Z; cv.style.width = W + "px"; cv.style.height = H + "px"; }
       size(); addEventListener("resize", size);
       addEventListener("mousemove", (e) => {
-        for (let i = 0; i < 2; i++) parts.push({ x: e.clientX / Z, y: e.clientY / Z, vx: (Math.random() - .5) * 1.6, vy: (Math.random() - .5) * 1.6 - .4, life: 1, r: Math.random() * 1.8 + .8, h: 190 + Math.random() * 80 });
+        for (let i = 0; i < 2; i++) parts.push({ x: e.clientX / Z, y: e.clientY / Z, vx: (Math.random() - .5) * 1.6, vy: (Math.random() - .5) * 1.6 - .4, life: 1, r: Math.random() * 1.8 + .8, l: 25 + Math.random() * 70 });
         if (parts.length > 160) parts.splice(0, parts.length - 160);
       });
       (function loop() {
         ctx.clearRect(0, 0, W, H);
-        ctx.globalCompositeOperation = "lighter";
+        ctx.globalCompositeOperation = "source-over";
         parts = parts.filter((p) => (p.life -= .025) > 0);
         for (const p of parts) {
           p.x += p.vx; p.y += p.vy; p.vy += .03;
           ctx.beginPath(); ctx.arc(p.x, p.y, p.r * p.life + .3, 0, Math.PI * 2);
-          ctx.fillStyle = "hsla(" + p.h + ",100%,75%," + p.life + ")";
-          ctx.shadowColor = "hsla(" + p.h + ",100%,65%,1)"; ctx.shadowBlur = 8;
+          ctx.fillStyle = "hsla(0,0%," + p.l + "%," + (p.life * .8) + ")";
+          ctx.shadowColor = "rgba(0,0,0,.6)"; ctx.shadowBlur = 4;
           ctx.fill();
         }
         requestAnimationFrame(loop);
