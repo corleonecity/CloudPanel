@@ -244,8 +244,8 @@
     /* Layout: Karten exakt mittig, Links direkt links daneben */
     @media (min-width: 900px) { .stage, .wrap { min-height: calc(100vh / 1.25); } }
     .links { right: calc(50% + 14rem + 6px); }
-    /* PC: Seite nicht scrollbar */
-    @media (min-width: 900px) {
+    /* PC: Seite nicht scrollbar (nur wenn Buttons links daneben sind) */
+    @media (min-width: 1101px) {
       html, body { overflow: hidden; height: 100%; }
     }
     .like { display: inline-flex; align-items: center; gap: 4px; background: none; border: 0; padding: 0; color: inherit; font: inherit; }
@@ -296,6 +296,47 @@
     .term-in input { flex: 1; background: none; border: 0; outline: 0; color: #fff; font: inherit; caret-color: #fff; }
     .term-in input::placeholder { color: #6b707a; }
     /* Cursor-Funken */
+    /* Gerade online – ganz oben rechts */
+    .online { position: fixed; top: 14px; right: 16px; z-index: 55; display: flex; align-items: center; gap: 7px;
+      padding: 7px 12px; border-radius: 999px; font-size: 12px; color: #d8dbe2;
+      background: color-mix(in oklab, #101218 52%, transparent); border: 1px solid rgba(255,255,255,.1); backdrop-filter: blur(14px); }
+    .online[hidden] { display: none; }
+    .online .live-eye { position: relative; display: grid; place-items: center; }
+    .online .live-eye::after { content: ""; position: absolute; right: -3px; top: -2px; width: 6px; height: 6px; border-radius: 9px; background: #23a55a; box-shadow: 0 0 6px #23a55a; animation: blink 2s infinite; }
+    @keyframes blink { 50% { opacity: .35; } }
+    /* Easteregg */
+    .egg { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; background: rgba(0,0,0,.75); backdrop-filter: blur(6px); animation: termIn .3s ease-out; }
+    .egg[hidden] { display: none; }
+    .egg canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .egg-box { position: relative; text-align: center; padding: 28px 34px; border-radius: 18px; background: color-mix(in oklab, #101218 70%, transparent); border: 1px solid rgba(255,255,255,.12); box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+    .egg-box h2 { margin: 0; font: 600 28px var(--display); letter-spacing: .02em; }
+    .egg-box p { margin: 8px 0 16px; color: #a3a8b2; font-size: 14px; }
+    .egg-box button { padding: 8px 18px; border-radius: 99px; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); color: #fff; }
+    #profile-name { user-select: none; }
+    #profile-name.shake { display: inline-block; animation: shake .25s; }
+    @keyframes shake { 25% { transform: translateX(-2px) rotate(-1deg); } 75% { transform: translateX(2px) rotate(1deg); } }
+    /* Handy aufgeräumt */
+    @media (max-width: 1100px) {
+      .wrap { padding: 72px 14px 90px; }
+      .stack { width: 100%; }
+      .links { padding: 0; max-height: none; overflow: visible; }
+    }
+    @media (max-width: 600px) {
+      .card { padding: 26px 16px 10px; }
+      .avatar { width: 68px; height: 68px; left: 14px; border-radius: 18px; }
+      .meta { font-size: 11px; gap: 6px; flex-wrap: wrap; }
+      h1 { font-size: 26px; }
+      .bio { font-size: 13px; min-height: 1.4em; }
+      .discord { padding: 10px 12px; gap: 10px; }
+      .play { font-size: 12px; }
+      .last-played, .play-time { display: block; margin-left: 0; font-size: 11px; }
+      .app { width: 40px; height: 40px; }
+      .player { padding: 10px; gap: 10px; }
+      .cover { width: 46px; height: 46px; }
+      .term { right: 10px; left: 10px; width: auto; bottom: 68px; height: 55vh; }
+      .term-btn { right: 12px; bottom: 12px; width: 42px; height: 42px; }
+      .online { top: 10px; right: 10px; padding: 6px 10px; font-size: 11px; }
+    }
     #sparks { position: fixed; inset: 0; pointer-events: none; z-index: 70; }
   </style>
 </head>
@@ -908,6 +949,14 @@
 
   </script>
 <canvas id="sparks"></canvas>
+  <div class="online" id="online" hidden title="Gerade auf der Seite">
+    <span class="live-eye"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span>
+    <span id="online-text">1 gerade hier</span>
+  </div>
+  <div class="egg" id="egg" hidden>
+    <canvas id="egg-rain"></canvas>
+    <div class="egg-box"><h2>🔓 Geheimnis gefunden</h2><p>Du hast 10x auf colinse21 geklickt. Respekt.<br>Carry Freedom in Your Heart.</p><button type="button" id="egg-close">schließen</button></div>
+  </div>
   <button class="term-btn" id="term-btn" type="button" title="Terminal">&gt;_</button>
   <div class="term" id="term" hidden>
     <div class="term-bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><span>Terminal</span></div>
@@ -1020,6 +1069,55 @@
         else if (e.key === "ArrowDown") { hi = Math.min(hist.length, hi + 1); inp.value = hist[hi] || ""; }
         else if (e.key === "Escape") box.hidden = true;
       });
+    })();
+    // Gerade online
+    (function () {
+      const box = document.getElementById("online"), txt = document.getElementById("online-text");
+      function show(d) {
+        if (!d || typeof d.count !== "number") return;
+        box.hidden = false;
+        txt.textContent = d.count + (d.count === 1 ? " gerade hier" : " gerade hier");
+      }
+      function beat() {
+        if (document.hidden) return;
+        fetch(API2 + "/api/online", { method: "POST" }).then((r) => r.ok ? r.json() : null).then(show).catch(() => {});
+      }
+      beat();
+      setInterval(beat, 60000);
+      document.addEventListener("visibilitychange", () => { if (!document.hidden) beat(); });
+    })();
+    // Easteregg: 10x auf den Namen klicken
+    (function () {
+      const name = document.getElementById("profile-name"), egg = document.getElementById("egg");
+      const cv = document.getElementById("egg-rain"), ctx = cv.getContext("2d");
+      let clicks = 0, timer, run = false;
+      name.addEventListener("click", () => {
+        clicks++;
+        name.classList.remove("shake"); void name.offsetWidth; name.classList.add("shake");
+        clearTimeout(timer); timer = setTimeout(() => { clicks = 0; }, 3000);
+        if (clicks >= 10) { clicks = 0; open(); }
+      });
+      function open() {
+        egg.hidden = false; run = true;
+        cv.width = cv.offsetWidth; cv.height = cv.offsetHeight;
+        const cols = Math.floor(cv.width / 14), drops = Array(cols).fill(0).map(() => Math.random() * -40);
+        const chars = "colinse21アイウエオカキクケコ01";
+        (function draw() {
+          if (!run) return;
+          ctx.fillStyle = "rgba(0,0,0,.08)"; ctx.fillRect(0, 0, cv.width, cv.height);
+          ctx.font = "14px monospace";
+          drops.forEach((y, i) => {
+            ctx.fillStyle = Math.random() > .95 ? "#fff" : "rgba(200,205,215,.55)";
+            ctx.fillText(chars[Math.floor(Math.random() * chars.length)], i * 14, y * 14);
+            drops[i] = y * 14 > cv.height && Math.random() > .975 ? 0 : y + 1;
+          });
+          requestAnimationFrame(draw);
+        })();
+      }
+      function close() { egg.hidden = true; run = false; ctx.clearRect(0, 0, cv.width, cv.height); }
+      document.getElementById("egg-close").addEventListener("click", close);
+      egg.addEventListener("click", (e) => { if (e.target === egg || e.target === cv) close(); });
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !egg.hidden) close(); });
     })();
     // Cursor-Funken (nur mit Maus)
     (function () {
