@@ -388,6 +388,8 @@
   <audio id="audio" preload="auto" src="song-1.mp3"></audio>
   <script>
     const API = "https://cobalt-fleet-wind-finch.grok.me";
+    // Neues Cloudflare-Backend (Likes, Feedback, Last played, Live) – HIER deinen Worker-Link eintragen:
+    const API2 = "https://page.keulecolin2005.workers.dev";
     function logoGlow(color) {
       const hex = String(color || "").trim();
       if (!/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(hex)) return "";
@@ -637,12 +639,12 @@
         if (typeof d.count === "number") out.textContent = String(d.count);
         if (d.liked) { btn.classList.add("liked"); btn.disabled = true; }
       }
-      fetch(API + "/api/likes").then((r) => r.ok ? r.json() : null).then(show).catch(() => {});
+      fetch(API2 + "/api/likes").then((r) => r.ok ? r.json() : null).then(show).catch(() => {});
       btn.addEventListener("click", () => {
         if (btn.disabled) return;
         btn.disabled = true;
         btn.classList.add("liked", "pop");
-        fetch(API + "/api/likes", { method: "POST" })
+        fetch(API2 + "/api/likes", { method: "POST" })
           .then((r) => r.ok ? r.json() : null).then(show).catch(() => {});
       });
     })();
@@ -685,7 +687,7 @@
     // Letztes Spiel auch vom Backend holen (für alle Geräte)
     let serverLast = null;
     function pullLastGame() {
-      fetch(API + "/api/lastgame").then((r) => r.ok ? r.json() : null).then((d) => {
+      fetch(API2 + "/api/lastgame").then((r) => r.ok ? r.json() : null).then((d) => {
         if (d && d.name && d.at) { serverLast = { name: d.name, at: Number(d.at) }; tickExtras(); }
       }).catch(() => {});
     }
@@ -760,15 +762,20 @@
     // Live-Status: alle 20 Sek. prüfen, nicht bei einer einzelnen leeren Antwort verschwinden
     let liveEmpty = 0;
     function pullLive() {
-      fetch(API + "/api/live?t=" + Date.now(), { cache: "no-store" })
-        .then((res) => res.ok ? res.json() : null)
-        .then((data) => {
-          if (!data) return;
-          const items = data.items || [];
-          if (items.length) { liveEmpty = 0; paintLive(items); }
-          else if (++liveEmpty >= 3) paintLive([]);
-        })
-        .catch(() => {});
+      const backend = fetch(API + "/api/live?t=" + Date.now(), { cache: "no-store" })
+        .then((res) => res.ok ? res.json() : null).catch(() => null);
+      // Zusätzlich Twitch direkt prüfen (falls das Backend es verpasst)
+      const worker = fetch(API2 + "/api/live?t=" + Date.now(), { cache: "no-store" })
+        .then((r) => r.ok ? r.json() : null).catch(() => null);
+      Promise.all([backend, worker]).then(([data, w]) => {
+        if (!data && !w) return;
+        const items = [];
+        [data, w].forEach((src) => (src && src.items || []).forEach((it) => {
+          if (!items.some((x) => x.platform === it.platform && String(x.name).toLowerCase() === String(it.name).toLowerCase())) items.push(it);
+        }));
+        if (items.length) { liveEmpty = 0; paintLive(items); }
+        else if (++liveEmpty >= 3) paintLive([]);
+      });
     }
     pullLive();
     setInterval(pullLive, 20000);
@@ -941,7 +948,7 @@
           if (text.length < 3) return line("Benutzung: <span class=c>feedback</span> deine Nachricht", "m");
           if (text.length > 300) return line("Max. 300 Zeichen.", "m");
           line("Sende...", "m");
-          fetch("https://cobalt-fleet-wind-finch.grok.me/api/feedback", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ message: text }) })
+          fetch(API2 + "/api/feedback", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ message: text }) })
             .then((r) => r.json().catch(() => ({})).then((d) => ({ ok: r.ok, status: r.status, d })))
             .then(({ ok, status, d }) => {
               if (ok) line("✔ Gesendet! Danke für dein Feedback.", "c");
