@@ -246,7 +246,7 @@
 
     /* 3D-Neigung */
     .stack { perspective: 900px; }
-    .tilt { transform-style: preserve-3d; transition: transform .25s ease-out; will-change: transform; display: flex; flex-direction: column; gap: 8px; }
+    .tilt { transform-style: flat; transition: transform .25s ease-out; will-change: transform; display: flex; flex-direction: column; gap: 8px; }
 
     /* Tipp-Effekt */
     .bio .caret { display: inline-block; width: 1px; height: 1em; margin-left: 2px; background: var(--muted); vertical-align: -2px; animation: blink 1s steps(1) infinite; }
@@ -677,7 +677,7 @@
       const lp = document.getElementById("last-played");
       let last = null;
       try { last = JSON.parse(localStorage.getItem("lastGame") || "null"); } catch (e) {}
-      lp.textContent = (!card.gameName && last && last.name) ? "· Last played " + last.name + " " + fmtAgo(now - last.at) : "";
+      lp.textContent = (!card.gameName && last && last.name) ? "· Last played " + String(last.name).replace(/\s+with\s+medal\b/gi, "").trim() + " " + fmtAgo(now - last.at) : "";
       const s = card.spotify;
       if (s && s.start && s.end) {
         const total = s.end - s.start, done = Math.min(total, now - s.start);
@@ -747,7 +747,7 @@
           status: d.discord_status || "offline",
           headline: game ? "Spielt " + game.name : (custom && custom.state) || "",
           icon: icon,
-          gameName: game ? game.name : "",
+          gameName: game ? game.name.replace(/\s+with\s+medal\b/gi, "").trim() : "",
           gameStart: game && game.timestamps && game.timestamps.start ? game.timestamps.start : 0,
           spotify: sp ? { start: sp.timestamps && sp.timestamps.start, end: sp.timestamps && sp.timestamps.end, title: sp.song, artist: sp.artist, cover: sp.album_art_url, url: "https://open.spotify.com/track/" + sp.track_id } : null
         };
