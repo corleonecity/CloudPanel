@@ -400,6 +400,47 @@
       .gm-search { margin: 10px 14px 6px; }
       .gm-list { padding: 0 8px 12px; }
     }
+    /* Zitat des Tages (Startbildschirm) */
+    .qotd { max-width: min(420px, 82vw); margin-top: 18px; text-align: center; opacity: 0; transition: opacity .8s; }
+    .qotd.on { opacity: 1; }
+    .qotd small { display: block; margin-bottom: 6px; font-size: 9.5px; letter-spacing: .22em; text-transform: uppercase; color: #5f646e; }
+    .qotd q { display: block; font-style: italic; font-size: 13px; line-height: 1.5; color: #9aa0ab; quotes: "„" "“"; }
+    /* Wetter */
+    #wx { position: fixed; inset: 0; z-index: 5; pointer-events: none; }
+    #wx-flash { position: fixed; inset: 0; z-index: 6; pointer-events: none; background: #fff; opacity: 0; }
+    /* Like: Wackeln + Herzen */
+    .like { position: relative; }
+    .shake-page { animation: pageShake .4s cubic-bezier(.36,.07,.19,.97); }
+    .shake-soft { animation: pageShake .3s ease; --sh: 2px; }
+    @keyframes pageShake { 10%, 90% { transform: translate(calc(var(--sh, 5px) * -.4), 0); } 20%, 80% { transform: translate(calc(var(--sh, 5px) * .8), calc(var(--sh, 5px) * -.3)); } 30%, 50%, 70% { transform: translate(calc(var(--sh, 5px) * -1), calc(var(--sh, 5px) * .4)); } 40%, 60% { transform: translate(var(--sh, 5px), 0); } }
+    .heart-fly { position: absolute; left: 3px; bottom: 4px; pointer-events: none; color: #ff4d6d; font-size: 13px; line-height: 1; animation: heartUp 1.1s ease-out forwards; }
+    @keyframes heartUp { 0% { opacity: 0; transform: translate(0, 0) scale(.5); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), -70px) scale(1.2) rotate(var(--rot)); } }
+    /* Geheimer Raum */
+    .secret-spot { position: fixed; z-index: 15; width: 6px; height: 6px; border-radius: 9px; cursor: crosshair !important; background: rgba(255,255,255,.035); transition: background .3s, box-shadow .3s; }
+    .secret-spot:hover { background: rgba(255,255,255,.35); box-shadow: 0 0 10px rgba(255,255,255,.4); }
+    .room { position: fixed; inset: 0; z-index: 95; display: grid; place-items: center; overflow: hidden; color: #cfd2d8;
+      background: radial-gradient(ellipse at 50% 40%, #15171d 0%, #07080b 55%, #000 100%); animation: roomIn 1s ease-out; }
+    .room[hidden] { display: none; }
+    @keyframes roomIn { from { opacity: 0; filter: blur(8px); } }
+    .room::before { content: ""; position: absolute; inset: -50%; background: repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.018) 0 2px, transparent 2px 60px); animation: roomSpin 60s linear infinite; }
+    @keyframes roomSpin { to { transform: rotate(360deg); } }
+    .room-box { position: relative; max-width: 460px; padding: 0 24px; text-align: center; }
+    .room-eye { width: 54px; height: 54px; margin: 0 auto 18px; opacity: .8; animation: pulse 3.5s ease-in-out infinite; }
+    .room h2 { margin: 0 0 6px; font: 600 26px var(--display, inherit); letter-spacing: .12em; text-transform: uppercase; color: #fff; }
+    .room .sub { margin: 0 0 18px; font: 600 10px ui-monospace, Consolas, monospace; letter-spacing: .3em; color: #5f646e; }
+    .room p { margin: 0 0 10px; font-size: 14px; line-height: 1.65; color: #9aa0ab; }
+    .room .code { margin: 18px 0 24px; font: 12px ui-monospace, Consolas, monospace; color: #6b707a; }
+    .room button { padding: 9px 22px; border-radius: 99px; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.05); color: #fff; transition: background .2s; }
+    .room button:hover { background: rgba(255,255,255,.12); }
+    /* Einschlafen */
+    .sleep { position: fixed; inset: 0; z-index: 85; pointer-events: none; background: rgba(0,0,0,.72); opacity: 0; transition: opacity .25s ease; }
+    .sleep.on { opacity: 1; transition: opacity 4s ease; }
+    .sleep span { position: absolute; font: 700 22px var(--display, inherit); color: rgba(255,255,255,.55); opacity: 0; }
+    .sleep.on span { animation: zzz 3.6s ease-in-out infinite; }
+    .sleep span:nth-child(2) { font-size: 30px; animation-delay: 1.2s !important; }
+    .sleep span:nth-child(3) { font-size: 40px; animation-delay: 2.4s !important; }
+    @keyframes zzz { 0% { opacity: 0; transform: translate(0, 0) rotate(-8deg); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(40px, -90px) rotate(10deg); } }
+    @media (prefers-reduced-motion: reduce) { .shake-page, .shake-soft, .room::before, .heart-fly { animation: none; } }
     #sparks { position: fixed; inset: 0; pointer-events: none; z-index: 70; }
   </style>
 </head>
@@ -414,6 +455,7 @@
         <path fill="currentColor" d="M32 4c1.2 12.4 8.6 22 20 26-11.4 4-18.8 13.6-20 26-1.2-12.4-8.6-22-20-26 11.4-4 18.8-13.6 20-26z" />
       </svg>
       <span class="klicken">klicken</span>
+      <span class="qotd" id="qotd"><small>Zitat des Tages</small><q id="qotd-text"></q></span>
     </button>
     <div class="wrap" id="page" hidden>
       <label class="loud">
@@ -749,12 +791,36 @@
       }
       pullLikes();
       setInterval(pullLikes, 15000);
+      function hearts(n) {
+        for (let i = 0; i < n; i++) setTimeout(() => {
+          const h = document.createElement("span");
+          h.className = "heart-fly"; h.textContent = "❤";
+          h.style.setProperty("--dx", (Math.random() * 50 - 25).toFixed(0) + "px");
+          h.style.setProperty("--rot", (Math.random() * 40 - 20).toFixed(0) + "deg");
+          h.style.fontSize = (10 + Math.random() * 8).toFixed(0) + "px";
+          btn.append(h); setTimeout(() => h.remove(), 1200);
+        }, i * 70);
+      }
+      function shake(soft) {
+        const pg = document.getElementById("page");
+        pg.classList.remove("shake-page", "shake-soft"); void pg.offsetWidth;
+        pg.classList.add(soft ? "shake-soft" : "shake-page");
+        setTimeout(() => pg.classList.remove("shake-page", "shake-soft"), 450);
+      }
       btn.addEventListener("click", () => {
         if (btn.disabled) return;
         btn.disabled = true;
         btn.classList.add("liked", "pop");
+        hearts(7);
         fetch(API2 + "/api/likes", { method: "POST" })
-          .then((r) => r.ok ? r.json() : null).then(show).catch(() => {});
+          .then((r) => r.ok ? r.json() : null).then((d) => { show(d); if (d && d.liked) shake(false); }).catch(() => {});
+      });
+      // Schon geliked: leichter Effekt (disabled-Buttons bekommen kein click, darum pointerdown am Eltern-Element)
+      btn.parentElement.addEventListener("pointerdown", (e) => {
+        if (!btn.disabled || !btn.classList.contains("liked")) return;
+        const r = btn.getBoundingClientRect();
+        if (e.clientX < r.left - 2 || e.clientX > r.right + 2 || e.clientY < r.top - 2 || e.clientY > r.bottom + 2) return;
+        hearts(3); shake(true);
       });
     })();
     function activityLogo(card) {
@@ -1016,6 +1082,22 @@
     <span class="live-eye"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span>
     <span id="online-text">1 gerade hier</span>
   </div>
+  <canvas id="wx" aria-hidden="true"></canvas>
+  <div id="wx-flash" aria-hidden="true"></div>
+  <div class="secret-spot" id="secret-spot" hidden></div>
+  <div class="room" id="room" hidden role="dialog" aria-label="Geheimer Raum">
+    <div class="room-box">
+      <svg class="room-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+      <h2>Geheimer Raum</h2>
+      <div class="sub">ZUGANG GEWÄHRT</div>
+      <p>Du hast etwas gefunden, das die meisten nie sehen.</p>
+      <p>Hier ist es still. Kein Chat, kein Lag, kein Ranked.<br>Nur du und dieser eine Pixel, den sonst keiner gefunden hat.</p>
+      <p>Erzähl es keinem. Oder doch. Beim nächsten Besuch ist die Tür woanders.</p>
+      <div class="code" id="room-code"></div>
+      <button type="button" id="room-back">← zurück</button>
+    </div>
+  </div>
+  <div class="sleep" id="sleep" aria-hidden="true"><span>z</span><span>z</span><span>Z</span></div>
   <div class="egg" id="egg" hidden>
     <canvas id="egg-rain"></canvas>
     <div class="egg-box"><h2>🔓 Geheimnis gefunden</h2><p>Du hast 10x auf colinse21 geklickt. Respekt.<br>Carry Freedom in Your Heart.</p><button type="button" id="egg-close">schließen</button></div>
@@ -1223,14 +1305,16 @@
       const name = document.getElementById("profile-name"), egg = document.getElementById("egg");
       const cv = document.getElementById("egg-rain"), ctx = cv.getContext("2d");
       let clicks = 0, timer, run = false;
+      let openedAt = 0;
       name.addEventListener("click", () => {
+        if (!egg.hidden) { clicks = 0; return; }
         clicks++;
         name.classList.remove("shake"); void name.offsetWidth; name.classList.add("shake");
         clearTimeout(timer); timer = setTimeout(() => { clicks = 0; }, 3000);
         if (clicks >= 10) { clicks = 0; open(); }
       });
       function open() {
-        egg.hidden = false; run = true;
+        egg.hidden = false; run = true; openedAt = Date.now();
         cv.width = cv.offsetWidth; cv.height = cv.offsetHeight;
         const cols = Math.floor(cv.width / 14), drops = Array(cols).fill(0).map(() => Math.random() * -40);
         const chars = "colinse21アイウエオカキクケコ01";
@@ -1248,8 +1332,123 @@
       }
       function close() { egg.hidden = true; run = false; ctx.clearRect(0, 0, cv.width, cv.height); }
       document.getElementById("egg-close").addEventListener("click", close);
-      egg.addEventListener("click", (e) => { if (e.target === egg || e.target === cv) close(); });
+      egg.addEventListener("click", (e) => { if (Date.now() - openedAt < 800) return; if (e.target === egg || e.target === cv) close(); });
       document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !egg.hidden) close(); });
+    })();
+    // Zitat des Tages
+    (function () {
+      const box = document.getElementById("qotd"), txt = document.getElementById("qotd-text");
+      function localIndex(n) {
+        let id = localStorage.getItem("qid");
+        if (!id) { id = Math.random().toString(36).slice(2) + Date.now().toString(36); try { localStorage.setItem("qid", id); } catch (e) {} }
+        const s = id + new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" });
+        let h = 2166136261;
+        for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+        return (h >>> 0) % n;
+      }
+      fetch("quotes.json", { cache: "no-store" }).then((r) => r.json()).then((list) => {
+        if (!Array.isArray(list) || !list.length) return;
+        const put = (i) => { txt.textContent = String(list[(i >>> 0) % list.length]); box.classList.add("on"); };
+        const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 2500);
+        fetch(API2 + "/api/quote?n=" + list.length, { signal: ctl.signal, cache: "no-store" }).then((r) => r.ok ? r.json() : Promise.reject())
+          .then((d) => { clearTimeout(to); typeof d.i === "number" ? put(d.i) : put(localIndex(list.length)); })
+          .catch(() => put(localIndex(list.length)));
+      }).catch(() => {});
+    })();
+    // Wetter-Effekt (Regen / Schnee / Gewitter)
+    (function () {
+      const cv = document.getElementById("wx"), ctx = cv.getContext("2d"), flash = document.getElementById("wx-flash");
+      const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const mobile = matchMedia("(max-width: 780px)").matches;
+      const test = new URLSearchParams(location.search).get("wetter");
+      let effect = "none", intensity = 0, parts = [], W = 0, H = 0, running = false, nextFlash = 0;
+      const Z = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
+      function size() { W = cv.width = innerWidth / Z; H = cv.height = innerHeight / Z; cv.style.width = W + "px"; cv.style.height = H + "px"; }
+      size(); addEventListener("resize", size);
+      function make(top) {
+        const snow = effect === "snow";
+        return { x: Math.random() * W, y: top ? -20 : Math.random() * H, z: Math.random() * .7 + .3,
+          v: snow ? Math.random() * .6 + .4 : Math.random() * 6 + 9, w: Math.random() * Math.PI * 2 };
+      }
+      function setEffect(e, i) {
+        effect = e; intensity = Math.max(0, Math.min(1, i || 0));
+        if (reduce || effect === "none") { parts = []; ctx.clearRect(0, 0, W, H); running = false; return; }
+        const base = effect === "snow" ? 120 : 160;
+        const n = Math.round(base * (0.35 + intensity * 0.65) * (mobile ? 0.45 : 1) * (effect === "storm" ? 1.4 : 1));
+        parts = Array.from({ length: n }, () => make(false));
+        if (!running) { running = true; requestAnimationFrame(loop); }
+      }
+      function loop(t) {
+        if (!running) return;
+        ctx.clearRect(0, 0, W, H);
+        if (!document.hidden) {
+          const snow = effect === "snow", wind = effect === "storm" ? 3 : 1.2;
+          ctx.lineCap = "round";
+          for (const p of parts) {
+            if (snow) {
+              p.w += .02; p.x += Math.sin(p.w) * .4 * p.z; p.y += p.v * p.z;
+              ctx.fillStyle = "rgba(235,238,245," + (.25 + p.z * .45).toFixed(2) + ")";
+              ctx.beginPath(); ctx.arc(p.x, p.y, 1 + p.z * 1.8, 0, Math.PI * 2); ctx.fill();
+            } else {
+              const dy = p.v * p.z, dx = wind * p.z;
+              ctx.strokeStyle = "rgba(200,205,215," + (.08 + p.z * .22).toFixed(2) + ")";
+              ctx.lineWidth = .6 + p.z * .7;
+              ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - dx * 1.6, p.y - dy * 1.6); ctx.stroke();
+              p.x += dx; p.y += dy;
+            }
+            if (p.y > H + 20 || p.x > W + 20 || p.x < -20) Object.assign(p, make(true));
+          }
+          if (effect === "storm" && t > nextFlash) {
+            if (nextFlash) flash.animate([{ opacity: 0 }, { opacity: .12 }, { opacity: 0 }, { opacity: .07 }, { opacity: 0 }], { duration: 700 });
+            nextFlash = t + 6000 + Math.random() * 14000;
+          }
+        }
+        requestAnimationFrame(loop);
+      }
+      if (["rain", "snow", "storm"].includes(test)) { setEffect(test, 0.8); return; }
+      function pull() {
+        if (document.hidden) return;
+        fetch(API2 + "/api/weather", { cache: "no-store" }).then((r) => r.ok ? r.json() : null)
+          .then((d) => { if (d && ["rain", "snow", "storm", "none"].includes(d.effect) && d.effect !== effect) setEffect(d.effect, d.intensity); }).catch(() => {});
+      }
+      pull(); setInterval(pull, 600000);
+    })();
+    // Geheimer Raum (unsichtbarer Punkt, jedes Mal woanders)
+    (function () {
+      const spot = document.getElementById("secret-spot"), room = document.getElementById("room");
+      function place() {
+        for (let i = 0; i < 30; i++) {
+          const x = 12 + Math.random() * (innerWidth - 24), y = 12 + Math.random() * (innerHeight - 24);
+          const el = document.elementFromPoint(x, y);
+          if (i < 29 && el && el.closest(".glass, button, a, input, .card, .links, .visitors, .lives")) continue;
+          spot.style.left = (x / innerWidth * 100).toFixed(2) + "%"; spot.style.top = (y / innerHeight * 100).toFixed(2) + "%";
+          spot.hidden = false; return;
+        }
+      }
+      function whenOpen() { if (document.getElementById("page").hidden) return setTimeout(whenOpen, 400); setTimeout(place, 600); }
+      whenOpen();
+      spot.addEventListener("click", () => {
+        document.getElementById("room-code").textContent = "#" + Math.random().toString(16).slice(2, 8).toUpperCase() + " · " + new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+        room.hidden = false;
+      });
+      document.getElementById("room-back").addEventListener("click", () => { room.hidden = true; });
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !room.hidden) room.hidden = true; });
+    })();
+    // Seite schläft nach 30 Sek. ohne Aktivität ein
+    (function () {
+      const el = document.getElementById("sleep");
+      const spans = el.querySelectorAll("span");
+      let timer;
+      function sleep() {
+        if (document.getElementById("page").hidden) return arm();
+        const x = 55 + Math.random() * 25, y = 40 + Math.random() * 25;
+        spans.forEach((s, i) => { s.style.left = (x + i * 3) + "%"; s.style.top = (y - i * 4) + "%"; });
+        el.classList.add("on");
+      }
+      function arm() { clearTimeout(timer); timer = setTimeout(sleep, 30000); }
+      function wake() { if (el.classList.contains("on")) el.classList.remove("on"); arm(); }
+      ["mousemove", "mousedown", "touchstart", "keydown", "wheel", "scroll"].forEach((ev) => addEventListener(ev, wake, { passive: true, capture: true }));
+      arm();
     })();
     // Cursor-Funken (nur mit Maus)
     (function () {
