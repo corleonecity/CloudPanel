@@ -322,7 +322,7 @@
     function logoGlow(color) {
       const hex = String(color || "").trim();
       if (!/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(hex)) return "";
-      return "0 0 0 1px " + hex + ", 0 0 6px 1px " + hex;
+      return "0 0 0 1px " + hex + ", 0 0 8px 2px " + hex + ", 0 0 14px 2px " + hex;
     }
     function paintButtons(list) {
       const nav = document.getElementById("links");
