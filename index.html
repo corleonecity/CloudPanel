@@ -66,12 +66,12 @@
       position: absolute; top: 50%; right: calc(50% + 14rem + 18px);
       transform: translateY(-50%);
       display: flex; flex-direction: column; gap: 8px; width: 272px;
-      max-height: calc(4 * 56px + 3 * 8px);
+      max-height: calc(4 * 56px + 3 * 8px + 20px);
       overflow-y: auto;
       overscroll-behavior: contain;
       scrollbar-width: thin;
       scrollbar-color: rgba(255,255,255,.45) transparent;
-      padding-right: 2px;
+      padding: 10px 8px;
     }
     .links::-webkit-scrollbar { width: 4px; background: transparent; }
     .links::-webkit-scrollbar-track { background: transparent; }
@@ -318,6 +318,11 @@
   <audio id="audio" preload="auto" src="song-1.mp3"></audio>
   <script>
     const API = "https://cobalt-fleet-wind-finch.grok.me";
+    function logoGlow(color) {
+      const hex = String(color || "").trim();
+      if (!/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(hex)) return "";
+      return "0 0 0 2px " + hex + ", 0 0 12px 3px " + hex + ", 0 0 24px 6px " + hex;
+    }
     function paintButtons(list) {
       const nav = document.getElementById("links");
       if (!nav || !Array.isArray(list)) return;
@@ -329,6 +334,8 @@
         img.alt = "";
         img.width = 46;
         img.height = 46;
+        const glow = logoGlow(item.farbe || item.color);
+        if (glow) img.style.boxShadow = glow;
         if (item.link) {
           const link = document.createElement("a");
           link.className = "pill glass";
