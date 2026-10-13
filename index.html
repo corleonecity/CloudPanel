@@ -66,12 +66,12 @@
       position: absolute; top: 50%; right: calc(50% + 14rem + 18px);
       transform: translateY(-50%);
       display: flex; flex-direction: column; gap: 8px; width: 272px;
-      max-height: calc(4 * 56px + 3 * 8px + 20px);
+      max-height: calc(4 * 56px + 3 * 8px + 8px);
       overflow-y: auto;
       overscroll-behavior: contain;
       scrollbar-width: thin;
       scrollbar-color: rgba(255,255,255,.45) transparent;
-      padding: 10px 8px;
+      padding: 4px 4px 4px 2px;
     }
     .links::-webkit-scrollbar { width: 4px; background: transparent; }
     .links::-webkit-scrollbar-track { background: transparent; }
@@ -82,7 +82,8 @@
       min-height: 56px; padding: 5px 14px 5px 5px; border-radius: 999px;
       text-decoration: none; color: #fff;
     }
-    .pill-ico { width: 46px; height: 46px; border-radius: 999px; object-fit: cover; flex: none; }
+    .pill-ico { width: 46px; height: 46px; border-radius: 999px; object-fit: cover; display: block; }
+    .ico-glow { width: 46px; height: 46px; border-radius: 999px; flex: none; }
     .pill-copy { flex: 1; min-width: 0; text-align: center; padding-right: 6px; }
     .pill-title { display: block; font-weight: 700; font-size: 13px; line-height: 1.15; }
     .pill-url { display: flex; justify-content: center; align-items: center; gap: 4px; margin-top: 1px; font-size: 11px; color: var(--muted); }
@@ -321,7 +322,7 @@
     function logoGlow(color) {
       const hex = String(color || "").trim();
       if (!/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(hex)) return "";
-      return "0 0 0 2px " + hex + ", 0 0 12px 3px " + hex + ", 0 0 24px 6px " + hex;
+      return "0 0 0 1px " + hex + ", 0 0 6px 1px " + hex;
     }
     function paintButtons(list) {
       const nav = document.getElementById("links");
@@ -334,15 +335,18 @@
         img.alt = "";
         img.width = 46;
         img.height = 46;
-        const glow = logoGlow(item.farbe || item.color);
-        if (glow) img.style.boxShadow = glow;
+        const glow = document.createElement("span");
+        glow.className = "ico-glow";
+        const shine = logoGlow(item.farbe || item.color);
+        if (shine) glow.style.boxShadow = shine;
+        glow.append(img);
         if (item.link) {
           const link = document.createElement("a");
           link.className = "pill glass";
           link.href = item.link;
           link.target = "_blank";
           link.rel = "noreferrer";
-          link.append(img);
+          link.append(glow);
           if (item.titel || item.text) {
             const copy = document.createElement("span");
             copy.className = "pill-copy";
@@ -364,7 +368,7 @@
         } else {
           const box = document.createElement("div");
           box.className = "pill glass empty";
-          box.append(img);
+          box.append(glow);
           nav.append(box);
         }
       });
