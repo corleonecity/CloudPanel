@@ -1144,7 +1144,7 @@
       }
       function icon(g) {
         const l = esc((g.name || "?").trim().charAt(0).toUpperCase());
-        return g.icon ? '<img class="ic" src="' + esc(g.icon) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML=\'<span class=ic>' + l + '</span>\'">' : '<span class="ic">' + l + "</span>";
+        return g.icon ? '<img class="ic" src="' + esc(g.icon) + '" alt="" referrerpolicy="no-referrer" onerror="this.outerHTML=\'<span class=ic>' + l + '</span>\'">' : '<span class="ic">' + l + "</span>";
       }
       const live = (g) => g.live ? '<span class="live">LIVE</span>' : "";
       function renderPod() {
