@@ -65,8 +65,8 @@
     .links {
       position: absolute; top: 50%; right: calc(50% + 14rem + 18px);
       transform: translateY(-50%);
-      display: flex; flex-direction: column; gap: 8px; width: 250px;
-      max-height: calc(5 * 46px + 4 * 8px);
+      display: flex; flex-direction: column; gap: 8px; width: 272px;
+      max-height: calc(4 * 56px + 3 * 8px);
       overflow-y: auto;
       overscroll-behavior: contain;
       scrollbar-width: thin;
@@ -79,14 +79,14 @@
     .stack { display: flex; flex-direction: column; gap: 8px; width: min(100%, 28rem); }
     .pill {
       display: flex; align-items: center; gap: 8px; flex: none;
-      min-height: 46px; padding: 4px 12px 4px 4px; border-radius: 999px;
+      min-height: 56px; padding: 5px 14px 5px 5px; border-radius: 999px;
       text-decoration: none; color: #fff;
     }
-    .pill-ico { width: 34px; height: 34px; border-radius: 999px; object-fit: cover; flex: none; }
+    .pill-ico { width: 46px; height: 46px; border-radius: 999px; object-fit: cover; flex: none; }
     .pill-copy { flex: 1; min-width: 0; text-align: center; padding-right: 6px; }
-    .pill-title { display: block; font-weight: 700; font-size: 12px; line-height: 1.15; }
-    .pill-url { display: flex; justify-content: center; align-items: center; gap: 4px; margin-top: 1px; font-size: 10px; color: var(--muted); }
-    .pill.empty { min-height: 46px; }
+    .pill-title { display: block; font-weight: 700; font-size: 13px; line-height: 1.15; }
+    .pill-url { display: flex; justify-content: center; align-items: center; gap: 4px; margin-top: 1px; font-size: 11px; color: var(--muted); }
+    .pill.empty { min-height: 56px; }
     @media (max-width: 1100px) {
       .wrap { display: flex; flex-direction: column; align-items: center; max-width: 28rem; margin: 0 auto; padding: 64px 16px; }
       .links { position: static; transform: none; width: 100%; order: 2; margin-top: 36px; }
@@ -243,12 +243,12 @@
       </label>
       <nav class="links" id="links" aria-label="Links">
         <a class="pill glass" href="https://discord.gg/4424J6EQBH" target="_blank" rel="noreferrer">
-          <img class="pill-ico" src="buttom1.jpeg" alt="" width="34" height="34" />
+          <img class="pill-ico" src="buttom1.jpeg" alt="" width="46" height="46" />
           <span class="pill-copy"><span class="pill-title">Discord Colin’s Community</span><span class="pill-url">discord.gg/4424J6EQBH</span></span>
         </a>
-        <div class="pill glass empty"><img class="pill-ico" src="buttom2.jpeg" alt="" width="34" height="34" /></div>
-        <div class="pill glass empty"><img class="pill-ico" src="buttom3.jpeg" alt="" width="34" height="34" /></div>
-        <div class="pill glass empty"><img class="pill-ico" src="buttom4.jpeg" alt="" width="34" height="34" /></div>
+        <div class="pill glass empty"><img class="pill-ico" src="buttom2.jpeg" alt="" width="46" height="46" /></div>
+        <div class="pill glass empty"><img class="pill-ico" src="buttom3.jpeg" alt="" width="46" height="46" /></div>
+        <div class="pill glass empty"><img class="pill-ico" src="buttom4.jpeg" alt="" width="46" height="46" /></div>
       </nav>
       <div class="stack">
       <section class="glass card">
@@ -327,8 +327,8 @@
         img.className = "pill-ico";
         img.src = item.bild || "";
         img.alt = "";
-        img.width = 34;
-        img.height = 34;
+        img.width = 46;
+        img.height = 46;
         if (item.link) {
           const link = document.createElement("a");
           link.className = "pill glass";
