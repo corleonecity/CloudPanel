@@ -682,6 +682,15 @@
     }
     // Spielzeit, Spotify-Balken und "Last played" jede Sekunde aktualisieren
     let currentCard = null;
+    // Letztes Spiel auch vom Backend holen (für alle Geräte)
+    let serverLast = null;
+    function pullLastGame() {
+      fetch(API + "/api/lastgame").then((r) => r.ok ? r.json() : null).then((d) => {
+        if (d && d.name && d.at) { serverLast = { name: d.name, at: Number(d.at) }; tickExtras(); }
+      }).catch(() => {});
+    }
+    pullLastGame();
+    setInterval(pullLastGame, 120000);
     function fmtClock(ms) {
       const t = Math.max(0, Math.floor(ms / 1000));
       return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0");
@@ -707,6 +716,7 @@
       const lp = document.getElementById("last-played");
       let last = null;
       try { last = JSON.parse(localStorage.getItem("lastGame") || "null"); } catch (e) {}
+      if (serverLast && (!last || serverLast.at > last.at)) last = serverLast;
       lp.textContent = (!card.gameName && last && last.name) ? "· Last played " + String(last.name).replace(/\s+with\s+medal\b/gi, "").trim() + " " + fmtAgo(now - last.at) : "";
       const s = card.spotify;
       if (s && s.start && s.end) {
