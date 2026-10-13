@@ -323,10 +323,10 @@
           <span class="sep">|</span>
           <button class="like row" id="like-btn" type="button" title="Like"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/></svg> <span id="likes">0</span></button>
           <span class="sep">|</span>
-          <span class="row">Deutschland, Thüringen</span>
+          <span class="row" id="profile-location">Deutschland, Thüringen</span>
         </div>
         <div class="name-row">
-          <h1>colinse21<span class="sparkle" aria-hidden="true"></span></h1>
+          <h1><span id="profile-name">colinse21</span><span class="sparkle" aria-hidden="true"></span></h1>
           <span class="gem" title="Premium" aria-label="Premium">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20"/><path d="M12 21 8 9l4-6 4 6z"/></svg>
           </span>
@@ -793,7 +793,7 @@
         }
         const sp = d.listening_to_spotify && d.spotify;
         return {
-          username: u.global_name || u.username,
+          username: u.username || u.global_name,
           avatar: u.avatar ? "https://cdn.discordapp.com/avatars/" + u.id + "/" + u.avatar + ".png?size=128" : "",
           status: d.discord_status || "offline",
           headline: game ? "Spielt " + game.name : (custom && custom.state) || "",
@@ -821,11 +821,18 @@
 
     // Tipp-Effekt in der Bio
     (function () {
-      const lines = ["Carry Freedom in Your Heart", "Thüringen, Deutschland", "Komm auf meinen Discord"];
+      let lines = ["Carry Freedom in Your Heart", "Thüringen, Deutschland", "Komm auf meinen Discord"];
       const el = document.getElementById("bio-text");
+      // Name, Ort und Bio aus profile.json laden
+      fetch("profile.json", { cache: "no-store" }).then((r) => r.ok ? r.json() : null).then((p) => {
+        if (!p) return;
+        if (p.name) { document.getElementById("profile-name").textContent = p.name; document.title = p.name; }
+        if (p.location) document.getElementById("profile-location").textContent = p.location;
+        if (Array.isArray(p.bio) && p.bio.length) { lines = p.bio.map(String); li = 0; ci = 0; del = false; }
+      }).catch(() => {});
       let li = 0, ci = 0, del = false;
       (function tick() {
-        const line = lines[li];
+        const line = lines[li % lines.length] || "";
         ci += del ? -1 : 1;
         el.textContent = line.slice(0, ci);
         let delay = del ? 40 : 80;
