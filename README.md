@@ -25,6 +25,8 @@ Alle Dateien liegen im selben Ordner wie `index.html`. Der Name muss genau so he
 | `sparkle.gif` | Das Glitzern über dem Namen. |
 | `cursor.png` | Die Maus. |
 | `bg.mp4` | Das Hintergrundvideo auf dem Handy. |
+| [`preview.png`](preview.png) | Das Vorschaubild, wenn man den Link auf Discord, WhatsApp und Co. teilt (1200×630). |
+| [`icon.png`](icon.png) | Das kleine Bild oben links im Browser-Tab und auf dem Handy-Homescreen. |
 | [`README.md`](README.md) | Diese Erklärung. |
 
 ## Was live von außen kommt
@@ -38,6 +40,7 @@ Diese Sachen kommen nicht aus einer Datei, sondern werden live geladen:
 | Likes (1 pro IP) | Cloudflare Worker |
 | Feedback im Terminal (1x pro Tag an Discord) | Cloudflare Worker |
 | „Last played“ | Cloudflare Worker |
+| Playtime im Terminal | Cloudflare Worker |
 | LIVE-Buttons (Twitch/TikTok) | Cloudflare Worker + altes Backend |
 
 Der Worker läuft unter `https://page.keulecolin2005.workers.dev`. Den Code bearbeitest du im Cloudflare-Dashboard unter **Edit code**. Der Discord-Webhook und `IP_SALT` sind dort als **Secrets** gespeichert. **Niemals** in eine Datei hier auf GitHub schreiben!
@@ -113,7 +116,10 @@ In [`commands.json`](commands.json) ist jeder Befehl ein Block:
 - `output` sind die Zeilen, die erscheinen. Für einen Link schreibst du `{ "text": "YouTube", "url": "https://..." }`.
 - Diese Platzhalter werden automatisch ausgefüllt: `{status}`, `{activity}`, `{song}`, `{time}`.
 
-`help`, `feedback`, `clear` und `exit` sind fest eingebaut und müssen nicht in die Datei.
+`help`, `feedback`, `playtime`, `clear` und `exit` sind fest eingebaut und müssen nicht in die Datei.
+
+- `feedback deine Nachricht` schickt eine Nachricht in Colins Discord (1x pro Tag pro IP).
+- `playtime` zeigt die gesamte Spielzeit pro Spiel. Gezählt wird über den Cloudflare Worker.
 
 ## Wichtig bei allen .json-Dateien
 
@@ -121,6 +127,12 @@ In [`commands.json`](commands.json) ist jeder Befehl ein Block:
 - Text immer in **"Anführungszeichen"**.
 - Listen fangen mit `[` an und hören mit `]` auf.
 - Wenn die Seite danach etwas nicht mehr anzeigt, fehlt meistens ein Komma oder Anführungszeichen.
+
+## Link-Vorschau und Icon
+
+Das Vorschaubild ist `preview.png`, das Tab-Icon ist `icon.png`. Zum Ändern lädst du einfach ein neues Bild mit genau demselben Namen hoch. Für die Vorschau am besten im Format 1200×630, für das Icon ein quadratisches Bild.
+
+Discord merkt sich alte Vorschauen eine Weile. Zum Testen hängst du `?1`, `?2` usw. an den Link.
 
 ## Hochladen
 
