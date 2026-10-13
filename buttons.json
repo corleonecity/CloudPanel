@@ -3,54 +3,63 @@
     "bild": "buttom1.jpeg",
     "titel": "Discord | Colin’s Community",
     "link": "https://discord.gg/4424J6EQBH",
-    "text": "discord.gg/4424J6EQBH"
+    "text": "discord.gg/4424J6EQBH",
+    "farbe": "#c084fc"
   },
   {
     "bild": "buttom2.jpeg",
     "titel": "Twitch | colinse21",
     "link": "https://www.twitch.tv/colinse21",
-    "text": "twitch.tv/colinse21"
+    "text": "twitch.tv/colinse21",
+    "farbe": "#9146ff"
   },
   {
     "bild": "buttom3.jpeg",
     "titel": "TikTok | Colin",
     "link": "https://www.tiktok.com/@colinsecc",
-    "text": "tiktok.com/@colinsecc"
+    "text": "tiktok.com/@colinsecc",
+    "farbe": "#25f4ee"
   },
   {
     "bild": "buttom4.jpeg",
     "titel": "TikTok | colin_rbx",
     "link": "https://www.tiktok.com/@colin_rbx",
-    "text": "tiktok.com/@colin_rbx"
+    "text": "tiktok.com/@colin_rbx",
+    "farbe": "#fe2c55"
   },
   {
     "bild": "buttom5.jpeg",
     "titel": "TikTok | colinse21",
     "link": "https://www.tiktok.com/@colinse21",
-    "text": "tiktok.com/@colinse21"
+    "text": "tiktok.com/@colinse21",
+    "farbe": "#25f4ee"
   },
   {
     "bild": "buttom6.jpeg",
     "titel": "Roblox | @lisa_qwq181",
     "link": "https://www.roblox.com/de/users/4546479845/profile",
-    "text": "roblox.com/users/4546479845"
+    "text": "roblox.com/users/4546479845",
+    "farbe": "#e2231a"
   },
   {
     "bild": "buttom8.jpeg",
     "titel": "Roblox Group | Asuna's_Crew",
     "link": "https://www.roblox.com/de/communities/16383362/Asunas-Crew#!/about",
-    "text": "roblox.com/communities/16383362"
+    "text": "roblox.com/communities/16383362",
+    "farbe": "#e2231a"
   },
   {
     "bild": "buttom7.jpeg",
     "titel": "Roblox Game | Colins Outfit-Katalog",
     "link": "https://www.roblox.com/de/games/14875755891/Colins-Outfit-Catalog",
-    "text": "roblox.com/games/14875755891"
+    "text": "roblox.com/games/14875755891",
+    "farbe": "#00a2ff"
   },
   {
-    "bild": "buttom9.jpeg",
+    "bild": "buttom1.jpeg",
     "titel": "Discord | Colins Outfit-Katalog",
     "link": "https://discord.gg/4nAxcdqAJU",
-    "text": "discord.gg/4nAxcdqAJU"
+    "text": "discord.gg/4nAxcdqAJU",
+    "farbe": "#5865f2"
   }
 ]
