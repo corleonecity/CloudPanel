@@ -827,7 +827,7 @@
       fetch("profile.json", { cache: "no-store" }).then((r) => r.ok ? r.json() : null).then((p) => {
         if (!p) return;
         if (p.name) { document.getElementById("profile-name").textContent = p.name; document.title = p.name; }
-        if (p.location) document.getElementById("profile-location").textContent = p.location;
+        if (p.location) document.getElementById("profile-location").textContent = Array.isArray(p.location) ? p.location.join(", ") : p.location;
         if (Array.isArray(p.bio) && p.bio.length) { lines = p.bio.map(String); li = 0; ci = 0; del = false; }
       }).catch(() => {});
       let li = 0, ci = 0, del = false;
@@ -915,6 +915,7 @@
       const fixed = {
         help: { desc: "alle Befehle anzeigen" },
         feedback: { desc: "&lt;text&gt;  Nachricht an Colin (1x pro Tag)" },
+        playtime: { desc: "Spielzeit gesamt pro Spiel" },
         clear: { desc: "Terminal leeren" },
         exit: { desc: "schließen" }
       };
@@ -943,6 +944,23 @@
         },
         clear: () => { out.innerHTML = ""; },
         exit: () => { box.hidden = true; },
+        playtime: () => {
+          line("Lade...", "m");
+          fetch(API2 + "/api/playtime?t=" + Date.now(), { cache: "no-store" }).then((r) => r.json()).then((d) => {
+            out.lastChild && out.lastChild.remove();
+            const games = (d && d.games) || [];
+            if (!games.length) return line("Noch keine Spielzeit gezählt.", "m");
+            const fmt = (ms) => { const m = Math.floor(ms / 60000); return Math.floor(m / 60) + "h " + String(m % 60).padStart(2, "0") + "m"; };
+            const w = Math.max(12, ...games.map((g) => g.name.length + 2));
+            const rows = ["<span class=c>" + esc("Spiel".padEnd(w)) + "Gesamt</span>"];
+            let total = 0;
+            games.forEach((g) => { total += g.ms; rows.push(esc(g.name.padEnd(w)) + fmt(g.ms).padStart(8)); });
+            rows.push("<span class=m>" + "─".repeat(w + 8) + "</span>");
+            rows.push("<span class=c>" + esc("Total".padEnd(w)) + fmt(total).padStart(8) + "</span>");
+            if (d.since) rows.push("<span class=m>gezählt seit " + new Date(d.since).toLocaleDateString("de-DE") + "</span>");
+            typeLines(rows);
+          }).catch(() => { out.lastChild && out.lastChild.remove(); line("Playtime gerade nicht verfügbar.", "m"); });
+        },
         feedback: (text) => {
           text = text.trim();
           if (text.length < 3) return line("Benutzung: <span class=c>feedback</span> deine Nachricht", "m");
