@@ -168,7 +168,7 @@
     .live-copy b { font-size: 11px; letter-spacing: .06em; }
     .live-copy span { font-size: 10px; color: var(--muted); }
     @media (max-width: 780px) {
-      .lives { position: static; transform: none; flex-direction: row; flex-wrap: wrap; justify-content: flex-end; margin-top: 8px; }
+      .lives { position: static; transform: none; flex-direction: row; flex-wrap: wrap; justify-content: center; margin-top: 8px; z-index: 5; }
     }
     .spotify {
       display: flex; align-items: center; gap: 10px;
@@ -757,11 +757,22 @@
         box.append(link);
       });
     }
+    // Live-Status: alle 20 Sek. prüfen, nicht bei einer einzelnen leeren Antwort verschwinden
+    let liveEmpty = 0;
     function pullLive() {
-      fetch(API + "/api/live").then((res) => res.ok ? res.json() : null).then((data) => { if (data) paintLive(data.items || []); }).catch(() => {});
+      fetch(API + "/api/live?t=" + Date.now(), { cache: "no-store" })
+        .then((res) => res.ok ? res.json() : null)
+        .then((data) => {
+          if (!data) return;
+          const items = data.items || [];
+          if (items.length) { liveEmpty = 0; paintLive(items); }
+          else if (++liveEmpty >= 3) paintLive([]);
+        })
+        .catch(() => {});
     }
     pullLive();
-    setInterval(pullLive, 60000);
+    setInterval(pullLive, 20000);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) pullLive(); });
 
     // Discord-Status live über Lanyard (WebSocket)
     (function () {
