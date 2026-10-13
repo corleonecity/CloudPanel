@@ -297,12 +297,12 @@
     .term-in input::placeholder { color: #6b707a; }
     /* Cursor-Funken */
     /* Gerade online – ganz oben rechts */
-    .online { position: fixed; top: 14px; right: 16px; z-index: 55; display: flex; align-items: center; gap: 7px;
+    .visitors { position: fixed; top: 14px; right: 16px; z-index: 55; display: flex; align-items: center; gap: 7px;
       padding: 7px 12px; border-radius: 999px; font-size: 12px; color: #d8dbe2;
       background: color-mix(in oklab, #101218 52%, transparent); border: 1px solid rgba(255,255,255,.1); backdrop-filter: blur(14px); }
-    .online[hidden] { display: none; }
-    .online .live-eye { position: relative; display: grid; place-items: center; }
-    .online .live-eye::after { content: ""; position: absolute; right: -3px; top: -2px; width: 6px; height: 6px; border-radius: 9px; background: #23a55a; box-shadow: 0 0 6px #23a55a; animation: blink 2s infinite; }
+    .visitors[hidden] { display: none; }
+    .visitors .live-eye { position: relative; display: grid; place-items: center; }
+    .visitors .live-eye::after { content: ""; position: absolute; right: -3px; top: -2px; width: 6px; height: 6px; border-radius: 9px; background: #23a55a; box-shadow: 0 0 6px #23a55a; animation: blink 2s infinite; }
     @keyframes blink { 50% { opacity: .35; } }
     /* Easteregg */
     .egg { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; background: rgba(0,0,0,.75); backdrop-filter: blur(6px); animation: termIn .3s ease-out; }
@@ -335,7 +335,7 @@
       .cover { width: 46px; height: 46px; }
       .term { right: 10px; left: 10px; width: auto; bottom: 68px; height: 55vh; }
       .term-btn { right: 12px; bottom: 12px; width: 42px; height: 42px; }
-      .online { top: 10px; right: 10px; padding: 6px 10px; font-size: 11px; }
+      .visitors { top: 10px; right: 10px; padding: 6px 10px; font-size: 11px; }
     }
     #sparks { position: fixed; inset: 0; pointer-events: none; z-index: 70; }
   </style>
@@ -949,7 +949,7 @@
 
   </script>
 <canvas id="sparks"></canvas>
-  <div class="online" id="online" hidden title="Gerade auf der Seite">
+  <div class="visitors" id="online" hidden title="Gerade auf der Seite">
     <span class="live-eye"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span>
     <span id="online-text">1 gerade hier</span>
   </div>
