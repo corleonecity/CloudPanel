@@ -1,0 +1,37 @@
+[
+  {
+    "name": "whoami",
+    "description": "wer ist Colin",
+    "output": ["colinse21", "Thüringen, Deutschland", "Carry Freedom in Your Heart"]
+  },
+  {
+    "name": "socials",
+    "description": "alle Links",
+    "output": [
+      { "text": "Discord | Colin's Community", "url": "https://discord.gg/4424J6EQBH" },
+      { "text": "Twitch | colinse21", "url": "https://twitch.tv/colinse21" },
+      { "text": "TikTok | Colin", "url": "https://tiktok.com/@colinsecc" },
+      { "text": "TikTok | colin_rbx", "url": "https://tiktok.com/@colin_rbx" }
+    ]
+  },
+  {
+    "name": "discord",
+    "description": "Community-Server",
+    "output": [{ "text": "discord.gg/4424J6EQBH", "url": "https://discord.gg/4424J6EQBH" }]
+  },
+  {
+    "name": "status",
+    "description": "Discord-Status",
+    "output": ["Status: {status}", "{activity}"]
+  },
+  {
+    "name": "song",
+    "description": "was läuft gerade",
+    "output": ["Spotify: {song}"]
+  },
+  {
+    "name": "time",
+    "description": "Uhrzeit bei Colin",
+    "output": ["Bei Colin ist es {time} Uhr"]
+  }
+]
