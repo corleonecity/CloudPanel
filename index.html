@@ -1182,7 +1182,18 @@
           cache[r] = d; if (id === reqId) show(d);
         }).catch(() => { if (id === reqId && !cache[r]) { pod.innerHTML = ""; list.innerHTML = '<div class="gm-msg">Spielzeit gerade nicht verfügbar. Versuch es gleich nochmal.</div>'; } });
       }
-      function open() { back.hidden = false; load(range); }
+      // Live-Spiel läuft im Popup sekundengenau mit, alle 30 Sek. frisch vom Worker
+      let tick = 0;
+      setInterval(() => {
+        if (back.hidden) return;
+        tick++;
+        let changed = false;
+        games.forEach((g) => { if (g.live) { g.seconds++; changed = true; } });
+        Object.values(cache).forEach((d) => (d.games || []).forEach((g) => { if (g.live) g.seconds = (Number(g.seconds) || 0) + 1; }));
+        if (changed && tick % 5 === 0) { renderPod(); renderList(); }
+        if (tick % 30 === 0 && !document.hidden) load(range);
+      }, 1000);
+      function open() { back.hidden = false; tick = 0; load(range); }
       function close() { back.hidden = true; }
       btn.addEventListener("click", () => back.hidden ? open() : close());
       document.getElementById("gm-x").addEventListener("click", close);
