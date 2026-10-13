@@ -239,10 +239,6 @@
     /* Visualizer */
     .viz { display: block; width: 100%; height: 8px; margin-top: 4px; opacity: .8; }
 
-    /* Gästebuch: kleiner Knopf unten rechts, Giscus im Fenster */
-    .gb-toggle { position: fixed; right: 16px; bottom: 16px; z-index: 30; padding: 8px 14px; border-radius: 999px; font-size: 12px; font-weight: 600; }
-    .guest { position: fixed; right: 16px; bottom: 58px; z-index: 30; width: 340px; max-width: calc(100vw - 32px); max-height: 60vh; overflow-y: auto; padding: 10px 12px; scrollbar-width: thin; }
-    .guest[hidden] { display: none; }
   </style>
 </head>
 <body>
@@ -337,8 +333,7 @@
       </div>
       </div>
     </div>
-    <button class="glass gb-toggle" id="gb-toggle" type="button">Gästebuch</button>
-      <section class="glass guest" id="guest" hidden><div id="giscus-box"></div></section>
+      
   </main>
   <audio id="audio" preload="auto" src="song-1.mp3"></audio>
   <script>
@@ -721,34 +716,6 @@
       document.getElementById("play").addEventListener("click", setup);
     })();
 
-    // Gästebuch über Giscus (GitHub Discussions in corleonecity/colinse21)
-    (function () {
-      let loaded = false;
-      document.getElementById("gb-toggle").addEventListener("click", () => {
-        const g = document.getElementById("guest");
-        g.hidden = !g.hidden;
-        if (loaded || g.hidden) return;
-        loaded = true;
-        const sc = document.createElement("script");
-        sc.src = "https://giscus.app/client.js";
-        sc.setAttribute("data-repo", "corleonecity/colinse21");
-        sc.setAttribute("data-repo-id", "R_kgDOQ_jNyg");
-        sc.setAttribute("data-category", "General");
-        sc.setAttribute("data-category-id", "DIC_kwDOQ_jNys4DITpE");
-        sc.setAttribute("data-mapping", "specific");
-        sc.setAttribute("data-term", "Gästebuch");
-        sc.setAttribute("data-strict", "1");
-        sc.setAttribute("data-reactions-enabled", "1");
-        sc.setAttribute("data-emit-metadata", "0");
-        sc.setAttribute("data-input-position", "top");
-        sc.setAttribute("data-theme", "transparent_dark");
-        sc.setAttribute("data-lang", "de");
-        sc.setAttribute("data-loading", "lazy");
-        sc.crossOrigin = "anonymous";
-        sc.async = true;
-        document.getElementById("giscus-box").append(sc);
-      });
-    })();
   </script>
 </body>
 </html>
