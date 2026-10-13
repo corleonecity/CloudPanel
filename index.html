@@ -869,7 +869,7 @@
 <canvas id="sparks"></canvas>
   <button class="term-btn" id="term-btn" type="button" title="Terminal">&gt;_</button>
   <div class="term" id="term" hidden>
-    <div class="term-bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><span>colin@colinse21: ~</span></div>
+    <div class="term-bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><span>Terminal</span></div>
     <div class="term-out" id="term-out"></div>
     <label class="term-in"><b>&gt;</b><input id="term-input" autocomplete="off" spellcheck="false" placeholder="help eingeben..." /></label>
   </div>
@@ -882,36 +882,70 @@
       function line(html, cls) { const d = document.createElement("div"); if (cls) d.className = cls; d.innerHTML = html; out.append(d); out.scrollTop = out.scrollHeight; }
       function esc(t) { return String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
       function typeLines(lines) { let i = 0; (function next() { if (i < lines.length) { line(lines[i++]); setTimeout(next, 45); } })(); }
+      // Feste Befehle (immer da)
+      const fixed = {
+        help: { desc: "alle Befehle anzeigen" },
+        feedback: { desc: "&lt;text&gt;  Nachricht an Colin (1x pro Tag)" },
+        clear: { desc: "Terminal leeren" },
+        exit: { desc: "schließen" }
+      };
+      // Eigene Befehle aus commands.json
+      let custom = [];
+      fetch("commands.json", { cache: "no-store" }).then((r) => r.ok ? r.json() : []).then((d) => { custom = Array.isArray(d) ? d : []; }).catch(() => {});
+      function vars(t) {
+        const sp = document.getElementById("spotify");
+        return String(t)
+          .replace(/\{status\}/g, (document.getElementById("status-dot").className.split(" ")[1]) || "offline")
+          .replace(/\{activity\}/g, document.getElementById("discord-play").textContent)
+          .replace(/\{song\}/g, sp && !sp.hidden ? document.getElementById("spotify-title").textContent + " – " + document.getElementById("spotify-artist").textContent : "nichts")
+          .replace(/\{time\}/g, new Date().toLocaleTimeString("de-DE", { timeZone: "Europe/Berlin", hour: "2-digit", minute: "2-digit" }));
+      }
+      function renderLine(l) {
+        if (l && typeof l === "object" && l.url) return '<a href="' + esc(l.url) + '" target="_blank" rel="noreferrer">' + esc(vars(l.text || l.url)) + "</a>";
+        return esc(vars(l));
+      }
       const cmds = {
-        help: () => typeLines(["Befehle:", "  <span class=c>whoami</span>   wer ist Colin", "  <span class=c>socials</span>  alle Links", "  <span class=c>discord</span>  Community-Server", "  <span class=c>status</span>   Discord-Status", "  <span class=c>song</span>     was läuft gerade", "  <span class=c>time</span>     Uhrzeit bei Colin", "  <span class=c>clear</span>    Terminal leeren", "  <span class=c>exit</span>     schließen"]),
-        whoami: () => typeLines(["colinse21", "<span class=m>Thüringen, Deutschland</span>", "Carry Freedom in Your Heart"]),
-        socials: () => {
-          const a = [...document.querySelectorAll(".links a")].filter((x) => x.href);
-          if (!a.length) return line("keine Links gefunden", "m");
-          typeLines(a.map((x) => '<a href="' + esc(x.href) + '" target="_blank" rel="noreferrer">' + esc((x.querySelector(".pill-title") || x).textContent.trim()) + "</a>"));
+        help: () => {
+          const pad = (n) => (n + "          ").slice(0, 10);
+          const rows = ["Befehle:"];
+          custom.forEach((c) => rows.push("  <span class=c>" + esc(pad(c.name)) + "</span>" + esc(c.description || "")));
+          Object.keys(fixed).forEach((k) => rows.push("  <span class=c>" + pad(k) + "</span>" + fixed[k].desc));
+          typeLines(rows);
         },
-        discord: () => line('<a href="https://discord.gg/4424J6EQBH" target="_blank" rel="noreferrer">discord.gg/4424J6EQBH</a>'),
-        status: () => {
-          const st = (document.getElementById("status-dot").className.split(" ")[1]) || "offline";
-          line("Status: <span class=c>" + esc(st) + "</span>"); line(esc(document.getElementById("discord-play").textContent));
-        },
-        song: () => {
-          const sp = document.getElementById("spotify");
-          if (sp && !sp.hidden) line("Spotify: <span class=c>" + esc(document.getElementById("spotify-title").textContent) + "</span> – " + esc(document.getElementById("spotify-artist").textContent));
-          else line("Gerade läuft nichts auf Spotify.", "m");
-        },
-        time: () => line("Bei Colin ist es <span class=c>" + new Date().toLocaleTimeString("de-DE", { timeZone: "Europe/Berlin", hour: "2-digit", minute: "2-digit" }) + "</span> Uhr"),
         clear: () => { out.innerHTML = ""; },
         exit: () => { box.hidden = true; },
-        sudo: () => line("Netter Versuch 😏", "m")
+        feedback: (text) => {
+          text = text.trim();
+          if (text.length < 3) return line("Benutzung: <span class=c>feedback</span> deine Nachricht", "m");
+          if (text.length > 300) return line("Max. 300 Zeichen.", "m");
+          line("Sende...", "m");
+          fetch("https://cobalt-fleet-wind-finch.grok.me/api/feedback", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ message: text }) })
+            .then((r) => r.json().catch(() => ({})).then((d) => ({ ok: r.ok, status: r.status, d })))
+            .then(({ ok, status, d }) => {
+              if (ok) line("✔ Gesendet! Danke für dein Feedback.", "c");
+              else if (status === 429) line("Du hast heute schon Feedback gesendet. Morgen wieder!", "m");
+              else line("Feedback ist bald verfügbar.", "m");
+            })
+            .catch(() => line("Feedback ist bald verfügbar.", "m"));
+        }
       };
+      function findCmd(name) {
+        if (cmds[name]) return cmds[name];
+        const c = custom.find((x) => String(x.name).toLowerCase() === name);
+        if (!c) return null;
+        return () => {
+          if (c.open) window.open(c.open, "_blank", "noreferrer");
+          typeLines((c.output || []).map(renderLine));
+        };
+      }
       function run(raw) {
         const c = raw.trim().toLowerCase();
         line('<span class=c>&gt;</span> ' + esc(raw));
         if (!c) return;
         hist.push(raw); hi = hist.length;
-        const f = cmds[c.split(" ")[0]];
-        f ? f() : line("Befehl nicht gefunden: " + esc(c) + " – tippe <span class=c>help</span>", "m");
+        const name = c.split(" ")[0];
+        const f = findCmd(name);
+        f ? f(raw.trim().slice(name.length)) : line("Befehl nicht gefunden: " + esc(c) + " – tippe <span class=c>help</span>", "m");
       }
       let greeted = false;
       btn.addEventListener("click", () => {
